@@ -1,98 +1,263 @@
 'use client'
 
 import { useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-interface Props {
-  stagedPhotos: File[]
-  previews: string[]
-  onAddPhotos: (files: File[]) => void
-  onRemovePhoto: (index: number) => void
+export type PhotoType = 'cover' | 'main' | 'secondary'
+
+export interface StagedPhoto {
+  file: File
+  preview: string
+  type: PhotoType
+  legende: string
 }
 
-export default function BlocB({ stagedPhotos, previews, onAddPhotos, onRemovePhoto }: Props) {
+interface Props {
+  coverPhoto: StagedPhoto | null
+  mainPhoto: StagedPhoto | null
+  secondaryPhotos: StagedPhoto[]
+  onSetCover: (file: File | null) => void
+  onSetMain: (file: File | null) => void
+  onAddSecondary: (files: File[]) => void
+  onRemoveSecondary: (index: number) => void
+  onUpdateLegende: (target: 'main', legende: string) => void
+}
+
+const MAX_SECONDARY = 6
+
+export default function BlocB({
+  coverPhoto, mainPhoto, secondaryPhotos,
+  onSetCover, onSetMain, onAddSecondary, onRemoveSecondary, onUpdateLegende,
+}: Props) {
+  return (
+    <div className="space-y-6">
+
+      {/* Photo de couverture */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Photo de couverture</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Image d'ambiance affichée en page 1 du dossier client.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SinglePhotoSlot
+            photo={coverPhoto}
+            onSet={onSetCover}
+            placeholder="Glissez la photo de couverture ici"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Photo principale intérieure */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Photo principale intérieure</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Grande photo affichée en haut de la page 2 du dossier.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <SinglePhotoSlot
+            photo={mainPhoto}
+            onSet={onSetMain}
+            placeholder="Glissez la photo principale ici"
+          />
+          {mainPhoto && (
+            <div className="space-y-1.5">
+              <Label htmlFor="legende-main">Légende (optionnelle)</Label>
+              <Input
+                id="legende-main"
+                placeholder="Ex : Salon principal · Exposition Sud-Est"
+                value={mainPhoto.legende}
+                onChange={(e) => onUpdateLegende('main', e.target.value)}
+                maxLength={80}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Apparaît en bas à gauche de la photo dans le dossier.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Photos supplémentaires */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-baseline justify-between">
+            <CardTitle className="text-base">Photos supplémentaires</CardTitle>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {secondaryPhotos.length} / {MAX_SECONDARY}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Vignettes affichées dans la grille du dossier.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <MultiPhotoSlot
+            photos={secondaryPhotos}
+            max={MAX_SECONDARY}
+            onAdd={onAddSecondary}
+            onRemove={onRemoveSecondary}
+          />
+        </CardContent>
+      </Card>
+
+    </div>
+  )
+}
+
+// ─── Sous-composants ──────────────────────────────────────────────────────────
+
+function SinglePhotoSlot({
+  photo, onSet, placeholder,
+}: {
+  photo: StagedPhoto | null
+  onSet: (file: File | null) => void
+  placeholder: string
+}) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const MAX = 10
-  const remaining = MAX - stagedPhotos.length
+
+  const handleFile = (file: File | undefined | null) => {
+    if (!file || !file.type.startsWith('image/')) return
+    onSet(file)
+  }
+
+  if (photo) {
+    return (
+      <div className="relative group rounded-xl overflow-hidden border aspect-[16/9] max-w-xl">
+        <img src={photo.preview} alt="" className="w-full h-full object-cover" />
+        <button
+          type="button"
+          onClick={() => onSet(null)}
+          className="absolute top-2 right-2 bg-black/70 text-white
+                     rounded-full w-7 h-7 text-xs flex items-center justify-center
+                     hover:bg-black/90 transition"
+          aria-label="Supprimer"
+        >
+          ✕
+        </button>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="absolute bottom-2 right-2 bg-black/70 text-white text-xs
+                     px-2.5 py-1 rounded-md hover:bg-black/90 transition"
+        >
+          Remplacer
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleFile(e.target.files?.[0])}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault()
+        handleFile(e.dataTransfer.files?.[0])
+      }}
+      onClick={() => inputRef.current?.click()}
+      className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer
+                 hover:border-foreground hover:bg-muted/40 transition-colors
+                 max-w-xl aspect-[16/9] flex flex-col items-center justify-center"
+    >
+      <p className="text-sm font-medium">{placeholder}</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        JPG, PNG, WEBP — ou cliquez pour parcourir
+      </p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+      />
+    </div>
+  )
+}
+
+function MultiPhotoSlot({
+  photos, max, onAdd, onRemove,
+}: {
+  photos: StagedPhoto[]
+  max: number
+  onAdd: (files: File[]) => void
+  onRemove: (index: number) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const remaining = max - photos.length
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return
     const images = Array.from(files).filter((f) => f.type.startsWith('image/'))
-    if (images.length > 0) onAddPhotos(images)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    handleFiles(e.dataTransfer.files)
+    if (images.length > 0) onAdd(images)
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
+    <div className="space-y-4">
 
-          {/* Zone drag-and-drop */}
-          {remaining > 0 && (
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              onClick={() => inputRef.current?.click()}
-              className="border-2 border-dashed rounded-xl p-10 text-center cursor-pointer
-                         hover:border-foreground hover:bg-muted/40 transition-colors"
-            >
-              <p className="text-sm font-medium">
-                Glissez vos photos ici ou cliquez pour sélectionner
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                JPG, PNG, WEBP — max {MAX} photos ({remaining} restante{remaining > 1 ? 's' : ''})
-              </p>
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => handleFiles(e.target.files)}
-              />
+      {remaining > 0 && (
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            handleFiles(e.dataTransfer.files)
+          }}
+          onClick={() => inputRef.current?.click()}
+          className="border-2 border-dashed rounded-xl py-6 text-center cursor-pointer
+                     hover:border-foreground hover:bg-muted/40 transition-colors"
+        >
+          <p className="text-sm font-medium">
+            Glissez vos photos ici ou cliquez pour sélectionner
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {remaining} emplacement{remaining > 1 ? 's' : ''} restant{remaining > 1 ? 's' : ''}
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+        </div>
+      )}
+
+      {photos.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {photos.map((p, i) => (
+            <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border">
+              <img src={p.preview} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => onRemove(i)}
+                className="absolute top-1.5 right-1.5 bg-black/60 text-white
+                           rounded-full w-6 h-6 text-xs flex items-center justify-center
+                           opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label="Supprimer"
+              >
+                ✕
+              </button>
+              <span className="absolute bottom-1.5 left-1.5 bg-black/50 text-white
+                               text-[10px] rounded px-1.5 py-0.5">
+                {i + 1}
+              </span>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {remaining === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-2">
-              Maximum atteint ({MAX}/{MAX} photos)
-            </p>
-          )}
-
-          {/* Grille de previews */}
-          {previews.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-              {previews.map((src, i) => (
-                <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border">
-                  <img
-                    src={src}
-                    alt={`Photo ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onRemovePhoto(i)}
-                    className="absolute top-1.5 right-1.5 bg-black/60 text-white
-                               rounded-full w-6 h-6 text-xs flex items-center justify-center
-                               opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ✕
-                  </button>
-                  <span className="absolute bottom-1.5 left-1.5 bg-black/50 text-white
-                                   text-[10px] rounded px-1.5 py-0.5">
-                    {i + 1}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-        </CardContent>
-      </Card>
     </div>
   )
 }

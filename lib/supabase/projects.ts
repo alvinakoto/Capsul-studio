@@ -15,37 +15,6 @@ function genererNomProjet(state: WizardState): string {
   return 'Nouveau projet'
 }
 
-export async function getProjectById(projectId: string, userId: string) {
-  const supabase = getClient()
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .eq('charge_id', userId)
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-export async function getProjects(userId: string) {
-  const supabase = getClient()
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select(`
-      id, name, city, adresse, type_bien, surface_m2,
-      prix_achat, apport, taux_interet_pct, taux_assurance_pct,
-      duree_annees, travaux, status, created_at
-    `)
-    .eq('charge_id', userId)
-    .order('created_at', { ascending: false })
-
-  if (error) throw error
-  return data
-}
-
 export async function createProject(state: WizardState, userId: string): Promise<string> {
   const supabase = getClient()
 
@@ -63,8 +32,14 @@ export async function createProject(state: WizardState, userId: string): Promise
       adresse: state.adresse || null,
       ville: state.ville || null,
       surface_m2: state.surface_m2 || null,
-      dpe: state.dpe || null,
       type_bien: state.type_bien || null,
+      description_bien: state.description_bien || null,
+
+      // DPE (utilise les colonnes natives dpe_actuel et dpe_apres_travaux)
+      dpe_actuel: state.dpe_actuel || null,
+      dpe_apres_travaux: state.dpe_apres_travaux || null,
+      // Maintien de la colonne "dpe" pour compat (= dpe_actuel)
+      dpe: state.dpe_actuel || null,
 
       // Finances
       frais_notaire_pct: state.frais_notaire_pct,
@@ -96,4 +71,35 @@ export async function createProject(state: WizardState, userId: string): Promise
 
   if (error) throw error
   return data.id
+}
+
+export async function getProjects(userId: string) {
+  const supabase = getClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select(`
+      id, name, city, adresse, type_bien, surface_m2,
+      prix_achat, apport, taux_interet_pct, taux_assurance_pct,
+      duree_annees, travaux, status, created_at
+    `)
+    .eq('charge_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function getProjectById(projectId: string, userId: string) {
+  const supabase = getClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', projectId)
+    .eq('charge_id', userId)
+    .single()
+
+  if (error) throw error
+  return data
 }

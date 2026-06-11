@@ -19,7 +19,7 @@ export function suggererScenarios(state: WizardState): Suggestion[] {
   const surface = Number(state.surface_m2) || 0
   const type = state.type_bien
   const ville = state.ville?.toLowerCase() || ''
-  const villesTouristiques = ['toulouse', 'amiens', 'nancy', 'troyes', 'châlons-en-champagne']
+  const villesTouristiques = ['paris', 'reims', 'toulouse', 'nancy', 'épernay']
 
   // LMNP meublé
   let scoreLMNP = 60
@@ -61,7 +61,7 @@ export function suggererScenarios(state: WizardState): Suggestion[] {
 
 export function detecterAlertes(state: WizardState): AlerteReglementaire[] {
   const alertes: AlerteReglementaire[] = []
-  const dpe = state.dpe
+  const dpe = state.dpe_actuel
   const ville = state.ville?.toLowerCase() || ''
 
   // ─── Passoire thermique
@@ -86,7 +86,8 @@ export function detecterAlertes(state: WizardState): AlerteReglementaire[] {
   }
 
   // ─── Courte durée en zone tendue
-  if (['toulouse', 'nancy'].includes(ville)) {
+  if (['paris', 'reims', 'toulouse', 'nancy'].includes(ville)) {
+
     alertes.push({
       niveau: 'warning',
       titre: 'Zone tendue — Réglementation courte durée',

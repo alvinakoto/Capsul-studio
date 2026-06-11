@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BlocA from './BlocA'
-import BlocB from './BlocB'
+import BlocB, { type StagedPhoto, type PhotoType } from './BlocB'
 import BlocC from './BlocC'
 import BlocD from './BlocD'
 import BlocE from './BlocE'
@@ -21,8 +21,10 @@ export interface WizardState {
   adresse: string
   ville: string
   surface_m2: number | ''
-  dpe: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
+  dpe_actuel: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
+  dpe_apres_travaux: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
   type_bien: 'studio' | 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6+' | 'maison' | ''
+  description_bien: string
 
   // Bloc C
   prix_achat: number | ''
@@ -59,8 +61,10 @@ const initialState: WizardState = {
   adresse: '',
   ville: '',
   surface_m2: '',
-  dpe: '',
+  dpe_actuel: '',
+  dpe_apres_travaux: '',
   type_bien: '',
+  description_bien: '',
 
   prix_achat: '',
   frais_notaire_pct: 8.0,
@@ -112,8 +116,12 @@ const BLOCS = [
 
 export default function WizardShell({ projectId }: { projectId?: string }): ReactElement {
   const [state, dispatch] = useReducer(wizardReducer, initialState)
-  const [stagedPhotos, setStagedPhotos] = useState<File[]>([])
-  const [previews, setPreviews] = useState<string[]>([])
+
+  // Photos typées
+  const [coverPhoto, setCoverPhoto] = useState<StagedPhoto | null>(null)
+  const [mainPhoto, setMainPhoto] = useState<StagedPhoto | null>(null)
+  const [secondaryPhotos, setSecondaryPhotos] = useState<StagedPhoto[]>([])
+
   const [activeBloc, setActiveBloc] = useState('A')
   const [saving, setSaving] = useState(false)
   const router = useRouter()
@@ -122,21 +130,63 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
     dispatch({ type: 'SET_FIELD', field, value })
   }
 
-  const handleAddPhotos = (files: File[]) => {
-    const remaining = 10 - stagedPhotos.length
-    const toAdd = files.slice(0, remaining)
-    setStagedPhotos((prev) => [...prev, ...toAdd])
-    const newPreviews = toAdd.map((f) => URL.createObjectURL(f))
-    setPreviews((prev) => [...prev, ...newPreviews])
+  // ─── Handlers photos ────────────────────────────────────────────────────────
+
+  const handleSetCover = (file: File | null) => {
+    if (coverPhoto) URL.revokeObjectURL(coverPhoto.preview)
+    if (file) {
+      setCoverPhoto({
+        file,
+        preview: URL.createObjectURL(file),
+        type: 'cover',
+        legende: '',
+      })
+    } else {
+      setCoverPhoto(null)
+    }
   }
 
-  const handleRemovePhoto = (index: number) => {
-    URL.revokeObjectURL(previews[index])
-    setStagedPhotos((prev) => prev.filter((_, i) => i !== index))
-    setPreviews((prev) => prev.filter((_, i) => i !== index))
+  const handleSetMain = (file: File | null) => {
+    if (mainPhoto) URL.revokeObjectURL(mainPhoto.preview)
+    if (file) {
+      setMainPhoto({
+        file,
+        preview: URL.createObjectURL(file),
+        type: 'main',
+        legende: '',
+      })
+    } else {
+      setMainPhoto(null)
+    }
   }
 
-  const handleSave = async (photos: File[]) => {
+  const handleAddSecondary = (files: File[]) => {
+    const remaining = 6 - secondaryPhotos.length
+    const toAdd = files.slice(0, remaining).map<StagedPhoto>((f) => ({
+      file: f,
+      preview: URL.createObjectURL(f),
+      type: 'secondary' as PhotoType,
+      legende: '',
+    }))
+    setSecondaryPhotos((prev) => [...prev, ...toAdd])
+  }
+
+  const handleRemoveSecondary = (index: number) => {
+    setSecondaryPhotos((prev) => {
+      URL.revokeObjectURL(prev[index].preview)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleUpdateLegende = (target: 'main', legende: string) => {
+    if (target === 'main' && mainPhoto) {
+      setMainPhoto({ ...mainPhoto, legende })
+    }
+  }
+
+  // ─── Sauvegarde ────────────────────────────────────────────────────────────
+
+  const handleSave = async () => {
     try {
       setSaving(true)
 
@@ -147,22 +197,29 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
-      // 1. Créer le projet en base
+      // 1. Créer le projet
       const newProjectId = await createProject(state, user.id)
 
-      // 2. Uploader les photos
-      if (photos.length > 0) {
-        await Promise.all(
-          photos.map((file, i) => uploadPhoto(newProjectId, file, i))
-        )
+      // 2. Uploader les photos par type
+      const uploads: Promise<void>[] = []
+      if (coverPhoto) {
+        uploads.push(uploadPhoto(newProjectId, coverPhoto.file, 0, 'cover', coverPhoto.legende))
       }
+      if (mainPhoto) {
+        uploads.push(uploadPhoto(newProjectId, mainPhoto.file, 0, 'main', mainPhoto.legende))
+      }
+      secondaryPhotos.forEach((p, i) => {
+        uploads.push(uploadPhoto(newProjectId, p.file, i, 'secondary', p.legende))
+      })
+      await Promise.all(uploads)
 
-      // 3. Rediriger vers le détail projet
+      // 3. Redirection
       router.push(`/projets/${newProjectId}`)
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erreur lors de la sauvegarde :', err)
-      alert('Une erreur est survenue. Vérifie la console.')
+      const msg = err?.message ?? err?.error_description ?? JSON.stringify(err)
+      alert(`Erreur : ${msg}`)
     } finally {
       setSaving(false)
     }
@@ -188,24 +245,20 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
           <TabsContent value="A"><BlocA state={state} setField={setField} /></TabsContent>
           <TabsContent value="B">
             <BlocB
-              stagedPhotos={stagedPhotos}
-              previews={previews}
-              onAddPhotos={handleAddPhotos}
-              onRemovePhoto={handleRemovePhoto}
+              coverPhoto={coverPhoto}
+              mainPhoto={mainPhoto}
+              secondaryPhotos={secondaryPhotos}
+              onSetCover={handleSetCover}
+              onSetMain={handleSetMain}
+              onAddSecondary={handleAddSecondary}
+              onRemoveSecondary={handleRemoveSecondary}
+              onUpdateLegende={handleUpdateLegende}
             />
           </TabsContent>
           <TabsContent value="C"><BlocC state={state} setField={setField} /></TabsContent>
           <TabsContent value="D"><BlocD state={state} setField={setField} /></TabsContent>
           <TabsContent value="E"><BlocE state={state} setField={setField} /></TabsContent>
-          <TabsContent value="F">
-  <BlocF
-    state={state}
-    onScenarioChange={(type, loyer) => {
-      setField('scenario_type' as any, type)
-      setField('loyer_cible' as any, loyer)
-    }}
-  />
-</TabsContent>
+          <TabsContent value="F"><BlocF state={state} /></TabsContent>
         </Tabs>
 
         {/* Navigation */}
@@ -227,7 +280,7 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
             </button>
           ) : (
             <button
-              onClick={() => handleSave(stagedPhotos)}
+              onClick={handleSave}
               disabled={saving}
               className="px-5 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition disabled:opacity-50"
             >
