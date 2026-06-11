@@ -105,7 +105,7 @@ export default function RecapSticky({ state }: { state: WizardState }) {
             </div>
 
             <p className="text-[10px] text-muted-foreground pt-1">
-              ¹ Notaire + honoraires — fonds propres
+              ¹ Notaire + honoraires + mobilier | fonds propres
             </p>
           </div>
 

@@ -15,6 +15,20 @@ function genererNomProjet(state: WizardState): string {
   return 'Nouveau projet'
 }
 
+export async function getProjectById(projectId: string, userId: string) {
+  const supabase = getClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', projectId)
+    .eq('charge_id', userId)
+    .single()
+
+  if (error) throw error
+  return data
+}
+
 export async function getProjects(userId: string) {
   const supabase = getClient()
 
