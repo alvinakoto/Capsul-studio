@@ -197,7 +197,15 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
           <TabsContent value="C"><BlocC state={state} setField={setField} /></TabsContent>
           <TabsContent value="D"><BlocD state={state} setField={setField} /></TabsContent>
           <TabsContent value="E"><BlocE state={state} setField={setField} /></TabsContent>
-          <TabsContent value="F"><BlocF state={state} /></TabsContent>
+          <TabsContent value="F">
+  <BlocF
+    state={state}
+    onScenarioChange={(type, loyer) => {
+      setField('scenario_type' as any, type)
+      setField('loyer_cible' as any, loyer)
+    }}
+  />
+</TabsContent>
         </Tabs>
 
         {/* Navigation */}
