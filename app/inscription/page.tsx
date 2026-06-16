@@ -14,7 +14,6 @@ export default function InscriptionPage() {
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const validate = (): string | null => {
     if (!fullName.trim()) return 'Veuillez saisir votre nom complet.'
@@ -32,6 +31,7 @@ export default function InscriptionPage() {
 
     setLoading(true)
     try {
+      const supabase = createClient()
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
