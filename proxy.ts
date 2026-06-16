@@ -29,8 +29,10 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Si non connecté et pas sur /login → redirige vers /login
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+  // Si non connecté et pas sur une page publique → redirige vers /login
+  const publicPaths = ['/login', '/inscription']
+  const isPublic = publicPaths.some(p => request.nextUrl.pathname.startsWith(p))
+  if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
