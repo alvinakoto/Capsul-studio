@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { calculerScenario } from '@/lib/calculs/index'
+import { updateProjectScenario } from '@/lib/supabase/projects'
 import ProjectionChart from './ProjectionChart'
 
 const SCENARIOS = [
@@ -18,10 +19,6 @@ function euros(n: number) {
   return n?.toLocaleString('fr-FR') + ' €'
 }
 
-function pct(n: number) {
-  return (n * 100).toFixed(2) + ' %'
-}
-
 export default function ScenarioPanel({ project }: { project: any }) {
   const [scenarioType, setScenarioType] = useState<'lmnp_meuble' | 'colocation' | 'courte_duree'>('lmnp_meuble')
   const [loyerMensuel, setLoyerMensuel]       = useState<number | ''>('')
@@ -32,8 +29,16 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const [prixNuit, setPrixNuit]               = useState<number | ''>('')
   const [nuitsCons, setNuitsCons]             = useState(16)
   const [nuitsOpti, setNuitsOpti]             = useState(22)
+  const [cfe, setCfe]                         = useState(300)
   const [result, setResult]                   = useState<any>(null)
   const [error, setError]                     = useState<string | null>(null)
+  const [saved, setSaved]                     = useState(false)
+
+  useEffect(() => {
+    if (!saved) return
+    const t = setTimeout(() => setSaved(false), 2500)
+    return () => clearTimeout(t)
+  }, [saved])
 
   // ─── Données projet → format moteur ───────────────────────────────────────
 
@@ -101,20 +106,31 @@ export default function ScenarioPanel({ project }: { project: any }) {
         scenarioInput = {
           type: 'courte_duree' as const,
           params: {
-            prixNuit:               Number(prixNuit),
-            nuitsMoisConservateur:  nuitsCons,
-            nuitsMoisOptimiste:     nuitsOpti,
-            tmiClientPct:           tmi,
-            vacancePct:             vacance,
+            prixNuitee:          Number(prixNuit),
+            nuitsConservateur:   nuitsCons,
+            nuitsOptimiste:      nuitsOpti,
+            conciergeriePct:     20,
+            electriciteEau:      chargesData.electriciteEau,
+            internet:            chargesData.internet,
+            chauffage:           chargesData.chauffage,
+            cfe,
+            tmiClientPct:        tmi,
+            regimeFiscal:        'lmnp_reel' as const,
           },
         }
       }
 
       const r = calculerScenario(projetData, financementData, chargesData, scenarioInput)
-// ↓ Ajoute ces deux lignes ici
-console.log('Résultat moteur:', r)
-console.log('Scénario:', r.scenario)
-setResult(r)
+      setResult(r)
+      setSaved(false)
+
+      const loyerCible =
+        scenarioType === 'lmnp_meuble' ? Number(loyerMensuel) :
+        scenarioType === 'colocation'  ? Number(loyerParChambre) :
+                                         Number(prixNuit)
+
+      updateProjectScenario(project.id, loyerCible, scenarioType).then(() => setSaved(true))
+
     } catch (err: any) {
       setError(err?.message ?? 'Erreur de calcul.')
       console.error(err)
@@ -140,7 +156,12 @@ setResult(r)
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => { setScenarioType(s.id as any); setResult(null); setError(null) }}
+                  onClick={() => {
+                    setScenarioType(s.id as any)
+                    setVacance(s.id === 'colocation' ? 8 : 5)
+                    setResult(null)
+                    setError(null)
+                  }}
                   className={`px-3 py-2 rounded-lg text-sm border text-left transition ${
                     scenarioType === s.id
                       ? 'bg-foreground text-background border-foreground'
@@ -193,6 +214,8 @@ setResult(r)
                   <Input type="number" min={0} value={nuitsOpti}
                     onChange={(e) => setNuitsOpti(Number(e.target.value))} />
                 </div>
+                <EuroField id="cfe" label="CFE annuelle" value={cfe}
+                  onChange={(v) => setCfe(v === '' ? 0 : v)} />
               </>
             )}
 
@@ -246,7 +269,30 @@ setResult(r)
       {result && (
         <>
           <div className="rounded-xl border bg-card p-6">
-            <h2 className="font-semibold mb-4">Résultats</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold">Résultats</h2>
+              <div className="flex items-center gap-3">
+                {saved && (
+                  <span className="text-xs text-muted-foreground">Scénario sauvegardé</span>
+                )}
+                <a
+                  href={`/api/projets/${project.id}/rapport`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-muted transition"
+                >
+                  Rapport analytique
+                </a>
+                <a
+                  href={`/api/projets/${project.id}/fiche`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 transition"
+                >
+                  Fiche commerciale
+                </a>
+              </div>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
   <Metric label="Prix projet total"   value={euros(result.prixProjetTotal)} />
   <Metric label="Capital emprunté"    value={euros(result.capitalEmprunte)} />
@@ -296,10 +342,9 @@ function EuroField({ id, label, value, onChange }: {
   )
 }
 
-function Metric({ label, value, bold = false, highlight }: {
+function Metric({ label, value, highlight }: {
   label: string
   value: string
-  bold?: boolean
   highlight?: 'green' | 'red'
 }) {
   return (

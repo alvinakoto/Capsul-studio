@@ -10,8 +10,9 @@ import BlocC from './BlocC'
 import BlocD from './BlocD'
 import BlocE from './BlocE'
 import BlocF from './BlocF'
+import type { TypeScenario } from '@/lib/engine/suggestions'
 import RecapSticky from './RecapSticky'
-import { createProject } from '@/lib/supabase/projects'
+import { createProject, updateProject } from '@/lib/supabase/projects'
 import { uploadPhoto } from '@/lib/supabase/storage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ export interface WizardState {
   electricite_eau: number
   internet: number
   chauffage: number
+  cfe: number
   autres_charges: number
 }
 
@@ -87,6 +89,7 @@ const initialState: WizardState = {
   electricite_eau: 0,
   internet: 0,
   chauffage: 0,
+  cfe: 300,
   autres_charges: 0,
 }
 
@@ -114,8 +117,19 @@ const BLOCS = [
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 
-export default function WizardShell({ projectId }: { projectId?: string }): ReactElement {
-  const [state, dispatch] = useReducer(wizardReducer, initialState)
+export default function WizardShell({
+  projectId,
+  initialData,
+  editProjectId,
+}: {
+  projectId?: string
+  initialData?: Partial<WizardState>
+  editProjectId?: string
+}): ReactElement {
+  const [state, dispatch] = useReducer(
+    wizardReducer,
+    initialData ? { ...initialState, ...initialData } : initialState
+  )
 
   // Photos typées
   const [coverPhoto, setCoverPhoto] = useState<StagedPhoto | null>(null)
@@ -124,6 +138,8 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
 
   const [activeBloc, setActiveBloc] = useState('A')
   const [saving, setSaving] = useState(false)
+  const [wizardScenario, setWizardScenario] = useState<TypeScenario | null>(null)
+  const [wizardLoyer, setWizardLoyer] = useState<number | ''>('')
   const router = useRouter()
 
   const setField = <K extends keyof WizardState>(field: K, value: WizardState[K]) => {
@@ -197,10 +213,20 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
-      // 1. Créer le projet
-      const newProjectId = await createProject(state, user.id)
+      if (editProjectId) {
+        // ── Mode édition : UPDATE sans toucher aux photos ──────────────
+        await updateProject(editProjectId, state, user.id)
+        router.push(`/projets/${editProjectId}`)
+        return
+      }
 
-      // 2. Uploader les photos par type
+      // ── Mode création : INSERT + upload photos ──────────────────────
+      const scenario =
+        wizardScenario && wizardLoyer !== ''
+          ? { loyerCible: wizardLoyer as number, scenarioType: wizardScenario }
+          : undefined
+      const newProjectId = await createProject(state, user.id, scenario)
+
       const uploads: Promise<void>[] = []
       if (coverPhoto) {
         uploads.push(uploadPhoto(newProjectId, coverPhoto.file, 0, 'cover', coverPhoto.legende))
@@ -213,7 +239,6 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
       })
       await Promise.all(uploads)
 
-      // 3. Redirection
       router.push(`/projets/${newProjectId}`)
 
     } catch (err: any) {
@@ -225,7 +250,8 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
     }
   }
 
-  const currentIndex = BLOCS.findIndex((b) => b.id === activeBloc)
+  const blocs = editProjectId ? BLOCS.filter((b) => b.id !== 'B') : BLOCS
+  const currentIndex = blocs.findIndex((b) => b.id === activeBloc)
 
   return (
     <div className="flex gap-8 items-start">
@@ -234,7 +260,7 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
       <div className="flex-1 min-w-0">
         <Tabs value={activeBloc} onValueChange={setActiveBloc}>
           <TabsList className="w-full justify-start mb-6 h-10">
-            {BLOCS.map((bloc) => (
+            {blocs.map((bloc) => (
               <TabsTrigger key={bloc.id} value={bloc.id} className="gap-1.5 text-sm">
                 <span className="font-mono text-xs opacity-50">{bloc.id}</span>
                 {bloc.label}
@@ -258,22 +284,30 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
           <TabsContent value="C"><BlocC state={state} setField={setField} /></TabsContent>
           <TabsContent value="D"><BlocD state={state} setField={setField} /></TabsContent>
           <TabsContent value="E"><BlocE state={state} setField={setField} /></TabsContent>
-          <TabsContent value="F"><BlocF state={state} /></TabsContent>
+          <TabsContent value="F">
+            <BlocF
+              state={state}
+              onScenarioChange={(type, loyer) => {
+                setWizardScenario(type)
+                setWizardLoyer(loyer)
+              }}
+            />
+          </TabsContent>
         </Tabs>
 
         {/* Navigation */}
         <div className="flex justify-between mt-8 pt-4 border-t">
           <button
-            onClick={() => setActiveBloc(BLOCS[currentIndex - 1].id)}
+            onClick={() => setActiveBloc(blocs[currentIndex - 1].id)}
             disabled={currentIndex === 0}
             className="px-4 py-2 text-sm rounded-lg border hover:bg-muted transition disabled:opacity-30 disabled:cursor-not-allowed"
           >
             ← Précédent
           </button>
 
-          {currentIndex < BLOCS.length - 1 ? (
+          {currentIndex < blocs.length - 1 ? (
             <button
-              onClick={() => setActiveBloc(BLOCS[currentIndex + 1].id)}
+              onClick={() => setActiveBloc(blocs[currentIndex + 1].id)}
               className="px-4 py-2 text-sm rounded-lg bg-foreground text-background hover:opacity-90 transition"
             >
               Suivant →
@@ -284,7 +318,7 @@ export default function WizardShell({ projectId }: { projectId?: string }): Reac
               disabled={saving}
               className="px-5 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition disabled:opacity-50"
             >
-              {saving ? 'Enregistrement...' : 'Enregistrer le projet'}
+              {saving ? 'Enregistrement...' : editProjectId ? 'Sauvegarder les modifications' : 'Enregistrer le projet'}
             </button>
           )}
         </div>

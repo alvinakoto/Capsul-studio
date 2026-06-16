@@ -155,7 +155,7 @@ export function calculerProjection(
     )
 
     const patrimoineNet = Math.round(
-      apport + capitalRembourseCumul + cashflowCumul
+      apport + capitalRembourseCumul + cashflowCumul + (valeurBien - prixBien)
     )
 
     projection.push({

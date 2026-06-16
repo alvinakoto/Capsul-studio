@@ -60,6 +60,7 @@ export interface ParamsCourteDuree {
   electriciteEau: number        // annuel
   internet: number              // annuel
   chauffage: number             // annuel
+  cfe: number                   // Cotisation Foncière des Entreprises, défaut 300
   regimeFiscal: 'micro_bic' | 'lmnp_reel'
   tmiClientPct: number
 }

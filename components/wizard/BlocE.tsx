@@ -49,6 +49,7 @@ export default function BlocE({ state, setField }: Props) {
     (state.electricite_eau || 0) +
     (state.internet || 0) +
     (state.chauffage || 0) +
+    (state.cfe || 0) +
     (state.autres_charges || 0)
 
   return (
@@ -114,6 +115,13 @@ export default function BlocE({ state, setField }: Props) {
             label="Chauffage"
             value={state.chauffage}
             onChange={(v) => setField('chauffage', Number(v) || 0)}
+          />
+          <ChargeInput
+            id="cfe"
+            label="CFE (Cotisation Foncière)"
+            value={state.cfe}
+            onChange={(v) => setField('cfe', Number(v) || 0)}
+            hint="Courte durée uniquement (~300 €/an)"
           />
           <ChargeInput
             id="autres_charges"

@@ -15,7 +15,11 @@ function genererNomProjet(state: WizardState): string {
   return 'Nouveau projet'
 }
 
-export async function createProject(state: WizardState, userId: string): Promise<string> {
+export async function createProject(
+  state: WizardState,
+  userId: string,
+  scenario?: { loyerCible: number; scenarioType: string }
+): Promise<string> {
   const supabase = getClient()
 
   const { data, error } = await supabase
@@ -27,6 +31,10 @@ export async function createProject(state: WizardState, userId: string): Promise
       city: state.ville || '',
       prix_achat: state.prix_achat || 0,
       status: 'draft',
+      ...(scenario && {
+        loyer_cible: scenario.loyerCible,
+        scenario_type: scenario.scenarioType,
+      }),
 
       // Infos bien
       adresse: state.adresse || null,
@@ -64,6 +72,7 @@ export async function createProject(state: WizardState, userId: string): Promise
       electricite_eau: state.electricite_eau,
       internet: state.internet,
       chauffage: state.chauffage,
+      cfe: state.cfe,
       autres_charges: state.autres_charges,
     })
     .select('id')
@@ -88,6 +97,71 @@ export async function getProjects(userId: string) {
 
   if (error) throw error
   return data
+}
+
+export async function updateProject(
+  projectId: string,
+  state: WizardState,
+  userId: string
+): Promise<void> {
+  const supabase = getClient()
+
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      name: genererNomProjet(state),
+      city: state.ville || '',
+
+      adresse: state.adresse || null,
+      ville: state.ville || null,
+      surface_m2: state.surface_m2 || null,
+      type_bien: state.type_bien || null,
+      description_bien: state.description_bien || null,
+
+      dpe_actuel: state.dpe_actuel || null,
+      dpe_apres_travaux: state.dpe_apres_travaux || null,
+      dpe: state.dpe_actuel || null,
+
+      frais_notaire_pct: state.frais_notaire_pct,
+      travaux: state.travaux || 0,
+      mobilier: state.mobilier || 0,
+      honoraires_capsul: state.honoraires_capsul || null,
+      honoraires_override: state.honoraires_override,
+      plan_3d: state.plan_3d,
+      autres_frais: state.autres_frais,
+
+      apport: state.apport === '' ? null : state.apport,
+      duree_annees: state.duree_annees,
+      taux_interet_pct: state.taux_interet_pct || null,
+      taux_assurance_pct: state.taux_assurance_pct,
+
+      taxe_fonciere: state.taxe_fonciere || null,
+      charges_copro_annuelles: state.charges_copro_annuelles || null,
+      assurance_pno: state.assurance_pno || null,
+      frais_comptabilite: state.frais_comptabilite || null,
+      electricite_eau: state.electricite_eau,
+      internet: state.internet,
+      chauffage: state.chauffage,
+      cfe: state.cfe,
+      autres_charges: state.autres_charges,
+    })
+    .eq('id', projectId)
+    .eq('charge_id', userId)
+
+  if (error) throw error
+}
+
+export async function updateProjectScenario(
+  projectId: string,
+  loyerCible: number,
+  scenarioType: 'lmnp_meuble' | 'colocation' | 'courte_duree'
+): Promise<void> {
+  const supabase = getClient()
+  const { error } = await supabase
+    .from('projects')
+    .update({ loyer_cible: loyerCible, scenario_type: scenarioType, status: 'simulation' })
+    .eq('id', projectId)
+  if (error) throw error
 }
 
 export async function getProjectById(projectId: string, userId: string) {

@@ -57,7 +57,8 @@ export function calculerCourteDuree(
   const chargesSpecifiquesCD =
     params.electriciteEau +
     params.internet +
-    params.chauffage
+    params.chauffage +
+    params.cfe
 
   const chargesAnnuelles = chargesGenerales + chargesSpecifiquesCD
 
