@@ -41,6 +41,8 @@ export default function InscriptionPage() {
       if (signUpError) {
         if (signUpError.message.includes('already registered')) {
           setError('Un compte existe déjà avec cet email.')
+        } else if (signUpError.message.includes('sending') || signUpError.message.includes('email')) {
+          setError('Erreur d\'envoi d\'email. Demandez à l\'admin de désactiver "Confirm email" dans Supabase → Authentication → Providers → Email.')
         } else {
           setError(signUpError.message)
         }

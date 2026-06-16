@@ -164,6 +164,27 @@ export async function updateProjectScenario(
   if (error) throw error
 }
 
+export async function updateProjectStatus(
+  projectId: string,
+  status: 'draft' | 'simulation' | 'validated' | 'archived'
+): Promise<void> {
+  const supabase = getClient()
+  const { error } = await supabase
+    .from('projects')
+    .update({ status })
+    .eq('id', projectId)
+  if (error) throw error
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  const supabase = getClient()
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', projectId)
+  if (error) throw error
+}
+
 export async function getProjectById(projectId: string, userId: string) {
   const supabase = getClient()
 
