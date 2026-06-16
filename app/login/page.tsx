@@ -87,6 +87,18 @@ export default function LoginPage() {
           </button>
         </div>
 
+        <div className="mt-6 pt-5 border-t border-gray-100">
+          <p className="text-center text-sm text-gray-500">
+            Première connexion ?{' '}
+            <a
+              href="/inscription"
+              className="font-semibold text-[#16314E] hover:text-[#e6b64c] transition-colors"
+            >
+              Créer un compte
+            </a>
+          </p>
+        </div>
+
       </div>
     </div>
   )

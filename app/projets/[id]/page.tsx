@@ -6,7 +6,6 @@ import { createBrowserClient } from '@supabase/ssr'
 import { getProjectById } from '@/lib/supabase/projects'
 import ProjetHeader from '@/components/projects/ProjetHeader'
 import ScenarioPanel from '@/components/projects/ScenarioPanel'
-import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ProjetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -37,21 +36,26 @@ export default function ProjetDetailPage() {
   }, [id])
 
   if (!id || id === 'page' || id === 'nouveau') {
-  router.push('/projets')
-  return
-}
+    router.push('/projets')
+    return
+  }
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
-      <Skeleton className="h-24 rounded-xl" />
-      <Skeleton className="h-96 rounded-xl" />
+    <div className="max-w-5xl mx-auto px-8 py-10 space-y-4">
+      {[80, 320].map((h) => (
+        <div
+          key={h}
+          className="rounded-xl animate-pulse"
+          style={{ height: h, backgroundColor: '#EDE9E1' }}
+        />
+      ))}
     </div>
   )
 
   if (!project) return null
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+    <div className="max-w-5xl mx-auto px-8 py-10 space-y-6">
       <ProjetHeader project={project} />
       <ScenarioPanel project={project} />
     </div>

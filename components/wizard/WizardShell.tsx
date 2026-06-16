@@ -258,16 +258,37 @@ export default function WizardShell({
 
       {/* Zone principale */}
       <div className="flex-1 min-w-0">
-        <Tabs value={activeBloc} onValueChange={setActiveBloc}>
-          <TabsList className="w-full justify-start mb-6 h-10">
-            {blocs.map((bloc) => (
-              <TabsTrigger key={bloc.id} value={bloc.id} className="gap-1.5 text-sm">
-                <span className="font-mono text-xs opacity-50">{bloc.id}</span>
-                {bloc.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {/* Step tabs */}
+        <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ backgroundColor: '#EDE9E1' }}>
+          {blocs.map((bloc, i) => {
+            const active = activeBloc === bloc.id
+            return (
+              <button
+                key={bloc.id}
+                onClick={() => setActiveBloc(bloc.id)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: active ? '#fff' : 'transparent',
+                  color: active ? '#0E2240' : '#6E6E73',
+                  boxShadow: active ? '0 1px 4px rgba(14,34,64,0.10)' : 'none',
+                }}
+              >
+                <span
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                  style={{
+                    backgroundColor: active ? '#0E2240' : '#DDD9D0',
+                    color: active ? '#fff' : '#6E6E73',
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <span className="hidden sm:inline">{bloc.label}</span>
+              </button>
+            )
+          })}
+        </div>
 
+        <Tabs value={activeBloc} onValueChange={setActiveBloc}>
           <TabsContent value="A"><BlocA state={state} setField={setField} /></TabsContent>
           <TabsContent value="B">
             <BlocB
@@ -296,27 +317,42 @@ export default function WizardShell({
         </Tabs>
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-4 border-t">
+        <div className="flex justify-between mt-8 pt-4" style={{ borderTop: '1px solid #EDE9E1' }}>
           <button
             onClick={() => setActiveBloc(blocs[currentIndex - 1].id)}
             disabled={currentIndex === 0}
-            className="px-4 py-2 text-sm rounded-lg border hover:bg-muted transition disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{ border: '1px solid #DDD9D0', color: '#1C1C1E', backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#F7F5F1' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
           >
-            ← Précédent
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L5 7l4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Précédent
           </button>
 
           {currentIndex < blocs.length - 1 ? (
             <button
               onClick={() => setActiveBloc(blocs[currentIndex + 1].id)}
-              className="px-4 py-2 text-sm rounded-lg bg-foreground text-background hover:opacity-90 transition"
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={{ backgroundColor: '#0E2240', color: '#fff' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#162F56' }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0E2240' }}
             >
-              Suivant →
+              Suivant
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 2l4 5-4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
           ) : (
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-5 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+              style={{ backgroundColor: '#C9943A', color: '#fff' }}
+              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#B8841F' }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#C9943A' }}
             >
               {saving ? 'Enregistrement...' : editProjectId ? 'Sauvegarder les modifications' : 'Enregistrer le projet'}
             </button>

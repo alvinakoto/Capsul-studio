@@ -6,7 +6,6 @@ import { createBrowserClient } from '@supabase/ssr'
 import { getProjectById } from '@/lib/supabase/projects'
 import WizardShell from '@/components/wizard/WizardShell'
 import type { WizardState } from '@/components/wizard/WizardShell'
-import { Skeleton } from '@/components/ui/skeleton'
 
 function projectToWizardState(p: any): Partial<WizardState> {
   return {
@@ -72,20 +71,38 @@ export default function ModifierProjetPage() {
   }, [id])
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
-      <Skeleton className="h-12 rounded-xl" />
-      <Skeleton className="h-96 rounded-xl" />
+    <div className="max-w-5xl mx-auto px-8 py-10 space-y-4">
+      {[48, 320].map((h) => (
+        <div key={h} className="rounded-xl animate-pulse" style={{ height: h, backgroundColor: '#EDE9E1' }} />
+      ))}
     </div>
   )
 
   if (!initialData) return null
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
+    <div className="max-w-5xl mx-auto px-8 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Modifier le projet</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Les photos existantes sont conservées. Pour les modifier, contactez l'administrateur.
+        <button
+          onClick={() => router.push(`/projets/${id}`)}
+          className="flex items-center gap-1.5 text-[11px] font-medium mb-4 transition-colors"
+          style={{ color: '#6E6E73' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#0E2240' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#6E6E73' }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Retour au projet
+        </button>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] mb-1" style={{ color: '#C9943A' }}>
+          Édition
+        </p>
+        <h1 className="text-[26px] font-bold tracking-tight" style={{ color: '#0E2240' }}>
+          Modifier le projet
+        </h1>
+        <p className="text-sm mt-1" style={{ color: '#6E6E73' }}>
+          Les photos existantes sont conservées.
         </p>
       </div>
       <WizardShell initialData={initialData} editProjectId={id} />

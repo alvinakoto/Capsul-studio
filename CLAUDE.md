@@ -75,13 +75,42 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - Scheduling : Microsoft Bookings (préféré à Calendly, écosystème M365)
 - Partenaires : broker VANETYS, cabinet comptable QLOWER, deux CGP
 
+## Design system UI (établi en S-UI)
+
+### Palette Capsul (définie dans `app/globals.css` via `@theme inline`)
+- `--color-capsul-navy: #0E2240` — sidebar, titres, CTAs primaires
+- `--color-capsul-gold: #C9943A` — accents, mensualité, badge simulation, bouton save
+- `--color-capsul-ivory: #F7F5F1` — fond de page
+- `--color-capsul-stone: #EDE9E1` — fond de cartes secondaires, séparateurs
+- `--color-capsul-mist: #6E6E73` — texte muted, labels
+- Police : **Montserrat** (importé via `next/font/google`, poids 400–800) — cohérent avec le PDF
+
+### Layout global
+- `components/layout/AppLayout.tsx` — wrapper client qui lit `usePathname()` et affiche la sidebar uniquement hors `/login`
+- `components/layout/Sidebar.tsx` — sidebar fixe 220px, navy, avec : logo Capsul (image `public/logo-capsul.jpg` 36×36 + texte CAPSUL/STUDIO), nav "Projets", CTA "Nouveau projet" en or, footer user + déconnexion
+- Toutes les pages authentifiées ont `margin-left: 220px` via `AppLayout`
+
+### Conventions de style UI
+- Inline styles pour les couleurs Capsul (plus fiable que classes Tailwind pour les custom tokens dans ce projet)
+- Hover handlers `onMouseEnter`/`onMouseLeave` pour les états interactifs (pas de `:hover` Tailwind sur les éléments inline-styled)
+- Badge status : pill avec dot coloré (pas de `<Badge>` shadcn) — `bg`/`color`/`dot` définis dans `STATUS_CONFIG`
+- Barre or `h-0.5` ou `h-1` en top de carte pour le statut "simulation"
+- Labels : `text-[10px] font-semibold uppercase tracking-[0.1em]` en `capsul-mist`
+- Valeurs financières clés : navy bold ; mensualité/total : or bold
+- Fil d'Ariane `← Projets` présent sur toutes les pages de détail/édition
+
+### Wizard (WizardShell)
+- Stepper pills custom (plus les `<Tabs>` shadcn visibles) : pills numérotées sur fond `#EDE9E1`, active = fond blanc + border navy
+- CTA "Suivant" = navy, "Enregistrer" = or
+
 ## État d'avancement des sprints
 
 - **S1 ✅** Auth/login, middleware de routes, affichage utilisateur
 - **S2 ✅** Moteur de calcul TypeScript, validé sur le cas Créteil T4
 - **S3 ✅** Wizard d'intake 6 blocs (A→F), `useReducer`, `RecapSticky`, upload photo
-- **S4 ✅** (déduit) Dashboard `/projets` — à confirmer
+- **S4 ✅** Dashboard `/projets` — liste projets avec cards et mensualité
 - **S5/S6 ✅** Génération PDF fiche commerciale (4 pages) + page détail projet + simulateur scénario — bugs de champs, vacance coloc, CFE, et flux téléchargement PDF résolus
+- **S-UI ✅** Refonte UI/UX globale — sidebar navigation, design system Capsul (navy/or/ivory), Montserrat, redesign dashboard/cards/header/wizard
 - **S7 (à venir)** Sprint dédié au rapport analytique PDF séparé
 
 ## Reste à faire / en cours

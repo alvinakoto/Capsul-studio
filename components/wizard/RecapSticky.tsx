@@ -68,10 +68,16 @@ export default function RecapSticky({ state }: { state: WizardState }) {
     : null
 
   return (
-    <div className="rounded-xl border bg-card p-4 text-sm space-y-4">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Récap en temps réel
-      </p>
+    <div
+      className="rounded-xl p-4 text-sm space-y-4"
+      style={{ backgroundColor: '#fff', border: '1px solid #DDD9D0' }}
+    >
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-3 rounded-full" style={{ backgroundColor: '#C9943A' }} />
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#6E6E73' }}>
+          Récap en temps réel
+        </p>
+      </div>
 
       {prixAchat === 0 ? (
         <p className="text-xs text-muted-foreground leading-relaxed">
@@ -126,9 +132,12 @@ export default function RecapSticky({ state }: { state: WizardState }) {
                   <Line label="Assurance" value={euros(assuranceMensuelle)} />
                 </>
               )}
-              <div className="flex justify-between items-baseline">
-                <span className="text-muted-foreground">Mensualité totale</span>
-                <span className="text-lg font-bold tabular-nums">
+              <div
+                className="flex justify-between items-baseline pt-2 mt-1"
+                style={{ borderTop: '1px solid #EDE9E1' }}
+              >
+                <span style={{ color: '#6E6E73' }}>Mensualité totale</span>
+                <span className="text-lg font-bold tabular-nums" style={{ color: '#C9943A' }}>
                   {euros(mensualiteTotale)}
                 </span>
               </div>
@@ -151,8 +160,13 @@ function Line({
 }) {
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-muted-foreground truncate">{label}</span>
-      <span className={bold ? 'font-semibold tabular-nums' : 'tabular-nums'}>{value}</span>
+      <span className="truncate" style={{ color: '#6E6E73' }}>{label}</span>
+      <span
+        className="tabular-nums"
+        style={{ fontWeight: bold ? 600 : 400, color: bold ? '#0E2240' : '#1C1C1E' }}
+      >
+        {value}
+      </span>
     </div>
   )
 }
