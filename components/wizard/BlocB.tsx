@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ensureJpeg, isHeicFile } from '@/lib/utils/convertHeic'
 
 export type PhotoType = 'cover' | 'main' | 'secondary'
 
@@ -120,10 +121,18 @@ function SinglePhotoSlot({
   placeholder: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [converting, setConverting] = useState(false)
 
-  const handleFile = (file: File | undefined | null) => {
-    if (!file || !file.type.startsWith('image/')) return
-    onSet(file)
+  const handleFile = async (file: File | undefined | null) => {
+    if (!file) return
+    if (!file.type.startsWith('image/') && !isHeicFile(file)) return
+    setConverting(isHeicFile(file))
+    try {
+      const jpeg = await ensureJpeg(file)
+      onSet(jpeg)
+    } finally {
+      setConverting(false)
+    }
   }
 
   if (photo) {
@@ -159,6 +168,15 @@ function SinglePhotoSlot({
     )
   }
 
+  if (converting) {
+    return (
+      <div className="border-2 border-dashed rounded-xl p-8 text-center max-w-xl aspect-[16/9] flex flex-col items-center justify-center gap-2 bg-muted/20">
+        <div className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Conversion HEIC en cours…</p>
+      </div>
+    )
+  }
+
   return (
     <div
       onDragOver={(e) => e.preventDefault()}
@@ -173,12 +191,12 @@ function SinglePhotoSlot({
     >
       <p className="text-sm font-medium">{placeholder}</p>
       <p className="text-xs text-muted-foreground mt-1">
-        JPG, PNG, WEBP — ou cliquez pour parcourir
+        JPG, PNG, WEBP, HEIC — ou cliquez pour parcourir
       </p>
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
@@ -195,43 +213,61 @@ function MultiPhotoSlot({
   onRemove: (index: number) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [converting, setConverting] = useState(false)
   const remaining = max - photos.length
 
-  const handleFiles = (files: FileList | null) => {
+  const handleFiles = async (files: FileList | null) => {
     if (!files) return
-    const images = Array.from(files).filter((f) => f.type.startsWith('image/'))
-    if (images.length > 0) onAdd(images)
+    const candidates = Array.from(files).filter(
+      (f) => f.type.startsWith('image/') || isHeicFile(f)
+    )
+    if (candidates.length === 0) return
+    const hasHeic = candidates.some(isHeicFile)
+    setConverting(hasHeic)
+    try {
+      const converted = await Promise.all(candidates.map(ensureJpeg))
+      onAdd(converted)
+    } finally {
+      setConverting(false)
+    }
   }
 
   return (
     <div className="space-y-4">
 
       {remaining > 0 && (
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault()
-            handleFiles(e.dataTransfer.files)
-          }}
-          onClick={() => inputRef.current?.click()}
-          className="border-2 border-dashed rounded-xl py-6 text-center cursor-pointer
-                     hover:border-foreground hover:bg-muted/40 transition-colors"
-        >
-          <p className="text-sm font-medium">
-            Glissez vos photos ici ou cliquez pour sélectionner
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {remaining} emplacement{remaining > 1 ? 's' : ''} restant{remaining > 1 ? 's' : ''}
-          </p>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
-          />
-        </div>
+        converting ? (
+          <div className="border-2 border-dashed rounded-xl py-6 text-center flex flex-col items-center gap-2 bg-muted/20">
+            <div className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+            <p className="text-sm text-muted-foreground">Conversion HEIC en cours…</p>
+          </div>
+        ) : (
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault()
+              handleFiles(e.dataTransfer.files)
+            }}
+            onClick={() => inputRef.current?.click()}
+            className="border-2 border-dashed rounded-xl py-6 text-center cursor-pointer
+                       hover:border-foreground hover:bg-muted/40 transition-colors"
+          >
+            <p className="text-sm font-medium">
+              Glissez vos photos ici ou cliquez pour sélectionner
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {remaining} emplacement{remaining > 1 ? 's' : ''} restant{remaining > 1 ? 's' : ''} · JPG, PNG, HEIC acceptés
+            </p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*,.heic,.heif"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+          </div>
+        )
       )}
 
       {photos.length > 0 && (

@@ -35,12 +35,20 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#16314E] flex items-center justify-center">
       <div className="bg-white rounded-2xl p-10 w-full max-w-md shadow-2xl">
 
-        <div className="text-center mb-8">
-          <div className="text-3xl font-black text-[#16314E] tracking-tight">
-            ⊕ CAPSUL <span className="text-[#e6b64c]">STUDIO</span>
-          </div>
-          <div className="text-sm text-gray-500 mt-2">
-            Espace chargés de projets
+        <div className="flex items-center gap-3 mb-8">
+          <img
+            src="/logo-capsul.jpg"
+            alt="Capsul"
+            className="rounded-lg shrink-0"
+            style={{ width: 40, height: 40, objectFit: 'cover' }}
+          />
+          <div>
+            <div className="font-bold text-[14px] tracking-wide" style={{ color: '#0E2240' }}>
+              CAPSUL STUDIO
+            </div>
+            <div className="text-[11px]" style={{ color: '#6E6E73' }}>
+              Espace chargés de projets
+            </div>
           </div>
         </div>
 
