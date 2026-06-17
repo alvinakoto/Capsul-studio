@@ -73,6 +73,7 @@ const s = StyleSheet.create({
     aspectRatio: 1.33,
     borderRadius: 2,
     backgroundColor: '#c4c0b8',
+    objectFit: 'cover',
   },
 
   // ─── Specs ────────────────────────────────────────────────────────────────
