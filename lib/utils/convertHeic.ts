@@ -1,3 +1,21 @@
+const EXT_TO_MIME: Record<string, string> = {
+  jpg:  'image/jpeg',
+  jpeg: 'image/jpeg',
+  png:  'image/png',
+  webp: 'image/webp',
+  gif:  'image/gif',
+  heic: 'image/heic',
+  heif: 'image/heif',
+}
+
+function normalizeFile(file: File): File {
+  if (file.type) return file
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  const mime = EXT_TO_MIME[ext]
+  if (!mime) return file
+  return new File([file], file.name, { type: mime })
+}
+
 export function isHeicFile(file: File): boolean {
   return (
     file.type === 'image/heic' ||
@@ -37,6 +55,8 @@ function canvasToJpeg(file: File): Promise<File> {
 }
 
 export async function ensureJpeg(file: File): Promise<File> {
+  file = normalizeFile(file)
+
   // JPEG et PNG sont gérés nativement par react-pdf — on ne re-encode pas
   const safeTypes = ['image/jpeg', 'image/jpg', 'image/png']
   if (safeTypes.includes(file.type) && !isHeicFile(file)) return file
