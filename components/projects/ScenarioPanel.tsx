@@ -23,12 +23,12 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const [scenarioType, setScenarioType] = useState<'lmnp_meuble' | 'colocation' | 'courte_duree'>('lmnp_meuble')
   const [loyerMensuel, setLoyerMensuel]       = useState<number | ''>('')
   const [tmi, setTmi]                         = useState(30)
-  const [vacance, setVacance]                 = useState(5)
-  const [nbChambres, setNbChambres]           = useState(2)
+  const [vacance, setVacance]                 = useState<number | ''>(5)
+  const [nbChambres, setNbChambres]           = useState<number | ''>(2)
   const [loyerParChambre, setLoyerParChambre] = useState<number | ''>('')
   const [prixNuit, setPrixNuit]               = useState<number | ''>('')
-  const [nuitsCons, setNuitsCons]             = useState(16)
-  const [nuitsOpti, setNuitsOpti]             = useState(22)
+  const [nuitsCons, setNuitsCons]             = useState<number | ''>(16)
+  const [nuitsOpti, setNuitsOpti]             = useState<number | ''>(22)
   const [cfe, setCfe]                         = useState(300)
   const [result, setResult]                   = useState<any>(null)
   const [error, setError]                     = useState<string | null>(null)
@@ -84,7 +84,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
           type: 'lmnp_meuble' as const,
           params: {
             loyerMensuel:  Number(loyerMensuel),
-            vacancePct:    vacance,
+            vacancePct:    Number(vacance) || 0,
             regimeFiscal:  'lmnp_reel' as const,
             tmiClientPct:  tmi,
           },
@@ -94,9 +94,9 @@ export default function ScenarioPanel({ project }: { project: any }) {
         scenarioInput = {
           type: 'colocation' as const,
           params: {
-            nbChambres,
+            nbChambres:      Number(nbChambres) || 1,
             loyerParChambre: Number(loyerParChambre),
-            vacancePct:      vacance,
+            vacancePct:      Number(vacance) || 0,
             tmiClientPct:    tmi,
             regimeFiscal:    'lmnp_reel' as const,
           },
@@ -107,8 +107,8 @@ export default function ScenarioPanel({ project }: { project: any }) {
           type: 'courte_duree' as const,
           params: {
             prixNuitee:          Number(prixNuit),
-            nuitsConservateur:   nuitsCons,
-            nuitsOptimiste:      nuitsOpti,
+            nuitsConservateur:   Number(nuitsCons) || 0,
+            nuitsOptimiste:      Number(nuitsOpti) || 0,
             conciergeriePct:     20,
             electriciteEau:      chargesData.electriciteEau,
             internet:            chargesData.internet,
@@ -191,7 +191,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
                   <Input
                     id="nbChambres" type="number" min={1} max={10}
                     value={nbChambres}
-                    onChange={(e) => setNbChambres(Number(e.target.value))}
+                    onChange={(e) => setNbChambres(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 </div>
                 <EuroField id="loyerChambre" label="Loyer / chambre" value={loyerParChambre}
@@ -207,24 +207,26 @@ export default function ScenarioPanel({ project }: { project: any }) {
                 <div className="space-y-1.5">
                   <Label>Nuits/mois conservateur</Label>
                   <Input type="number" min={0} value={nuitsCons}
-                    onChange={(e) => setNuitsCons(Number(e.target.value))} />
+                    onChange={(e) => setNuitsCons(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Nuits/mois optimiste</Label>
                   <Input type="number" min={0} value={nuitsOpti}
-                    onChange={(e) => setNuitsOpti(Number(e.target.value))} />
+                    onChange={(e) => setNuitsOpti(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
                 <EuroField id="cfe" label="CFE annuelle" value={cfe}
                   onChange={(v) => setCfe(v === '' ? 0 : v)} />
               </>
             )}
 
-            {/* Vacance (commun) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="vacance">Vacance locative (%)</Label>
-              <Input id="vacance" type="number" min={0} max={100} value={vacance}
-                onChange={(e) => setVacance(Number(e.target.value))} />
-            </div>
+            {/* Vacance (LMNP et colocation uniquement) */}
+            {scenarioType !== 'courte_duree' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="vacance">Vacance locative (%)</Label>
+                <Input id="vacance" type="number" min={0} max={100} value={vacance}
+                  onChange={(e) => setVacance(e.target.value === '' ? '' : Number(e.target.value))} />
+              </div>
+            )}
           </div>
 
           {/* TMI */}
