@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useState, type ReactElement } from 'react'
+import { useReducer, useState, useEffect, type ReactElement } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -13,7 +13,7 @@ import BlocF from './BlocF'
 import type { TypeScenario } from '@/lib/engine/suggestions'
 import RecapSticky from './RecapSticky'
 import { createProject, updateProject } from '@/lib/supabase/projects'
-import { uploadPhoto } from '@/lib/supabase/storage'
+import { uploadPhoto, getProjectPhotos, deletePhoto, type ExistingPhoto } from '@/lib/supabase/storage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,10 +131,32 @@ export default function WizardShell({
     initialData ? { ...initialState, ...initialData } : initialState
   )
 
-  // Photos typées
+  // Photos staged (nouvelles)
   const [coverPhoto, setCoverPhoto] = useState<StagedPhoto | null>(null)
   const [mainPhoto, setMainPhoto] = useState<StagedPhoto | null>(null)
   const [secondaryPhotos, setSecondaryPhotos] = useState<StagedPhoto[]>([])
+
+  // Photos existantes (mode édition)
+  const [existingCover, setExistingCover] = useState<ExistingPhoto | null>(null)
+  const [existingMain, setExistingMain] = useState<ExistingPhoto | null>(null)
+  const [existingSecondary, setExistingSecondary] = useState<ExistingPhoto[]>([])
+
+  // Chargement des photos existantes en mode édition
+  useEffect(() => {
+    if (!editProjectId) return
+    getProjectPhotos(editProjectId).then((photos) => {
+      setExistingCover(photos.find((p) => p.type === 'cover') ?? null)
+      setExistingMain(photos.find((p) => p.type === 'main') ?? null)
+      setExistingSecondary(photos.filter((p) => p.type === 'secondary'))
+    })
+  }, [editProjectId])
+
+  const handleDeleteExisting = async (photo: ExistingPhoto) => {
+    await deletePhoto(photo.id, photo.storagePath)
+    if (photo.type === 'cover') setExistingCover(null)
+    else if (photo.type === 'main') setExistingMain(null)
+    else setExistingSecondary((prev) => prev.filter((p) => p.id !== photo.id))
+  }
 
   const [activeBloc, setActiveBloc] = useState('A')
   const [saving, setSaving] = useState(false)
@@ -214,8 +236,17 @@ export default function WizardShell({
       if (!user) throw new Error('Non connecté')
 
       if (editProjectId) {
-        // ── Mode édition : UPDATE sans toucher aux photos ──────────────
+        // ── Mode édition : UPDATE + upload des nouvelles photos ─────────
         await updateProject(editProjectId, state, user.id)
+        const uploads: Promise<void>[] = []
+        if (coverPhoto)
+          uploads.push(uploadPhoto(editProjectId, coverPhoto.file, 0, 'cover', coverPhoto.legende))
+        if (mainPhoto)
+          uploads.push(uploadPhoto(editProjectId, mainPhoto.file, 0, 'main', mainPhoto.legende))
+        secondaryPhotos.forEach((p, i) =>
+          uploads.push(uploadPhoto(editProjectId, p.file, existingSecondary.length + i, 'secondary', p.legende))
+        )
+        await Promise.all(uploads)
         router.push(`/projets/${editProjectId}`)
         return
       }
@@ -250,7 +281,7 @@ export default function WizardShell({
     }
   }
 
-  const blocs = editProjectId ? BLOCS.filter((b) => b.id !== 'B') : BLOCS
+  const blocs = BLOCS
   const currentIndex = blocs.findIndex((b) => b.id === activeBloc)
 
   return (
@@ -300,6 +331,10 @@ export default function WizardShell({
               onAddSecondary={handleAddSecondary}
               onRemoveSecondary={handleRemoveSecondary}
               onUpdateLegende={handleUpdateLegende}
+              existingCover={existingCover}
+              existingMain={existingMain}
+              existingSecondary={existingSecondary}
+              onDeleteExisting={handleDeleteExisting}
             />
           </TabsContent>
           <TabsContent value="C"><BlocC state={state} setField={setField} /></TabsContent>

@@ -2,6 +2,15 @@ import { createBrowserClient } from '@supabase/ssr'
 
 export type PhotoType = 'cover' | 'main' | 'secondary'
 
+export interface ExistingPhoto {
+  id: string
+  publicUrl: string
+  storagePath: string
+  type: PhotoType
+  legende: string | null
+  ordre: number
+}
+
 function getClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,4 +54,29 @@ export async function uploadPhoto(
     })
 
   if (dbError) throw dbError
+}
+
+export async function getProjectPhotos(projectId: string): Promise<ExistingPhoto[]> {
+  const supabase = getClient()
+  const { data, error } = await supabase
+    .from('project_images')
+    .select('id, public_url, storage_path, type, legende, ordre')
+    .eq('project_id', projectId)
+    .order('ordre')
+  if (error) throw error
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    publicUrl: r.public_url,
+    storagePath: r.storage_path,
+    type: r.type as PhotoType,
+    legende: r.legende,
+    ordre: r.ordre,
+  }))
+}
+
+export async function deletePhoto(photoId: string, storagePath: string): Promise<void> {
+  const supabase = getClient()
+  await supabase.storage.from('project-images').remove([storagePath])
+  const { error } = await supabase.from('project_images').delete().eq('id', photoId)
+  if (error) throw error
 }

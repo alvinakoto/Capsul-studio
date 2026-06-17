@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ensureJpeg, isHeicFile } from '@/lib/utils/convertHeic'
+import type { ExistingPhoto } from '@/lib/supabase/storage'
 
 export type PhotoType = 'cover' | 'main' | 'secondary'
 
@@ -24,6 +25,11 @@ interface Props {
   onAddSecondary: (files: File[]) => void
   onRemoveSecondary: (index: number) => void
   onUpdateLegende: (target: 'main', legende: string) => void
+  // Mode édition — photos déjà uploadées
+  existingCover?: ExistingPhoto | null
+  existingMain?: ExistingPhoto | null
+  existingSecondary?: ExistingPhoto[]
+  onDeleteExisting?: (photo: ExistingPhoto) => void
 }
 
 const MAX_SECONDARY = 6
@@ -31,7 +37,9 @@ const MAX_SECONDARY = 6
 export default function BlocB({
   coverPhoto, mainPhoto, secondaryPhotos,
   onSetCover, onSetMain, onAddSecondary, onRemoveSecondary, onUpdateLegende,
+  existingCover, existingMain, existingSecondary = [], onDeleteExisting,
 }: Props) {
+  const usedSecondarySlots = existingSecondary.length + secondaryPhotos.length
   return (
     <div className="space-y-6">
 
@@ -46,7 +54,9 @@ export default function BlocB({
         <CardContent>
           <SinglePhotoSlot
             photo={coverPhoto}
+            existing={existingCover}
             onSet={onSetCover}
+            onDeleteExisting={onDeleteExisting}
             placeholder="Glissez la photo de couverture ici"
           />
         </CardContent>
@@ -63,7 +73,9 @@ export default function BlocB({
         <CardContent className="space-y-4">
           <SinglePhotoSlot
             photo={mainPhoto}
+            existing={existingMain}
             onSet={onSetMain}
+            onDeleteExisting={onDeleteExisting}
             placeholder="Glissez la photo principale ici"
           />
           {mainPhoto && (
@@ -90,7 +102,7 @@ export default function BlocB({
           <div className="flex items-baseline justify-between">
             <CardTitle className="text-base">Photos supplémentaires</CardTitle>
             <span className="text-xs text-muted-foreground tabular-nums">
-              {secondaryPhotos.length} / {MAX_SECONDARY}
+              {usedSecondarySlots} / {MAX_SECONDARY}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
@@ -100,9 +112,11 @@ export default function BlocB({
         <CardContent>
           <MultiPhotoSlot
             photos={secondaryPhotos}
+            existing={existingSecondary}
             max={MAX_SECONDARY}
             onAdd={onAddSecondary}
             onRemove={onRemoveSecondary}
+            onDeleteExisting={onDeleteExisting}
           />
         </CardContent>
       </Card>
@@ -114,10 +128,12 @@ export default function BlocB({
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function SinglePhotoSlot({
-  photo, onSet, placeholder,
+  photo, existing, onSet, onDeleteExisting, placeholder,
 }: {
   photo: StagedPhoto | null
+  existing?: ExistingPhoto | null
   onSet: (file: File | null) => void
+  onDeleteExisting?: (p: ExistingPhoto) => void
   placeholder: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -141,6 +157,7 @@ function SinglePhotoSlot({
     }
   }
 
+  // Photo nouvellement sélectionnée (priorité sur l'existante)
   if (photo) {
     return (
       <div className="relative group rounded-xl overflow-hidden border aspect-[16/9] max-w-xl">
@@ -151,10 +168,46 @@ function SinglePhotoSlot({
           className="absolute top-2 right-2 bg-black/70 text-white
                      rounded-full w-7 h-7 text-xs flex items-center justify-center
                      hover:bg-black/90 transition"
-          aria-label="Supprimer"
+          aria-label="Annuler"
         >
           ✕
         </button>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="absolute bottom-2 right-2 bg-black/70 text-white text-xs
+                     px-2.5 py-1 rounded-md hover:bg-black/90 transition"
+        >
+          Changer
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*,.heic,.heif"
+          className="hidden"
+          onChange={(e) => handleFile(e.target.files?.[0])}
+        />
+      </div>
+    )
+  }
+
+  // Photo déjà uploadée (mode édition)
+  if (existing) {
+    return (
+      <div className="relative group rounded-xl overflow-hidden border aspect-[16/9] max-w-xl">
+        <img src={existing.publicUrl} alt="" className="w-full h-full object-cover" />
+        {onDeleteExisting && (
+          <button
+            type="button"
+            onClick={() => onDeleteExisting(existing)}
+            className="absolute top-2 right-2 bg-black/70 text-white
+                       rounded-full w-7 h-7 text-xs flex items-center justify-center
+                       hover:bg-black/90 transition"
+            aria-label="Supprimer"
+          >
+            ✕
+          </button>
+        )}
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -214,17 +267,19 @@ function SinglePhotoSlot({
 }
 
 function MultiPhotoSlot({
-  photos, max, onAdd, onRemove,
+  photos, existing = [], max, onAdd, onRemove, onDeleteExisting,
 }: {
   photos: StagedPhoto[]
+  existing?: ExistingPhoto[]
   max: number
   onAdd: (files: File[]) => void
   onRemove: (index: number) => void
+  onDeleteExisting?: (p: ExistingPhoto) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [converting, setConverting] = useState(false)
   const [convertError, setConvertError] = useState<string | null>(null)
-  const remaining = max - photos.length
+  const remaining = max - existing.length - photos.length
 
   const handleFiles = async (files: FileList | null) => {
     if (!files) return
@@ -286,8 +341,31 @@ function MultiPhotoSlot({
         )
       )}
 
-      {photos.length > 0 && (
+      {(existing.length > 0 || photos.length > 0) && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {/* Photos déjà uploadées */}
+          {existing.map((p, i) => (
+            <div key={p.id} className="relative group aspect-square rounded-lg overflow-hidden border">
+              <img src={p.publicUrl} alt="" className="w-full h-full object-cover" />
+              {onDeleteExisting && (
+                <button
+                  type="button"
+                  onClick={() => onDeleteExisting(p)}
+                  className="absolute top-1.5 right-1.5 bg-black/60 text-white
+                             rounded-full w-6 h-6 text-xs flex items-center justify-center
+                             opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Supprimer"
+                >
+                  ✕
+                </button>
+              )}
+              <span className="absolute bottom-1.5 left-1.5 bg-black/50 text-white
+                               text-[10px] rounded px-1.5 py-0.5">
+                {i + 1}
+              </span>
+            </div>
+          ))}
+          {/* Nouvelles photos (staged) */}
           {photos.map((p, i) => (
             <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border">
               <img src={p.preview} alt="" className="w-full h-full object-cover" />
@@ -303,7 +381,7 @@ function MultiPhotoSlot({
               </button>
               <span className="absolute bottom-1.5 left-1.5 bg-black/50 text-white
                                text-[10px] rounded px-1.5 py-0.5">
-                {i + 1}
+                {existing.length + i + 1}
               </span>
             </div>
           ))}
