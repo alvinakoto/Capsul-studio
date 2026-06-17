@@ -46,6 +46,8 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - Bug (C) résolu : `loyer_cible` et `scenario_type` sauvegardés en base via `updateProjectScenario()` au clic "Calculer" dans `ScenarioPanel` (status passe à `'simulation'`) ; bouton "Télécharger la fiche" affiché dans la section résultats ; route PDF colocation corrigée (`loyerParChambre: loyer` direct, sans division par 3) ; colonnes `loyer_cible NUMERIC(10,2)` et `scenario_type TEXT` ajoutées à la table `projects`
 - Logo page login : le caractère `⊕` remplacé par l'image `/logo-capsul.jpg` (40×40, arrondie) + texte "CAPSUL STUDIO" — cohérent avec la page inscription
 - Photos HEIC (iPhone) silencieusement rejetées à l'upload → corrigé via `lib/utils/convertHeic.ts` (`ensureJpeg()`) branché dans `BlocB.tsx` : détection par MIME **et** extension (les iPhone envoient souvent `type = ""`), conversion `heic2any` → JPEG 92% avant upload Supabase, spinner "Conversion HEIC en cours…" pendant le traitement, `accept="image/*,.heic,.heif"` sur tous les inputs photo
+- Zéros insécables dans `ScenarioPanel` : inputs `type="number"` avec `onChange={() => setX(Number(e.target.value))}` remettaient `0` dès que le champ était vidé (backspace bloqué) → tous les champs numériques (`vacance`, `nbChambres`, `nuitsCons`, `nuitsOpti`) passés en `number | ''` avec même pattern que `EuroField` ; `handleCalculer` utilise `Number(x) || fallback` pour les valeurs vides
+- Champ "Vacance locative" masqué pour le scénario courte durée (redondant avec nuits/mois conservateur et optimiste)
 
 ## Schéma Supabase — points clés
 
