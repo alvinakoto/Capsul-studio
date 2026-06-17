@@ -122,14 +122,20 @@ function SinglePhotoSlot({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [converting, setConverting] = useState(false)
+  const [convertError, setConvertError] = useState<string | null>(null)
 
   const handleFile = async (file: File | undefined | null) => {
     if (!file) return
-    if (!file.type.startsWith('image/') && !isHeicFile(file)) return
-    setConverting(isHeicFile(file))
+    const isImage = file.type.startsWith('image/') || isHeicFile(file) ||
+      /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name)
+    if (!isImage) return
+    setConverting(true)
+    setConvertError(null)
     try {
       const jpeg = await ensureJpeg(file)
       onSet(jpeg)
+    } catch {
+      setConvertError('Impossible de lire cette photo. Essayez de l\'exporter en JPG depuis Photos.')
     } finally {
       setConverting(false)
     }
@@ -160,7 +166,7 @@ function SinglePhotoSlot({
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           className="hidden"
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
@@ -172,7 +178,7 @@ function SinglePhotoSlot({
     return (
       <div className="border-2 border-dashed rounded-xl p-8 text-center max-w-xl aspect-[16/9] flex flex-col items-center justify-center gap-2 bg-muted/20">
         <div className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Conversion HEIC en cours…</p>
+        <p className="text-sm text-muted-foreground">Conversion en cours…</p>
       </div>
     )
   }
@@ -193,6 +199,9 @@ function SinglePhotoSlot({
       <p className="text-xs text-muted-foreground mt-1">
         JPG, PNG, WEBP, HEIC — ou cliquez pour parcourir
       </p>
+      {convertError && (
+        <p className="text-xs text-red-500 mt-2 max-w-xs">{convertError}</p>
+      )}
       <input
         ref={inputRef}
         type="file"
@@ -214,19 +223,23 @@ function MultiPhotoSlot({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [converting, setConverting] = useState(false)
+  const [convertError, setConvertError] = useState<string | null>(null)
   const remaining = max - photos.length
 
   const handleFiles = async (files: FileList | null) => {
     if (!files) return
     const candidates = Array.from(files).filter(
-      (f) => f.type.startsWith('image/') || isHeicFile(f)
+      (f) => f.type.startsWith('image/') || isHeicFile(f) ||
+        /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(f.name)
     )
     if (candidates.length === 0) return
-    const hasHeic = candidates.some(isHeicFile)
-    setConverting(hasHeic)
+    setConverting(true)
+    setConvertError(null)
     try {
       const converted = await Promise.all(candidates.map(ensureJpeg))
       onAdd(converted)
+    } catch {
+      setConvertError('Une ou plusieurs photos n\'ont pas pu être converties.')
     } finally {
       setConverting(false)
     }
@@ -258,6 +271,9 @@ function MultiPhotoSlot({
             <p className="text-xs text-muted-foreground mt-1">
               {remaining} emplacement{remaining > 1 ? 's' : ''} restant{remaining > 1 ? 's' : ''} · JPG, PNG, HEIC acceptés
             </p>
+            {convertError && (
+              <p className="text-xs text-red-500 mt-2">{convertError}</p>
+            )}
             <input
               ref={inputRef}
               type="file"
