@@ -41,7 +41,7 @@ export const VERDICT_ICON: Record<string, string> = {
 
 export const ECART_COLORS: Record<string, { bg: string; text: string }> = {
   superieur: { bg: '#DCFCE7', text: '#15803D' },
-  egal: { bg: '#F1F5F9', text: '#64748B' },
+  egal: { bg: '#f6f4f1', text: '#7a7872' },
   inferieur: { bg: '#FEE2E2', text: '#B91C1C' },
 };
 

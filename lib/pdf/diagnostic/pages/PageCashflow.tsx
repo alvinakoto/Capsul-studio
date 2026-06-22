@@ -4,36 +4,52 @@ import { DiagnosticPayload } from '../types';
 import { fmtInt } from '../format';
 import { getDepensesAnnuelles, getTaxeMois, getAssuranceMois, getVacanceEuros } from '../calculations';
 import { VERDICT_COLORS } from '../styles';
-import { interiorBase, PageHeader, PageFooter, SectionHeader } from './PageChrome';
+import {
+  C, interiorBase, dS,
+  PageHeader, PageFooter, SecLabel,
+} from './PageChrome';
 
 const s = StyleSheet.create({
-  columns: { flexDirection: 'row', gap: 14 },
-  col: { flex: 1, borderRadius: 12 },
-  colHeader: { padding: '10 14', flexDirection: 'row', alignItems: 'center' },
-  colHeaderLabel: { fontSize: 9, fontFamily: 'Montserrat', fontWeight: 700, letterSpacing: 0.6 },
-  colHeaderAmount: { marginLeft: 'auto', fontSize: 13, fontFamily: 'Montserrat', fontWeight: 700 },
-  colBody: { borderWidth: 1, borderColor: '#E2E8F0', borderTopWidth: 0 },
-  item: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '8 14', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  itemEven: { backgroundColor: '#F8FAFC' },
-  itemLabel: { fontSize: 11, color: '#475569' },
-  itemNote: { fontSize: 8, color: '#94A3B8', marginTop: 1 },
-  itemValue: { fontSize: 12, fontFamily: 'Montserrat', fontWeight: 700, color: '#1E293B' },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '10 14', fontFamily: 'Montserrat', fontWeight: 700 },
+  columns: { flexDirection: 'row', gap: 12 },
+  col: { flex: 1 },
 
-  result: { borderRadius: 14, padding: '18 20', borderWidth: 2, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  resultLabel: { fontSize: 9, fontFamily: 'Montserrat', fontWeight: 700, letterSpacing: 0.6, color: '#94A3B8' },
-  resultFormula: { fontSize: 11, color: '#64748B', marginTop: 2 },
-  resultValue: { fontSize: 38, fontFamily: 'Montserrat', fontWeight: 700, marginTop: 2 },
-  resultAnnualLabel: { fontSize: 9, color: '#94A3B8', marginBottom: 3, textAlign: 'right' },
-  resultAnnualValue: { fontSize: 17, fontFamily: 'Montserrat', fontWeight: 700, color: '#1E293B', textAlign: 'right' },
+  colHead: {
+    paddingTop: 8, paddingBottom: 8, paddingLeft: 12, paddingRight: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  colHeadLabel: { fontSize: 6, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase' },
+  colHeadAmount: { fontSize: 11, fontWeight: 700 },
 
-  bilanGrid: { flexDirection: 'row', gap: 10 },
-  bilanCard: { flex: 1, borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1 },
-  bilanLabel: { fontSize: 9, fontFamily: 'Montserrat', fontWeight: 700, marginBottom: 5, textAlign: 'center' },
-  bilanValue: { fontSize: 16, fontFamily: 'Montserrat', fontWeight: 700, color: '#1E293B' },
+  colBody: { borderWidth: 1, borderColor: C.rule, borderTopWidth: 0 },
+  item: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingTop: 7, paddingBottom: 7, paddingLeft: 10, paddingRight: 10,
+    borderBottom: `0.5pt solid ${C.rule}`,
+  },
+  itemAlt: { backgroundColor: C.paper },
+  itemLabel: { fontSize: 8, color: C.ink, fontWeight: 300 },
+  itemNote: { fontSize: 6.5, color: C.muted, fontWeight: 300, marginTop: 1 },
+  itemValue: { fontSize: 9, fontWeight: 700, color: C.navy },
 
-  noteBox: { backgroundColor: '#F8FAFC', borderRadius: 8, padding: '10 14', borderLeftWidth: 3, borderLeftColor: '#CBD5E1' },
-  noteText: { fontSize: 9.5, color: '#64748B', lineHeight: 1.5 },
+  colFoot: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingTop: 8, paddingBottom: 8, paddingLeft: 10, paddingRight: 10,
+    borderTopWidth: 1,
+  },
+  colFootLabel: { fontSize: 7.5, fontWeight: 700 },
+  colFootValue: { fontSize: 10, fontWeight: 700 },
+
+  // Résultat net
+  resultBox: {
+    paddingTop: 14, paddingBottom: 14, paddingLeft: 18, paddingRight: 18,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    borderLeftWidth: 3,
+  },
+  resultLabel: { fontSize: 6, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 5 },
+  resultFormula: { fontSize: 7.5, color: C.muted, fontWeight: 300, marginBottom: 4 },
+  resultValue: { fontSize: 28, fontWeight: 700 },
+  resultAnnualLabel: { fontSize: 6, color: C.muted, fontWeight: 300, textAlign: 'right', marginBottom: 3 },
+  resultAnnualValue: { fontSize: 14, fontWeight: 700, color: C.navy, textAlign: 'right' },
 });
 
 export function PageCashflow({ p }: { p: DiagnosticPayload }) {
@@ -42,50 +58,46 @@ export function PageCashflow({ p }: { p: DiagnosticPayload }) {
   const assuranceMois = getAssuranceMois(p);
   const depensesAnnuelles = getDepensesAnnuelles(p);
   const vc = VERDICT_COLORS[p.verdictNiveau] ?? VERDICT_COLORS.neutre;
-  const cfPositif = p.cashFlowMensuel >= 0;
+  const cfPos = p.cashFlowMensuel >= 0;
 
   return (
     <Page size="A4" style={interiorBase.page}>
-      <PageHeader section="Analyse cash-flow" p={p} />
+      <PageHeader section="Analyse cash-flow" page={4} />
       <View style={interiorBase.content}>
-        <SectionHeader
-          title="Recettes et dépenses mensuelles"
-          subtitle="Décomposition détaillée de votre flux de trésorerie chaque mois"
-        />
+
+        <SecLabel>Recettes et dépenses mensuelles</SecLabel>
 
         <View style={s.columns}>
           {/* RECETTES */}
           <View style={s.col}>
-            <View style={[s.colHeader, { backgroundColor: '#DCFCE7' }]}>
-              <Text style={[s.colHeaderLabel, { color: '#166534' }]}>RECETTES</Text>
-              <Text style={[s.colHeaderAmount, { color: '#166534' }]}>+ {fmtInt(p.recettesMensuelles)} €</Text>
+            <View style={[s.colHead, { backgroundColor: '#d1fae5' }]}>
+              <Text style={[s.colHeadLabel, { color: C.green }]}>Recettes</Text>
+              <Text style={[s.colHeadAmount, { color: C.green }]}>+ {fmtInt(p.recettesMensuelles)} €</Text>
             </View>
             <View style={s.colBody}>
               <View style={s.item}>
-                <View>
-                  <Text style={s.itemLabel}>Loyer mensuel brut</Text>
-                </View>
+                <Text style={s.itemLabel}>Loyer mensuel brut</Text>
                 <Text style={s.itemValue}>{fmtInt(p.loyerMensuel)} €</Text>
               </View>
-              <View style={[s.item, s.itemEven]}>
+              <View style={[s.item, s.itemAlt]}>
                 <View>
                   <Text style={s.itemLabel}>Vacance locative</Text>
                   <Text style={s.itemNote}>5 % du loyer annuel estimé</Text>
                 </View>
-                <Text style={[s.itemValue, { color: '#EA580C' }]}>- {fmtInt(vacanceEuros)} €</Text>
+                <Text style={[s.itemValue, { color: C.red }]}>- {fmtInt(vacanceEuros)} €</Text>
               </View>
-              <View style={[s.totalRow, { backgroundColor: '#F0FDF4', color: '#166534', borderTopWidth: 2, borderTopColor: '#BBF7D0' }]}>
-                <Text style={{ color: '#166534', fontFamily: 'Montserrat', fontWeight: 700 }}>Loyer net mensuel</Text>
-                <Text style={{ color: '#166534', fontFamily: 'Montserrat', fontWeight: 700 }}>{fmtInt(p.recettesMensuelles)} €</Text>
-              </View>
+            </View>
+            <View style={[s.colFoot, { backgroundColor: '#f0fdf4', borderTopColor: '#bbf7d0' }]}>
+              <Text style={[s.colFootLabel, { color: C.green }]}>Loyer net mensuel</Text>
+              <Text style={[s.colFootValue, { color: C.green }]}>{fmtInt(p.recettesMensuelles)} €</Text>
             </View>
           </View>
 
           {/* DÉPENSES */}
           <View style={s.col}>
-            <View style={[s.colHeader, { backgroundColor: '#FEE2E2' }]}>
-              <Text style={[s.colHeaderLabel, { color: '#991B1B' }]}>DÉPENSES</Text>
-              <Text style={[s.colHeaderAmount, { color: '#991B1B' }]}>- {fmtInt(p.depensesMensuelles)} €</Text>
+            <View style={[s.colHead, { backgroundColor: '#fee2e2' }]}>
+              <Text style={[s.colHeadLabel, { color: C.red }]}>Dépenses</Text>
+              <Text style={[s.colHeadAmount, { color: C.red }]}>- {fmtInt(p.depensesMensuelles)} €</Text>
             </View>
             <View style={s.colBody}>
               <View style={s.item}>
@@ -93,80 +105,85 @@ export function PageCashflow({ p }: { p: DiagnosticPayload }) {
                   <Text style={s.itemLabel}>Mensualité crédit</Text>
                   <Text style={s.itemNote}>capital + intérêts + assurance</Text>
                 </View>
-                <Text style={[s.itemValue, { color: '#DC2626' }]}>{fmtInt(p.mensualiteTotale)} €</Text>
+                <Text style={[s.itemValue, { color: C.red }]}>{fmtInt(p.mensualiteTotale)} €</Text>
               </View>
-              <View style={[s.item, s.itemEven]}>
+              <View style={[s.item, s.itemAlt]}>
                 <View>
                   <Text style={s.itemLabel}>Charges copropriété</Text>
                   <Text style={s.itemNote}>part propriétaire</Text>
                 </View>
-                <Text style={[s.itemValue, { color: '#DC2626' }]}>{fmtInt(p.chargesCoproMensuelles)} €</Text>
+                <Text style={[s.itemValue, { color: C.red }]}>{fmtInt(p.chargesCoproMensuelles)} €</Text>
               </View>
               <View style={s.item}>
                 <View>
                   <Text style={s.itemLabel}>Taxe foncière</Text>
                   <Text style={s.itemNote}>{fmtInt(p.taxeFonciere)} € / 12 mois</Text>
                 </View>
-                <Text style={[s.itemValue, { color: '#DC2626' }]}>{fmtInt(taxeMois)} €</Text>
+                <Text style={[s.itemValue, { color: C.red }]}>{fmtInt(taxeMois)} €</Text>
               </View>
-              <View style={[s.item, s.itemEven]}>
+              <View style={[s.item, s.itemAlt]}>
                 <View>
                   <Text style={s.itemLabel}>Assurance PNO</Text>
                   <Text style={s.itemNote}>propriétaire non occupant</Text>
                 </View>
-                <Text style={[s.itemValue, { color: '#DC2626' }]}>{fmtInt(assuranceMois)} €</Text>
+                <Text style={[s.itemValue, { color: C.red }]}>{fmtInt(assuranceMois)} €</Text>
               </View>
-              <View style={[s.totalRow, { backgroundColor: '#FFF1F2', color: '#9F1239', borderTopWidth: 2, borderTopColor: '#FECDD3' }]}>
-                <Text style={{ color: '#9F1239', fontFamily: 'Montserrat', fontWeight: 700 }}>Total dépenses</Text>
-                <Text style={{ color: '#9F1239', fontFamily: 'Montserrat', fontWeight: 700 }}>{fmtInt(p.depensesMensuelles)} €</Text>
-              </View>
+            </View>
+            <View style={[s.colFoot, { backgroundColor: '#fff1f2', borderTopColor: '#fecdd3' }]}>
+              <Text style={[s.colFootLabel, { color: C.red }]}>Total dépenses</Text>
+              <Text style={[s.colFootValue, { color: C.red }]}>{fmtInt(p.depensesMensuelles)} €</Text>
             </View>
           </View>
         </View>
 
-        <View style={[s.result, { backgroundColor: vc.bg, borderColor: vc.border }]}>
+        <SecLabel>Résultat mensuel net</SecLabel>
+
+        <View style={[s.resultBox, { backgroundColor: vc.bg, borderLeftColor: vc.border }]}>
           <View>
-            <Text style={s.resultLabel}>CASH-FLOW MENSUEL NET</Text>
-            <Text style={s.resultFormula}>
+            <Text style={[s.resultLabel, { color: vc.text }]}>Cash-flow mensuel net</Text>
+            <Text style={[s.resultFormula, { color: vc.text }]}>
               {fmtInt(p.recettesMensuelles)} € recettes − {fmtInt(p.depensesMensuelles)} € dépenses
             </Text>
-            <Text style={[s.resultValue, { color: cfPositif ? '#16A34A' : '#DC2626' }]}>{fmtInt(p.cashFlowMensuel)} €</Text>
+            <Text style={[s.resultValue, { color: cfPos ? C.green : C.red }]}>
+              {fmtInt(p.cashFlowMensuel)} €
+            </Text>
           </View>
           <View>
-            <Text style={s.resultAnnualLabel}>SUR 12 MOIS</Text>
+            <Text style={s.resultAnnualLabel}>Sur 12 mois</Text>
             <Text style={s.resultAnnualValue}>{fmtInt(p.cashFlowAnnuel)} €/an</Text>
           </View>
         </View>
 
-        <View>
-          <SectionHeader title="Bilan sur 12 mois" />
-          <View style={[s.bilanGrid, { marginTop: 12 }]}>
-            <View style={[s.bilanCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
-              <Text style={[s.bilanLabel, { color: '#16A34A' }]}>RECETTES ANNUELLES</Text>
-              <Text style={s.bilanValue}>{fmtInt(p.loyerAnnuelNet)} €</Text>
-            </View>
-            <View style={[s.bilanCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
-              <Text style={[s.bilanLabel, { color: '#DC2626' }]}>DÉPENSES ANNUELLES</Text>
-              <Text style={s.bilanValue}>{fmtInt(depensesAnnuelles)} €</Text>
-            </View>
-            <View style={[s.bilanCard, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }]}>
-              <Text style={[s.bilanLabel, { color: '#64748B' }]}>CASH-FLOW ANNUEL NET</Text>
-              <Text style={s.bilanValue}>{fmtInt(p.cashFlowAnnuel)} €</Text>
-            </View>
+        <SecLabel>Bilan annuel</SecLabel>
+
+        <View style={dS.introRow}>
+          <View style={dS.introCell}>
+            <Text style={[dS.introLabel, { color: C.green }]}>Recettes annuelles</Text>
+            <Text style={[dS.introValue, { color: C.green }]}>{fmtInt(p.loyerAnnuelNet)} €</Text>
+          </View>
+          <View style={dS.introCell}>
+            <Text style={[dS.introLabel, { color: C.red }]}>Dépenses annuelles</Text>
+            <Text style={[dS.introValue, { color: C.red }]}>{fmtInt(depensesAnnuelles)} €</Text>
+          </View>
+          <View style={dS.introCellLast}>
+            <Text style={dS.introLabel}>Cash-flow annuel net</Text>
+            <Text style={[dS.introValue, { color: cfPos ? C.green : C.red }]}>
+              {fmtInt(p.cashFlowAnnuel)} €
+            </Text>
           </View>
         </View>
 
-        <View style={s.noteBox}>
-          <Text style={s.noteText}>
-            Important : ce cash-flow est calculé avant impôt sur le revenu. Selon
-            votre régime fiscal (micro-BIC, régime réel, LMNP), l'imposition sur
-            les loyers peut représenter 10 à 30 % de vos recettes locatives.
-            Consultez la page 6 pour les recommandations fiscales adaptées à
-            votre profil.
+        <View style={dS.noteBox}>
+          <Text style={dS.noteText}>
+            Ce cash-flow est calculé avant impôt sur le revenu. Selon votre régime fiscal
+            (micro-BIC ou LMNP réel), l'imposition sur les loyers peut représenter 10 à 30 %
+            de vos recettes locatives. Consultez la page des recommandations pour les
+            optimisations fiscales adaptées à votre profil.
           </Text>
         </View>
+
       </View>
-      <PageFooter p={p} page={4} />
+      <PageFooter p={p} />
     </Page>
   );
 }

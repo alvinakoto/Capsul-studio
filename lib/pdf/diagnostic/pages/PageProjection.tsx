@@ -3,34 +3,42 @@ import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { DiagnosticPayload } from '../types';
 import { fmtInt } from '../format';
 import { getProjectionTable, getPlusValueEstimee } from '../calculations';
-import { interiorBase, PageHeader, PageFooter, SectionHeader } from './PageChrome';
+import {
+  C, interiorBase, dS,
+  PageHeader, PageFooter, SecLabel,
+} from './PageChrome';
 
 const s = StyleSheet.create({
-  barsBox: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 18, flexDirection: 'column', gap: 11 },
-  barsTitle: { fontSize: 10, fontFamily: 'Montserrat', fontWeight: 700, letterSpacing: 0.6, color: '#94A3B8', marginBottom: 2 },
-  barRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  barYear: { fontSize: 10, fontFamily: 'Montserrat', fontWeight: 700, color: '#64748B', width: 48 },
-  barTrack: { flex: 1, height: 16, backgroundColor: '#E2E8F0', borderRadius: 8, overflow: 'hidden' },
-  barFill: { height: '100%', backgroundColor: '#2563EB', borderRadius: 8 },
-  barAmount: { fontSize: 11, fontFamily: 'Montserrat', fontWeight: 700, color: '#1E293B', width: 76, textAlign: 'right' },
-  barPct: { fontSize: 9, color: '#94A3B8', width: 32, textAlign: 'right' },
+  // Barres de capital
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  barYear: { fontSize: 7, fontWeight: 600, color: C.muted, width: 44 },
+  barTrack: { flex: 1, height: 12, backgroundColor: C.rule, borderRadius: 2, overflow: 'hidden' },
+  barFill: { height: '100%', backgroundColor: C.navy, borderRadius: 2 },
+  barAmount: { fontSize: 8, fontWeight: 700, color: C.navy, width: 70, textAlign: 'right' },
+  barPct: { fontSize: 7, color: C.muted, fontWeight: 300, width: 30, textAlign: 'right' },
 
-  table: { width: '100%' },
-  tHeadRow: { flexDirection: 'row', backgroundColor: '#16314E' },
-  tHeadCell: { flex: 1, padding: '8 10', fontSize: 8.5, fontFamily: 'Montserrat', fontWeight: 700, color: '#FFFFFF', letterSpacing: 0.3 },
-  tRow: { flexDirection: 'row' },
-  tRowEven: { backgroundColor: '#F8FAFC' },
-  tCell: { flex: 1, padding: '8 10', fontSize: 10, color: '#334155', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  tCellFirst: { fontFamily: 'Montserrat', fontWeight: 700, color: '#0F172A' },
+  // Col fixe "Année" dans le tableau
+  tdAnnee: {
+    width: 40,
+    paddingTop: 7, paddingBottom: 7, paddingLeft: 8,
+    fontSize: 8, fontWeight: 600, color: C.navy,
+  },
+  thAnnee: {
+    width: 40,
+    paddingTop: 7, paddingBottom: 7, paddingLeft: 8,
+    fontSize: 6, fontWeight: 700, color: C.goldLight, letterSpacing: 0.4,
+  },
 
-  year5Grid: { flexDirection: 'row', gap: 10 },
-  year5Card: { flex: 1, borderRadius: 12, padding: 14, alignItems: 'center' },
-  year5Label: { fontSize: 9, fontFamily: 'Montserrat', fontWeight: 700, marginBottom: 6, textAlign: 'center' },
-  year5Value: { fontSize: 17, fontFamily: 'Montserrat', fontWeight: 700, color: '#0F172A' },
-  year5Sub: { fontSize: 9, color: '#94A3B8', marginTop: 3, textAlign: 'center' },
-
-  appreciationNote: { backgroundColor: '#EFF6FF', borderRadius: 10, padding: '12 16', borderLeftWidth: 3, borderLeftColor: '#2563EB' },
-  appreciationText: { fontSize: 9.5, color: '#475569', lineHeight: 1.55 },
+  // Bilan à 5 ans
+  bilanRow: { flexDirection: 'row', gap: 10 },
+  bilanCard: {
+    flex: 1, backgroundColor: C.paper, paddingTop: 10, paddingBottom: 10,
+    paddingLeft: 12, paddingRight: 12,
+    borderBottom: `0.5pt solid ${C.rule}`,
+  },
+  bilanLabel: { fontSize: 6, color: C.muted, fontWeight: 300, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+  bilanValue: { fontSize: 13, fontWeight: 700, color: C.navy },
+  bilanSub: { fontSize: 7, color: C.muted, fontWeight: 300, marginTop: 3 },
 });
 
 export function PageProjection({ p }: { p: DiagnosticPayload }) {
@@ -40,17 +48,12 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
 
   return (
     <Page size="A4" style={interiorBase.page}>
-      <PageHeader section="Projection 5 ans" p={p} />
+      <PageHeader section="Projection 5 ans" page={5} />
       <View style={interiorBase.content}>
-        <SectionHeader
-          title="Évolution de votre patrimoine sur 5 ans"
-          subtitle="Capital remboursé, flux de trésorerie cumulés et patrimoine net estimé"
-        />
 
-        <View style={s.barsBox}>
-          <Text style={s.barsTitle}>
-            CAPITAL REMBOURSÉ (CUMULÉ) — SUR {fmtInt(p.capitalEmprunte)} € EMPRUNTÉS
-          </Text>
+        <SecLabel>{`Capital remboursé cumulé — sur ${fmtInt(p.capitalEmprunte)} € empruntés`}</SecLabel>
+
+        <View style={{ flexDirection: 'column', gap: 8 }}>
           {rows.map((row) => (
             <View key={row.annee} style={s.barRow}>
               <Text style={s.barYear}>Année {row.annee}</Text>
@@ -63,71 +66,78 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
           ))}
         </View>
 
+        <SecLabel>Tableau récapitulatif</SecLabel>
+
         <View>
-          <SectionHeader title="Tableau récapitulatif" />
-          <View style={[s.table, { marginTop: 12 }]}>
-            <View style={s.tHeadRow}>
-              <Text style={s.tHeadCell}>ANNÉE</Text>
-              <Text style={[s.tHeadCell, { textAlign: 'right' }]}>CAPITAL REMBOURSÉ (CUMULÉ)</Text>
-              <Text style={[s.tHeadCell, { textAlign: 'right' }]}>CASH-FLOW CUMULÉ</Text>
-              <Text style={[s.tHeadCell, { textAlign: 'right' }]}>PATRIMOINE NET ESTIMÉ</Text>
+          <View style={dS.tHead}>
+            <Text style={s.thAnnee}>An.</Text>
+            <Text style={[dS.tHeadCell, dS.tCellR]}>Capital remboursé (cumulé)</Text>
+            <Text style={[dS.tHeadCell, dS.tCellR]}>Cash-flow cumulé</Text>
+            <Text style={[dS.tHeadCell, dS.tCellR]}>Patrimoine net estimé</Text>
+          </View>
+          {rows.map((row, i) => (
+            <View key={row.annee} style={[dS.tRow, i % 2 === 1 ? dS.tRowAlt : {}]}>
+              <Text style={s.tdAnnee}>{row.annee}</Text>
+              <Text style={[dS.tCell, dS.tCellR, { fontWeight: 600 }]}>
+                {fmtInt(row.cumulCapital)} €
+              </Text>
+              <Text style={[
+                dS.tCell, dS.tCellR,
+                { fontWeight: 700, color: row.cashFlowCumule >= 0 ? C.green : C.red },
+              ]}>
+                {fmtInt(row.cashFlowCumule)} €
+              </Text>
+              <Text style={[dS.tCell, dS.tCellR, { fontWeight: 700, color: C.navy }]}>
+                {fmtInt(row.patrimoineNet)} €
+              </Text>
             </View>
-            {rows.map((row, i) => (
-              <View key={row.annee} style={[s.tRow, i % 2 === 1 ? s.tRowEven : {}]}>
-                <Text style={[s.tCell, s.tCellFirst]}>Année {row.annee}</Text>
-                <Text style={[s.tCell, { textAlign: 'right', fontFamily: 'Montserrat', fontWeight: 700 }]}>
-                  {fmtInt(row.cumulCapital)} €
-                </Text>
-                <Text
-                  style={[
-                    s.tCell,
-                    { textAlign: 'right', fontFamily: 'Montserrat', fontWeight: 700, color: row.cashFlowCumule >= 0 ? '#16A34A' : '#DC2626' },
-                  ]}
-                >
-                  {fmtInt(row.cashFlowCumule)} €
-                </Text>
-                <Text style={[s.tCell, { textAlign: 'right', fontFamily: 'Montserrat', fontWeight: 700, color: '#1D4ED8' }]}>
-                  {fmtInt(row.patrimoineNet)} €
-                </Text>
-              </View>
-            ))}
+          ))}
+          <View style={dS.tTotal}>
+            <Text style={[dS.tTotalLabel, { width: 40 + 8 }]}>Bilan</Text>
+            <Text style={dS.tTotalVal}>{fmtInt(last.cumulCapital)} €</Text>
+            <Text style={dS.tTotalVal}>{fmtInt(last.cashFlowCumule)} €</Text>
+            <Text style={dS.tTotalVal}>{fmtInt(last.patrimoineNet)} €</Text>
           </View>
         </View>
 
-        <View style={s.year5Grid}>
-          <View style={[s.year5Card, { backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#BFDBFE' }]}>
-            <Text style={[s.year5Label, { color: '#1D4ED8' }]}>CAPITAL REMBOURSÉ EN 5 ANS</Text>
-            <Text style={s.year5Value}>{fmtInt(last.cumulCapital)} €</Text>
-            <Text style={s.year5Sub}>payé par vos locataires</Text>
+        <SecLabel>Synthèse à 5 ans</SecLabel>
+
+        <View style={s.bilanRow}>
+          <View style={s.bilanCard}>
+            <Text style={s.bilanLabel}>Capital remboursé en 5 ans</Text>
+            <Text style={s.bilanValue}>{fmtInt(last.cumulCapital)} €</Text>
+            <Text style={s.bilanSub}>financé par vos locataires</Text>
           </View>
-          <View style={[s.year5Card, { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' }]}>
-            <Text style={[s.year5Label, { color: '#DC2626' }]}>EFFORT DE TRÉSORERIE CUMULÉ</Text>
-            <Text style={s.year5Value}>{fmtInt(last.cashFlowCumule)} €</Text>
-            <Text style={s.year5Sub}>
-              {last.cashFlowCumule < 0 ? 'votre mise personnelle sur 5 ans' : 'gain de trésorerie sur 5 ans'}
+          <View style={s.bilanCard}>
+            <Text style={[s.bilanLabel, { color: last.cashFlowCumule >= 0 ? C.green : C.red }]}>
+              {last.cashFlowCumule >= 0 ? 'Gain de trésorerie cumulé' : 'Effort de trésorerie cumulé'}
+            </Text>
+            <Text style={[s.bilanValue, { color: last.cashFlowCumule >= 0 ? C.green : C.red }]}>
+              {fmtInt(last.cashFlowCumule)} €
+            </Text>
+            <Text style={s.bilanSub}>
+              {last.cashFlowCumule < 0 ? 'mise personnelle sur 5 ans' : 'trésorerie générée'}
             </Text>
           </View>
-          <View style={[s.year5Card, { backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#BBF7D0' }]}>
-            <Text style={[s.year5Label, { color: '#16A34A' }]}>PATRIMOINE NET ESTIMÉ</Text>
-            <Text style={s.year5Value}>{fmtInt(last.patrimoineNet)} €</Text>
-            <Text style={s.year5Sub}>apport + capital remboursé</Text>
+          <View style={s.bilanCard}>
+            <Text style={s.bilanLabel}>Patrimoine net estimé</Text>
+            <Text style={s.bilanValue}>{fmtInt(last.patrimoineNet)} €</Text>
+            <Text style={s.bilanSub}>apport + capital remboursé</Text>
           </View>
         </View>
 
-        <View style={s.appreciationNote}>
-          <Text style={s.appreciationText}>
-            Et si le bien prenait de la valeur ? Cette projection est
-            volontairement conservatrice : elle ne tient pas compte d'une
-            revalorisation du bien. En France, l'immobilier résidentiel a
-            progressé en moyenne de 2 à 3 % par an sur les 20 dernières
-            années. Une appréciation modeste de 2 %/an sur votre bien de{' '}
-            {fmtInt(p.prixBien)} € représenterait environ {fmtInt(plusValue)} €
-            de plus-value supplémentaire à l'issue de 5 ans — sans effort
-            additionnel de votre part.
+        <View style={dS.noteBox}>
+          <Text style={dS.noteText}>
+            Projection conservatrice : ne tient pas compte d'une revalorisation du bien.
+            En France, l'immobilier résidentiel a progressé en moyenne de 2 à 3 % par an
+            sur les 20 dernières années. Une appréciation de 2 %/an sur votre bien de{' '}
+            {fmtInt(p.prixBien)} € représenterait {fmtInt(plusValue)} € de plus-value
+            supplémentaire à l'issue de 5 ans, sans effort additionnel de votre part.
           </Text>
         </View>
+
       </View>
-      <PageFooter p={p} page={5} />
+      <PageFooter p={p} />
     </Page>
   );
 }
