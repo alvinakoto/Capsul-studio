@@ -116,7 +116,7 @@ export function PageLeviers({ p }: { p: DiagnosticPayload }) {
               meilleure stratégie.
             </Text>
           </View>
-          <Link src="https://bit.ly/4qluPzF" style={s.ctaBtn}>
+          <Link src="https://calendly.com/lucasulmann/15min?utm_source=Site+Web&utm_medium=Simulateur&utm_campaign=Simulateur+web&utm_id=Site+Web" style={s.ctaBtn}>
             <Text style={s.ctaBtnText}>Reserver un entretien &gt;</Text>
             <Text style={s.ctaBtnSub}>capsul-france.com</Text>
           </Link>

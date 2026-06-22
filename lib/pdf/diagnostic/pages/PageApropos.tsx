@@ -152,7 +152,7 @@ export function PageApropos({ p }: { p: DiagnosticPayload }) {
               </Text>
             </View>
             <View>
-              <Link src="https://bit.ly/4qluPzF" style={s.ctaBtn}>
+              <Link src="https://calendly.com/lucasulmann/15min?utm_source=Site+Web&utm_medium=Simulateur&utm_campaign=Simulateur+web&utm_id=Site+Web" style={s.ctaBtn}>
                 <Text style={s.ctaBtnText}>Reserver mon echange gratuit &gt;</Text>
               </Link>
               <Text style={s.ctaLink}>capsul-france.com</Text>
@@ -201,7 +201,7 @@ export function PageApropos({ p }: { p: DiagnosticPayload }) {
               </View>
             </View>
           </View>
-          <Link src="https://bit.ly/4qluPzF" style={s.contactCta}>
+          <Link src="https://calendly.com/lucasulmann/15min?utm_source=Site+Web&utm_medium=Simulateur&utm_campaign=Simulateur+web&utm_id=Site+Web" style={s.contactCta}>
             <Text style={s.contactCtaText}>Prendre rendez-vous &gt;</Text>
           </Link>
         </View>

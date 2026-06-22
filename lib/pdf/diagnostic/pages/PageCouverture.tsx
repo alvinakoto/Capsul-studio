@@ -1,8 +1,11 @@
 import React from 'react';
-import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
+import path from 'path';
 import { DiagnosticPayload } from '../types';
 import { fmtPct, fmtInt } from '../format';
 import { COLORS } from '../styles';
+
+const LOGO_PATH = path.join(process.cwd(), 'public', 'logo-capsul-pdf.jpg');
 
 // ⚠️ INTÉGRATION : remplace 'Helvetica' / 'Helvetica-Bold' par 'Montserrat'
 // une fois la police enregistrée (cf. registration déjà faite pour le PDF
@@ -15,14 +18,10 @@ const s = StyleSheet.create({
     padding: 0,
     fontFamily: 'Montserrat',
   },
-  decoCircle1: {
-    position: 'absolute',
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: 'rgba(37, 99, 235, 0.35)',
-    top: -120,
-    right: -90,
+  logoImg: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   decoCircle2: {
     position: 'absolute',
@@ -149,16 +148,11 @@ export function PageCouverture({ p }: { p: DiagnosticPayload }) {
   const cfPositif = p.cashFlowMensuel >= 0;
   return (
     <Page size="A4" style={s.page} wrap={false}>
-      <View style={s.decoCircle1} />
-      {/* decoCircle2 supprimé : react-pdf ne respecte pas le z-index CSS,
-          les Views en position absolute se peignent après les Views en
-          flux normal quel que soit leur ordre dans le JSX — le cercle
-          ressortait donc PAR-DESSUS les cartes au lieu de rester derrière. */}
       <View style={s.decoLine} />
 
       <View style={s.header}>
         <Text style={s.logoText}>Capsul</Text>
-        <Text style={s.headerRight}>capsul-france.com</Text>
+        <Image src={LOGO_PATH} style={s.logoImg} />
       </View>
 
       <View style={s.hero}>
