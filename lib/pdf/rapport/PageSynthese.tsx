@@ -80,7 +80,7 @@ function Row({ label, value, bold, muted, color }: RowProps) {
   const labelStyle = bold ? s.rowLabelBold : muted ? s.rowLabelMuted : s.rowLabel
 
   return (
-    <View style={[s.row, bold ? s.rowBold : undefined]}>
+    <View style={[s.row, bold ? s.rowBold : {}]}>
       <Text style={labelStyle}>{label}</Text>
       <Text style={valueStyle}>{value}</Text>
     </View>

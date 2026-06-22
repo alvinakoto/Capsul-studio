@@ -122,7 +122,7 @@ export default function PageProjection({ data }: { data: RapportData }) {
                   key={r.annee}
                   style={[
                     s.row,
-                    isMilestone ? s.rowMilestone : i % 2 === 1 ? s.rowAlt : undefined,
+                    isMilestone ? s.rowMilestone : i % 2 === 1 ? s.rowAlt : {},
                   ]}
                 >
                   <Text style={s.tdAnnee}>{r.annee}</Text>

@@ -126,7 +126,7 @@ export default function PageAmortissement({ data }: { data: RapportData }) {
             </View>
 
             {tableauAmortissement.map((l, i) => (
-              <View key={l.annee} style={[s.row, i % 2 === 1 ? s.rowAlt : undefined]}>
+              <View key={l.annee} style={[s.row, i % 2 === 1 ? s.rowAlt : {}]}>
                 <Text style={s.tdAnnee}>{l.annee}</Text>
                 <Text style={s.tdVal}>{euros(mensualiteTotale * 12)}</Text>
                 <Text style={s.tdVal}>{euros(l.capitalRembourse)}</Text>

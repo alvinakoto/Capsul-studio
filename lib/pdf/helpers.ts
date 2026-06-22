@@ -4,7 +4,7 @@
  * caractères dans react-pdf, ce qui produit un caractère de fallback
  * (barre verticale) à l'affichage.
  */
-function stripNbsp(s: string): string {
+export function stripNbsp(s: string): string {
   return s.replace(/[\u00A0\u202F]/g, ' ')
 }
 
