@@ -42,6 +42,7 @@ const s = StyleSheet.create({
 });
 
 export function PageProjection({ p }: { p: DiagnosticPayload }) {
+  const isComptant = p.capitalEmprunte === 0;
   const rows = getProjectionTable(p);
   const plusValue = getPlusValueEstimee(p);
   const last = rows[rows.length - 1];
@@ -51,36 +52,55 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
       <PageHeader section="Projection 5 ans" page={5} />
       <View style={interiorBase.content}>
 
-        <SecLabel>{`Capital remboursé cumulé — sur ${fmtInt(p.capitalEmprunte)} € empruntés`}</SecLabel>
-
-        <View style={{ flexDirection: 'column', gap: 8 }}>
-          {rows.map((row) => (
-            <View key={row.annee} style={s.barRow}>
-              <Text style={s.barYear}>Année {row.annee}</Text>
-              <View style={s.barTrack}>
-                <View style={[s.barFill, { width: `${row.pctCapital}%` }]} />
-              </View>
-              <Text style={s.barAmount}>{fmtInt(row.cumulCapital)} €</Text>
-              <Text style={s.barPct}>{row.pctCapital} %</Text>
+        {isComptant ? (
+          <>
+            <SecLabel>Propriété à 100 % dès l'acquisition</SecLabel>
+            <View style={dS.noteBox}>
+              <Text style={dS.noteText}>
+                En achat comptant, le bien vous appartient intégralement depuis le
+                premier jour — aucun capital restant à rembourser. La colonne
+                ci-dessous reflète uniquement l'évolution du cash-flow cumulé et du
+                patrimoine net (valeur du bien + trésorerie accumulée).
+              </Text>
             </View>
-          ))}
-        </View>
+          </>
+        ) : (
+          <>
+            <SecLabel>{`Capital remboursé cumulé — sur ${fmtInt(p.capitalEmprunte)} € empruntés`}</SecLabel>
+            <View style={{ flexDirection: 'column', gap: 8 }}>
+              {rows.map((row) => (
+                <View key={row.annee} style={s.barRow}>
+                  <Text style={s.barYear}>Année {row.annee}</Text>
+                  <View style={s.barTrack}>
+                    <View style={[s.barFill, { width: `${row.pctCapital}%` }]} />
+                  </View>
+                  <Text style={s.barAmount}>{fmtInt(row.cumulCapital)} €</Text>
+                  <Text style={s.barPct}>{row.pctCapital} %</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
 
         <SecLabel>Tableau récapitulatif</SecLabel>
 
         <View>
           <View style={dS.tHead}>
             <Text style={s.thAnnee}>An.</Text>
-            <Text style={[dS.tHeadCell, dS.tCellR]}>Capital remboursé (cumulé)</Text>
+            {!isComptant && (
+              <Text style={[dS.tHeadCell, dS.tCellR]}>Capital remboursé (cumulé)</Text>
+            )}
             <Text style={[dS.tHeadCell, dS.tCellR]}>Cash-flow cumulé</Text>
             <Text style={[dS.tHeadCell, dS.tCellR]}>Patrimoine net estimé</Text>
           </View>
           {rows.map((row, i) => (
             <View key={row.annee} style={[dS.tRow, i % 2 === 1 ? dS.tRowAlt : {}]}>
               <Text style={s.tdAnnee}>{row.annee}</Text>
-              <Text style={[dS.tCell, dS.tCellR, { fontWeight: 600 }]}>
-                {fmtInt(row.cumulCapital)} €
-              </Text>
+              {!isComptant && (
+                <Text style={[dS.tCell, dS.tCellR, { fontWeight: 600 }]}>
+                  {fmtInt(row.cumulCapital)} €
+                </Text>
+              )}
               <Text style={[
                 dS.tCell, dS.tCellR,
                 { fontWeight: 700, color: row.cashFlowCumule >= 0 ? C.green : C.red },
@@ -94,7 +114,7 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
           ))}
           <View style={dS.tTotal}>
             <Text style={[dS.tTotalLabel, { width: 40 + 8 }]}>Bilan</Text>
-            <Text style={dS.tTotalVal}>{fmtInt(last.cumulCapital)} €</Text>
+            {!isComptant && <Text style={dS.tTotalVal}>{fmtInt(last.cumulCapital)} €</Text>}
             <Text style={dS.tTotalVal}>{fmtInt(last.cashFlowCumule)} €</Text>
             <Text style={dS.tTotalVal}>{fmtInt(last.patrimoineNet)} €</Text>
           </View>
@@ -103,11 +123,19 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
         <SecLabel>Synthèse à 5 ans</SecLabel>
 
         <View style={s.bilanRow}>
-          <View style={s.bilanCard}>
-            <Text style={s.bilanLabel}>Capital remboursé en 5 ans</Text>
-            <Text style={s.bilanValue}>{fmtInt(last.cumulCapital)} €</Text>
-            <Text style={s.bilanSub}>financé par vos locataires</Text>
-          </View>
+          {isComptant ? (
+            <View style={s.bilanCard}>
+              <Text style={s.bilanLabel}>Bien possédé à 100 %</Text>
+              <Text style={s.bilanValue}>{fmtInt(p.prixBien)} €</Text>
+              <Text style={s.bilanSub}>valeur du bien à l'acquisition</Text>
+            </View>
+          ) : (
+            <View style={s.bilanCard}>
+              <Text style={s.bilanLabel}>Capital remboursé en 5 ans</Text>
+              <Text style={s.bilanValue}>{fmtInt(last.cumulCapital)} €</Text>
+              <Text style={s.bilanSub}>financé par vos locataires</Text>
+            </View>
+          )}
           <View style={s.bilanCard}>
             <Text style={[s.bilanLabel, { color: last.cashFlowCumule >= 0 ? C.green : C.red }]}>
               {last.cashFlowCumule >= 0 ? 'Gain de trésorerie cumulé' : 'Effort de trésorerie cumulé'}
@@ -122,7 +150,9 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
           <View style={s.bilanCard}>
             <Text style={s.bilanLabel}>Patrimoine net estimé</Text>
             <Text style={s.bilanValue}>{fmtInt(last.patrimoineNet)} €</Text>
-            <Text style={s.bilanSub}>apport + capital remboursé</Text>
+            <Text style={s.bilanSub}>
+              {isComptant ? 'valeur bien + trésorerie' : 'apport + capital remboursé'}
+            </Text>
           </View>
         </View>
 

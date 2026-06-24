@@ -39,10 +39,72 @@ const s = StyleSheet.create({
   },
 });
 
+const sComptant = StyleSheet.create({
+  box: {
+    backgroundColor: '#F7F5F1',
+    borderRadius: 6,
+    padding: 20,
+    marginTop: 12,
+    marginBottom: 12,
+    borderLeft: `3pt solid #0E2240`,
+  },
+  title: { fontSize: 12, fontWeight: 700, color: '#0E2240', marginBottom: 6 },
+  body: { fontSize: 9, color: '#6E6E73', lineHeight: 1.6 },
+  kpiRow: { flexDirection: 'row', gap: 12, marginTop: 14 },
+  kpiCell: { flex: 1, backgroundColor: '#fff', borderRadius: 4, padding: 10 },
+  kpiLabel: { fontSize: 6, color: '#6E6E73', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  kpiValue: { fontSize: 13, fontWeight: 700, color: '#0E2240' },
+});
+
 export function PageFinancement({ p }: { p: DiagnosticPayload }) {
+  const isComptant = p.capitalEmprunte === 0;
   const split = getMensualiteSplit(p);
   const amort = getAmortizationTable(p);
   const global = getCoutGlobal(p);
+
+  if (isComptant) {
+    return (
+      <Page size="A4" style={interiorBase.page}>
+        <PageHeader section="Financement" page={3} />
+        <View style={interiorBase.content}>
+
+          <View style={sComptant.box}>
+            <Text style={sComptant.title}>Acquisition financée sans emprunt</Text>
+            <Text style={sComptant.body}>
+              L'apport couvre l'intégralité du prix du projet. Aucun recours au
+              crédit n'est nécessaire — il n'y a donc ni mensualité, ni intérêts,
+              ni tableau d'amortissement à présenter.
+            </Text>
+            <Text style={[sComptant.body, { marginTop: 8 }]}>
+              Cette structure maximise le cash-flow mensuel (pas de charge de
+              remboursement) et élimine tout risque de refus bancaire. En
+              contrepartie, le capital est immobilisé dès l'achat.
+            </Text>
+            <View style={sComptant.kpiRow}>
+              <View style={sComptant.kpiCell}>
+                <Text style={sComptant.kpiLabel}>Prix du bien</Text>
+                <Text style={sComptant.kpiValue}>{fmtInt(p.prixBien)} €</Text>
+              </View>
+              <View style={sComptant.kpiCell}>
+                <Text style={sComptant.kpiLabel}>Apport total</Text>
+                <Text style={sComptant.kpiValue}>{fmtInt(p.apport)} €</Text>
+              </View>
+              <View style={sComptant.kpiCell}>
+                <Text style={sComptant.kpiLabel}>Mensualité crédit</Text>
+                <Text style={[sComptant.kpiValue, { color: '#6E6E73' }]}>Aucune</Text>
+              </View>
+              <View style={sComptant.kpiCell}>
+                <Text style={sComptant.kpiLabel}>Coût total du crédit</Text>
+                <Text style={[sComptant.kpiValue, { color: '#6E6E73' }]}>Aucun</Text>
+              </View>
+            </View>
+          </View>
+
+        </View>
+        <PageFooter p={p} />
+      </Page>
+    );
+  }
 
   return (
     <Page size="A4" style={interiorBase.page}>

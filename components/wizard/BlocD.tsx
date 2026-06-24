@@ -48,6 +48,13 @@ function FieldInput({
 const DUREES = [10, 15, 20, 25]
 
 export default function BlocD({ state, setField }: Props) {
+  const montantFinancable =
+    (Number(state.prix_achat) || 0) + (Number(state.travaux) || 0)
+  const isComptant =
+    state.apport !== '' &&
+    montantFinancable > 0 &&
+    Number(state.apport) >= montantFinancable
+
   return (
     <div className="space-y-6">
 
@@ -65,17 +72,20 @@ export default function BlocD({ state, setField }: Props) {
           />
 
           <div className="space-y-1.5">
-            <Label>Durée du crédit</Label>
+            <Label style={{ color: isComptant ? '#6E6E73' : undefined }}>Durée du crédit</Label>
             <div className="flex gap-2">
               {DUREES.map((d) => (
                 <button
                   key={d}
                   type="button"
-                  onClick={() => setField('duree_annees', d)}
+                  disabled={isComptant}
+                  onClick={() => !isComptant && setField('duree_annees', d)}
                   className={`flex-1 py-2 rounded-md text-sm border transition ${
-                    state.duree_annees === d
-                      ? 'bg-foreground text-background border-foreground font-medium'
-                      : 'hover:bg-muted'
+                    isComptant
+                      ? 'opacity-40 cursor-not-allowed'
+                      : state.duree_annees === d
+                        ? 'bg-foreground text-background border-foreground font-medium'
+                        : 'hover:bg-muted'
                   }`}
                 >
                   {d} ans
@@ -86,31 +96,46 @@ export default function BlocD({ state, setField }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Taux</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FieldInput
-            id="taux_interet"
-            label="Taux d'intérêt"
-            value={state.taux_interet_pct}
-            onChange={(v) => setField('taux_interet_pct', v)}
-            suffix="%"
-            step={0.01}
-            hint="Taux nominal annuel hors assurance"
-          />
-          <FieldInput
-            id="taux_assurance"
-            label="Taux assurance"
-            value={state.taux_assurance_pct}
-            onChange={(v) => setField('taux_assurance_pct', Number(v) || 0)}
-            suffix="%"
-            step={0.01}
-            hint="Optionnel — inclus dans la mensualité si renseigné"
-          />
-        </CardContent>
-      </Card>
+      {isComptant ? (
+        <div
+          className="rounded-xl px-5 py-4 text-sm"
+          style={{ backgroundColor: '#EDE9E1', border: '1px solid #DDD9D0' }}
+        >
+          <p className="font-semibold" style={{ color: '#0E2240' }}>
+            Achat comptant détecté
+          </p>
+          <p className="mt-1" style={{ color: '#6E6E73' }}>
+            L'apport couvre l'intégralité du montant finançable — aucun recours
+            au crédit. Les champs taux et assurance ne s'appliquent pas.
+          </p>
+        </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Taux</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FieldInput
+              id="taux_interet"
+              label="Taux d'intérêt"
+              value={state.taux_interet_pct}
+              onChange={(v) => setField('taux_interet_pct', v)}
+              suffix="%"
+              step={0.01}
+              hint="Taux nominal annuel hors assurance"
+            />
+            <FieldInput
+              id="taux_assurance"
+              label="Taux assurance"
+              value={state.taux_assurance_pct}
+              onChange={(v) => setField('taux_assurance_pct', Number(v) || 0)}
+              suffix="%"
+              step={0.01}
+              hint="Optionnel — inclus dans la mensualité si renseigné"
+            />
+          </CardContent>
+        </Card>
+      )}
 
     </div>
   )

@@ -69,8 +69,23 @@ export function calculerFinancement(
   assuranceMensuelle: number
   mensualiteTotale: number
   coutTotalCredit: number
+  isComptant: boolean
 } {
-  const capitalEmprunte = prixProjetTotal - financement.apport
+  const capitalBrut = prixProjetTotal - financement.apport
+  const isComptant = capitalBrut <= 0
+
+  if (isComptant) {
+    return {
+      capitalEmprunte: 0,
+      mensualiteCredit: 0,
+      assuranceMensuelle: 0,
+      mensualiteTotale: 0,
+      coutTotalCredit: 0,
+      isComptant: true,
+    }
+  }
+
+  const capitalEmprunte = capitalBrut
 
   const mensualiteCredit = calculerMensualite(
     capitalEmprunte,
@@ -93,6 +108,7 @@ export function calculerFinancement(
     assuranceMensuelle,
     mensualiteTotale,
     coutTotalCredit,
+    isComptant: false,
   }
 }
 
@@ -102,6 +118,8 @@ export function calculerAmortissement(
   tauxAnnuelPct: number,
   dureeAnnees: number
 ): { annee: number; capitalRembourse: number; interets: number; capitalRestant: number }[] {
+  if (capital <= 0) return []
+
   const tauxMensuel = tauxAnnuelPct / 100 / 12
   const mensualite = calculerMensualite(capital, tauxAnnuelPct, dureeAnnees)
   const tableau = []
@@ -140,6 +158,7 @@ export function calculerProjection(
   cashflowMensuelApresIR: number,
   revalorisation: number = 0   // 0 = conservateur, 2 = réaliste
 ): AnneeProjection[] {
+  const isComptant = capital <= 0
   const amortissement = calculerAmortissement(capital, tauxAnnuelPct, dureeAnnees)
   const projection: AnneeProjection[] = []
   let capitalRembourseCumul = 0
@@ -154,9 +173,10 @@ export function calculerProjection(
       prixBien * Math.pow(1 + revalorisation / 100, annee)
     )
 
-    const patrimoineNet = Math.round(
-      apport + capitalRembourseCumul + cashflowCumul + (valeurBien - prixBien)
-    )
+    // En mode comptant : bien possédé à 100% dès le départ, patrimoine = valeur bien + cashflow
+    const patrimoineNet = isComptant
+      ? Math.round(valeurBien + cashflowCumul)
+      : Math.round(apport + capitalRembourseCumul + cashflowCumul + (valeurBien - prixBien))
 
     projection.push({
       annee,

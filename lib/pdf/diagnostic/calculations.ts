@@ -49,6 +49,9 @@ export function normalizePayload(raw: DiagnosticPayloadRaw): DiagnosticPayload {
  * pct_interets = reste (pour que le total fasse toujours 100%).
  */
 export function getMensualiteSplit(p: DiagnosticPayload) {
+  if (p.mensualiteTotale === 0) {
+    return { pctCapital: 0, pctInterets: 0, pctAssurance: 0 };
+  }
   const pctCapital = Math.round((p.capitalMois * 100) / p.mensualiteTotale);
   const pctAssurance = Math.round((p.assuranceMensuelle * 100) / p.mensualiteTotale);
   const pctInterets = 100 - pctCapital - pctAssurance;
@@ -62,6 +65,7 @@ export function getMensualiteSplit(p: DiagnosticPayload) {
  * capital de l'année = mensualité crédit annuelle (hors assurance) - intérêts.
  */
 export function getAmortizationTable(p: DiagnosticPayload): AmortYearRow[] {
+  if (p.capitalEmprunte === 0) return [];
   const rows: AmortYearRow[] = [];
   let capitalRestant = p.capitalEmprunte;
   for (let i = 1; i <= 5; i++) {
@@ -110,6 +114,22 @@ export function getAssuranceMois(p: DiagnosticPayload): number {
  * patrimoine net estimé (apport + capital cumulé remboursé).
  */
 export function getProjectionTable(p: DiagnosticPayload): ProjectionYearRow[] {
+  // Mode comptant : bien possédé à 100% dès l'achat, patrimoine = prixBien + cashflow cumulé
+  if (p.capitalEmprunte === 0) {
+    const rows: ProjectionYearRow[] = [];
+    for (let i = 1; i <= 5; i++) {
+      const cashFlowCumule = p.cashFlowAnnuel * i;
+      rows.push({
+        annee: i,
+        cumulCapital: 0,
+        pctCapital: 100,
+        cashFlowCumule,
+        patrimoineNet: p.prixBien + cashFlowCumule,
+      });
+    }
+    return rows;
+  }
+
   const rows: ProjectionYearRow[] = [];
   let capitalRestant = p.capitalEmprunte;
   let cumul = 0;

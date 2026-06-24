@@ -297,8 +297,21 @@ export default function ScenarioPanel({ project }: { project: any }) {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
   <Metric label="Prix projet total"   value={euros(result.prixProjetTotal)} />
-  <Metric label="Capital emprunté"    value={euros(result.capitalEmprunte)} />
-  <Metric label="Mensualité"          value={euros(result.mensualiteTotale)} />
+  {result.isComptant ? (
+    <div className="col-span-2">
+      <span
+        className="inline-block px-2 py-1 rounded-md text-[11px] font-semibold"
+        style={{ backgroundColor: '#EDE9E1', color: '#0E2240' }}
+      >
+        Achat comptant — aucun crédit
+      </span>
+    </div>
+  ) : (
+    <>
+      <Metric label="Capital emprunté" value={euros(result.capitalEmprunte)} />
+      <Metric label="Mensualité"       value={euros(result.mensualiteTotale)} />
+    </>
+  )}
   <Metric label="Revenus nets/mois"   value={euros(Math.round(result.scenario.revenusAnnuelsNets / 12))} />
   <Metric label="Charges/mois"        value={euros(Math.round(result.scenario.chargesAnnuelles / 12))} />
   <Metric label="Impôt/mois"          value={euros(result.scenario.impotMensuelEstime)} />

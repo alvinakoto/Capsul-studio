@@ -123,7 +123,17 @@ export default function RecapSticky({ state }: { state: WizardState }) {
             </div>
           )}
 
-          {/* Mensualité */}
+          {/* Mensualité ou badge comptant */}
+          {apportSaisi && capital === 0 && (
+            <div className="border-t pt-3">
+              <span
+                className="inline-block px-2 py-1 rounded-md text-[11px] font-semibold"
+                style={{ backgroundColor: '#EDE9E1', color: '#0E2240' }}
+              >
+                Achat comptant
+              </span>
+            </div>
+          )}
           {mensualiteTotale && (
             <div className="border-t pt-3 space-y-1.5">
               {assuranceMensuelle > 0 && (

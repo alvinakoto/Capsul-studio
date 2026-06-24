@@ -37,6 +37,7 @@ export function calculerScenario(
     assuranceMensuelle,
     mensualiteTotale,
     coutTotalCredit,
+    isComptant,
   } = calculerFinancement(prixProjetTotal, financement)
 
   let scenario
@@ -78,6 +79,7 @@ export function calculerScenario(
     mensualiteCredit,
     assuranceMensuelle,
     mensualiteTotale,
+    isComptant,
     scenario,
     projectionConservateur,
     projectionRealiste,

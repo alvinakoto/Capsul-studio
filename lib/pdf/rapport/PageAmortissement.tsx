@@ -114,7 +114,11 @@ export default function PageAmortissement({ data }: { data: RapportData }) {
 
         {/* Tableau */}
         {tableauAmortissement.length === 0 ? (
-          <Text style={s.noData}>Données de financement insuffisantes pour générer le tableau.</Text>
+          <Text style={s.noData}>
+            {capitalEmprunte === 0
+              ? 'Achat comptant — aucun crédit, aucun tableau d\'amortissement à afficher.'
+              : 'Données de financement insuffisantes pour générer le tableau.'}
+          </Text>
         ) : (
           <>
             <View style={s.tableHeader}>

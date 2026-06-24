@@ -103,6 +103,7 @@ export interface ResultatsComplets {
   mensualiteCredit: number
   assuranceMensuelle: number
   mensualiteTotale: number
+  isComptant: boolean
   scenario: ResultatsScenario | ResultatsCourteDuree
   projectionConservateur: AnneeProjection[]
   projectionRealiste: AnneeProjection[]
