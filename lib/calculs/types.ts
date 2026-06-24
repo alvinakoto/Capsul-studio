@@ -20,6 +20,7 @@ export interface DonneesFinancement {
   dureeAnnees: number
   tauxInteretPct: number        // ex: 3.6 pour 3,6%
   tauxAssurancePct: number      // ex: 0.36 pour 0,36%
+  isComptantOverride?: boolean  // flag explicite BD — court-circuite la détection auto
 }
 
 // Charges récurrentes (Bloc E)

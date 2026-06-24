@@ -59,6 +59,7 @@ export async function createProject(
       autres_frais: state.autres_frais,
 
       // Financement
+      is_comptant: state.is_comptant,
       apport: state.apport === '' ? null : state.apport,
       duree_annees: state.duree_annees,
       taux_interet_pct: state.taux_interet_pct || null,
@@ -130,6 +131,7 @@ export async function updateProject(
       plan_3d: state.plan_3d,
       autres_frais: state.autres_frais,
 
+      is_comptant: state.is_comptant,
       apport: state.apport === '' ? null : state.apport,
       duree_annees: state.duree_annees,
       taux_interet_pct: state.taux_interet_pct || null,

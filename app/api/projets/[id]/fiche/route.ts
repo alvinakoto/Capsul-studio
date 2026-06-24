@@ -91,6 +91,7 @@ export async function GET(
           dureeAnnees: project.duree_annees ?? 20,
           tauxInteretPct: project.taux_interet_pct ?? 0,
           tauxAssurancePct: project.taux_assurance_pct ?? 0,
+          isComptantOverride: project.is_comptant ?? false,
         }
         const chargesData = {
           taxeFonciere: project.taxe_fonciere ?? 0,
@@ -154,9 +155,11 @@ export async function GET(
         + (project.autres_frais ?? 0)
 
       const montantFinancable = project.prix_achat + (project.travaux ?? 0)
-      capitalEmprunte = Math.max(0, montantFinancable - (project.apport ?? 0))
+      capitalEmprunte = (project.is_comptant)
+        ? 0
+        : Math.max(0, montantFinancable - (project.apport ?? 0))
 
-      if (project.taux_interet_pct && capitalEmprunte > 0) {
+      if (!project.is_comptant && project.taux_interet_pct && capitalEmprunte > 0) {
         const t = project.taux_interet_pct / 100 / 12
         const n = (project.duree_annees ?? 20) * 12
         mensualiteTotale = Math.round(capitalEmprunte * t / (1 - Math.pow(1 + t, -n)))

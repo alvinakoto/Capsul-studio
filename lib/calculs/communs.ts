@@ -72,7 +72,7 @@ export function calculerFinancement(
   isComptant: boolean
 } {
   const capitalBrut = prixProjetTotal - financement.apport
-  const isComptant = capitalBrut <= 0
+  const isComptant = financement.isComptantOverride === true || capitalBrut <= 0
 
   if (isComptant) {
     return {

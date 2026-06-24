@@ -54,10 +54,11 @@ export default function ScenarioPanel({ project }: { project: any }) {
   }
 
   const financementData = {
-    apport:            project.apport || 0,
-    dureeAnnees:       project.duree_annees || 20,
-    tauxInteretPct:    project.taux_interet_pct || 0,
-    tauxAssurancePct:  project.taux_assurance_pct || 0,
+    apport:                project.apport || 0,
+    dureeAnnees:           project.duree_annees || 20,
+    tauxInteretPct:        project.taux_interet_pct || 0,
+    tauxAssurancePct:      project.taux_assurance_pct || 0,
+    isComptantOverride:    project.is_comptant ?? false,
   }
 
   const chargesData = {

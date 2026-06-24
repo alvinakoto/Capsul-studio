@@ -26,6 +26,7 @@ function projectToWizardState(p: any): Partial<WizardState> {
     plan_3d:             p.plan_3d ?? 0,
     autres_frais:        p.autres_frais ?? 0,
 
+    is_comptant:         p.is_comptant ?? false,
     apport:              p.apport ?? '',
     duree_annees:        p.duree_annees ?? 20,
     taux_interet_pct:    p.taux_interet_pct ?? '',

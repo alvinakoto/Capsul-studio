@@ -67,10 +67,11 @@ export async function GET(
       autresFrais:        project.autres_frais ?? 0,
     }
     const financementData = {
-      apport:           project.apport ?? 0,
-      dureeAnnees:      project.duree_annees ?? 20,
-      tauxInteretPct:   project.taux_interet_pct ?? 0,
-      tauxAssurancePct: project.taux_assurance_pct ?? 0,
+      apport:               project.apport ?? 0,
+      dureeAnnees:          project.duree_annees ?? 20,
+      tauxInteretPct:       project.taux_interet_pct ?? 0,
+      tauxAssurancePct:     project.taux_assurance_pct ?? 0,
+      isComptantOverride:   project.is_comptant ?? false,
     }
     const chargesData = {
       taxeFonciere:          project.taxe_fonciere ?? 0,
@@ -108,7 +109,7 @@ export async function GET(
     const mensualiteCredit   = r?.mensualiteCredit   ?? 0
     const assuranceMensuelle = r?.assuranceMensuelle ?? 0
     const mensualiteTotale   = r?.mensualiteTotale   ?? 0
-    const isComptant         = r?.isComptant         ?? (capitalEmprunte === 0 && (project.apport ?? 0) > 0)
+    const isComptant         = project.is_comptant ?? r?.isComptant ?? (capitalEmprunte === 0 && (project.apport ?? 0) > 0)
     const scenarioResult     = r?.scenario           ?? null
     const projectionConservateur = r?.projectionConservateur ?? []
     const projectionRealiste     = r?.projectionRealiste     ?? []

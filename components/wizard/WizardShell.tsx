@@ -38,6 +38,7 @@ export interface WizardState {
   autres_frais: number
 
   // Bloc D
+  is_comptant: boolean
   apport: number | ''
   duree_annees: number
   taux_interet_pct: number | ''
@@ -77,6 +78,7 @@ const initialState: WizardState = {
   plan_3d: 0,
   autres_frais: 0,
 
+  is_comptant: false,
   apport: '',
   duree_annees: 20,
   taux_interet_pct: '',
