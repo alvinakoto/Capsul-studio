@@ -66,11 +66,10 @@ const s = StyleSheet.create({
 })
 
 export default function PageProjection({ data }: { data: RapportData }) {
-  const { project, projectionConservateur, projectionRealiste, tableauAmortissement } = data
+  const { project, projectionConservateur, projectionRealiste, tableauAmortissement, isComptant } = data
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const hasData = projectionRealiste.length > 0
 
-  // Aligne le capital restant sur l'année (0 après fin du crédit)
   function capitalRestant(annee: number) {
     const ligne = tableauAmortissement[annee - 1]
     return ligne?.capitalRestant ?? 0
@@ -95,7 +94,9 @@ export default function PageProjection({ data }: { data: RapportData }) {
             {' — revalorisation 0 % /an (pas de plus-value latente) · '}
             <Text style={s.introStrong}>Réaliste</Text>
             {' — revalorisation +2 % /an. '}
-            Patrimoine net = apport + capital remboursé + cash-flow cumulé + plus-value latente.
+            {isComptant
+              ? 'Achat comptant — bien possédé à 100 % dès le départ. Patrimoine net = valeur du bien + cash-flow cumulé.'
+              : 'Patrimoine net = apport + capital remboursé + cash-flow cumulé + plus-value latente.'}
           </Text>
         </View>
 
@@ -108,7 +109,7 @@ export default function PageProjection({ data }: { data: RapportData }) {
             <View style={s.tableHeader}>
               <Text style={s.thAnnee}>An.</Text>
               <Text style={s.thCell}>Valeur bien (réal.)</Text>
-              <Text style={s.thCell}>Capital restant dû</Text>
+              {!isComptant && <Text style={s.thCell}>Capital restant dû</Text>}
               <Text style={s.thCell}>CF cumulé</Text>
               <Text style={s.thCell}>Patrimoine cons.</Text>
               <Text style={s.thCell}>Patrimoine réal.</Text>
@@ -127,7 +128,7 @@ export default function PageProjection({ data }: { data: RapportData }) {
                 >
                   <Text style={s.tdAnnee}>{r.annee}</Text>
                   <Text style={s.tdVal}>{euros(r.valeurBien)}</Text>
-                  <Text style={s.tdVal}>{euros(capitalRestant(r.annee))}</Text>
+                  {!isComptant && <Text style={s.tdVal}>{euros(capitalRestant(r.annee))}</Text>}
                   <Text style={r.cashflowCumul >= 0 ? s.tdVal : { ...s.tdVal, color: colors.negRed }}>
                     {euros(r.cashflowCumul)}
                   </Text>

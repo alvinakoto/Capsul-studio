@@ -27,6 +27,7 @@ export interface RapportData {
   chargeNom: string
   scenarioType: string
   loyer: number
+  isComptant: boolean
   prixProjetTotal: number
   fraisNotaireEuros: number
   honorairesCapsul: number

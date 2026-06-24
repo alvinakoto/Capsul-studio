@@ -72,7 +72,7 @@ export async function GET(
     let mensualiteTotale = 0
 
     const loyer = project.loyer_cible ?? 0
-    const hasData = project.taux_interet_pct && loyer > 0
+    const hasData = loyer > 0
 
     if (hasData) {
       try {

@@ -96,7 +96,7 @@ export async function GET(
           } }
 
     let r: any = null
-    if (project.taux_interet_pct && loyer > 0) {
+    if (loyer > 0) {
       try { r = calculerScenario(projetData, financementData, chargesData, scenarioInput as any) }
       catch { /* continue without scenario */ }
     }
@@ -108,6 +108,7 @@ export async function GET(
     const mensualiteCredit   = r?.mensualiteCredit   ?? 0
     const assuranceMensuelle = r?.assuranceMensuelle ?? 0
     const mensualiteTotale   = r?.mensualiteTotale   ?? 0
+    const isComptant         = r?.isComptant         ?? (capitalEmprunte === 0 && (project.apport ?? 0) > 0)
     const scenarioResult     = r?.scenario           ?? null
     const projectionConservateur = r?.projectionConservateur ?? []
     const projectionRealiste     = r?.projectionRealiste     ?? []
@@ -128,7 +129,7 @@ export async function GET(
 
     // ─── Détail fiscal LMNP réel ─────────────────────────────────────────────
     let detailFiscal: DetailFiscalLMNP | null = null
-    if (scenarioResult && capitalEmprunte > 0) {
+    if (scenarioResult) {
       const amortBien     = Math.round(project.prix_achat * 0.85 * 0.02)
       const amortMobilier = Math.round((project.mobilier ?? 0) * 0.10)
       const amortTravaux  = Math.round((project.travaux  ?? 0) * 0.05)
@@ -149,7 +150,7 @@ export async function GET(
 
     // ─── Assemblage ──────────────────────────────────────────────────────────
     const rapportData: RapportData = {
-      project, chargeNom, scenarioType, loyer,
+      project, chargeNom, scenarioType, loyer, isComptant,
       prixProjetTotal, fraisNotaireEuros, honorairesCapsul,
       capitalEmprunte, mensualiteCredit, assuranceMensuelle, mensualiteTotale,
       coutTotalInterets, scenarioResult, tableauAmortissement, detailFiscal,

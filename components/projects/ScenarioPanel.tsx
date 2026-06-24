@@ -328,6 +328,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
           <ProjectionChart
             conservateur={result.projectionConservateur}
             realiste={result.projectionRealiste}
+            isComptant={result.isComptant}
           />
         </>
       )}

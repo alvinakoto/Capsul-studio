@@ -12,9 +12,11 @@ function euros(n: number) {
 export default function ProjectionChart({
   conservateur,
   realiste,
+  isComptant = false,
 }: {
   conservateur: any[]
   realiste: any[]
+  isComptant?: boolean
 }) {
   const data = conservateur.map((c, i) => ({
     annee: `A${c.annee}`,
@@ -25,7 +27,11 @@ export default function ProjectionChart({
   return (
     <div className="rounded-xl border bg-card p-6">
       <h2 className="font-semibold mb-1">Projection patrimoniale — 20 ans</h2>
-      <p className="text-xs text-muted-foreground mb-6">Patrimoine net après remboursement du crédit</p>
+      <p className="text-xs text-muted-foreground mb-6">
+        {isComptant
+          ? 'Achat comptant — patrimoine net = valeur du bien + trésorerie cumulée'
+          : 'Patrimoine net après remboursement du crédit'}
+      </p>
 
       <div style={{ width: '100%', height: 280 }}>
         <ResponsiveContainer width="100%" height="100%" debounce={1}>

@@ -89,7 +89,7 @@ function Row({ label, value, bold, muted, color }: RowProps) {
 
 export default function PageSynthese({ data }: { data: RapportData }) {
   const {
-    project, chargeNom, scenarioType, loyer,
+    project, chargeNom, scenarioType, loyer, isComptant,
     prixProjetTotal, fraisNotaireEuros, honorairesCapsul,
     capitalEmprunte, mensualiteCredit, assuranceMensuelle, mensualiteTotale,
     coutTotalInterets, scenarioResult, detailFiscal,
@@ -134,15 +134,21 @@ export default function PageSynthese({ data }: { data: RapportData }) {
 
           <Text style={s.secLabel}>Plan de financement</Text>
           <Row label="Apport personnel" value={euros(project.apport ?? 0)} />
-          <Row label="Capital emprunté" value={euros(capitalEmprunte)} />
-          <Row label="Durée du crédit" value={`${project.duree_annees ?? 20} ans`} />
-          <Row label="Taux d'intérêt" value={pct(project.taux_interet_pct ?? 0)} />
-          {(project.taux_assurance_pct ?? 0) > 0 &&
-            <Row label="Taux assurance" value={pct(project.taux_assurance_pct)} />}
-          <Row label="Mensualité crédit" value={euros(mensualiteCredit)} />
-          {assuranceMensuelle > 0 && <Row label="Assurance mensuelle" value={euros(assuranceMensuelle)} />}
-          <Row label="Mensualité totale" value={euros(mensualiteTotale)} bold />
-          <Row label="Coût total des intérêts" value={euros(coutTotalInterets)} muted />
+          {isComptant ? (
+            <Row label="Mode d'acquisition" value="Achat comptant" bold />
+          ) : (
+            <>
+              <Row label="Capital emprunté" value={euros(capitalEmprunte)} />
+              <Row label="Durée du crédit" value={`${project.duree_annees ?? 20} ans`} />
+              <Row label="Taux d'intérêt" value={pct(project.taux_interet_pct ?? 0)} />
+              {(project.taux_assurance_pct ?? 0) > 0 &&
+                <Row label="Taux assurance" value={pct(project.taux_assurance_pct)} />}
+              <Row label="Mensualité crédit" value={euros(mensualiteCredit)} />
+              {assuranceMensuelle > 0 && <Row label="Assurance mensuelle" value={euros(assuranceMensuelle)} />}
+              <Row label="Mensualité totale" value={euros(mensualiteTotale)} bold />
+              <Row label="Coût total des intérêts" value={euros(coutTotalInterets)} muted />
+            </>
+          )}
         </View>
 
         <View style={s.divider} />
