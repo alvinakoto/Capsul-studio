@@ -26,7 +26,7 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 ### Règles métier
 
 - **Honoraires Capsul** = `MAX(prixAchat × 8,28% TTC, 8 280€) + travaux × 5%` (taux passé de 6,9% à 8,28% récemment — les fiches historiques reflètent l'ancien taux ; champ overridable via `honorairesOverride`)
-- **Capital emprunté** = `prixAchat + travaux − apport` (notaire et honoraires exclus, hors financement bancaire)
+- **Capital emprunté** = `prixProjetTotal − apport` dans le moteur (`calculerFinancement`) — clamped à 0 ; si ≤ 0 → `isComptant = true`, tout le crédit à 0. Note : la RecapSticky affiche `prixAchat + travaux − apport` (montant finançable banque) ; la détection UI "comptant" dans `BlocD` utilise aussi cette base.
 - **4 scénarios** : LLD nue, LMNP meublé, colocation, courte durée (16 nuits/mois conservateur, 22 nuits/mois optimiste — tous les champs sont overridables)
 - **Vacance locative par défaut** : 5% pour LMNP meublé et courte durée, 8% pour colocation — pré-rempli dans `ScenarioPanel.tsx` et reseté automatiquement au changement de scénario
 - **CFE (Cotisation Foncière des Entreprises)** : ~300 €/an, spécifique à la courte durée — incluse dans `ParamsCourteDuree.cfe`, champ modifiable dans wizard (BlocE) et ScenarioPanel ; colonne `cfe NUMERIC(10,2) DEFAULT 300` dans la table `projects`
@@ -48,6 +48,7 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - Photos HEIC (iPhone) silencieusement rejetées à l'upload → corrigé via `lib/utils/convertHeic.ts` (`ensureJpeg()`) branché dans `BlocB.tsx` : détection par MIME **et** extension (les iPhone envoient souvent `type = ""`), conversion `heic2any` → JPEG 92% avant upload Supabase, spinner "Conversion HEIC en cours…" pendant le traitement, `accept="image/*,.heic,.heif"` sur tous les inputs photo
 - Zéros insécables dans `ScenarioPanel` : inputs `type="number"` avec `onChange={() => setX(Number(e.target.value))}` remettaient `0` dès que le champ était vidé (backspace bloqué) → tous les champs numériques (`vacance`, `nbChambres`, `nuitsCons`, `nuitsOpti`) passés en `number | ''` avec même pattern que `EuroField` ; `handleCalculer` utilise `Number(x) || fallback` pour les valeurs vides
 - Champ "Vacance locative" masqué pour le scénario courte durée (redondant avec nuits/mois conservateur et optimiste)
+- Achat comptant (`capitalEmprunte ≤ 0`) produisait NaN/Infinity → résolu end-to-end : `calculerFinancement` détecte `isComptant` et court-circuite tout le crédit à 0 ; `calculerAmortissement` retourne `[]` si capital ≤ 0 ; `calculerProjection` utilise `valeurBien + cashflowCumul` (bien possédé à 100% dès J1) ; `ResultatsComplets.isComptant: boolean` propagé jusqu'à `ScenarioPanel` (badge "Achat comptant — aucun crédit") et `BlocD` (champs taux/durée grisés + bannière) ; PDF diagnostic pages 3 et 5 affichent encadrés dédiés ; rapport analytique `PageAmortissement` message adapté
 
 ## Schéma Supabase — points clés
 
