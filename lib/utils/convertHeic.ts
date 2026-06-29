@@ -57,16 +57,17 @@ function canvasToJpeg(file: File): Promise<File> {
 export async function ensureJpeg(file: File): Promise<File> {
   file = normalizeFile(file)
 
-  // JPEG et PNG sont gérés nativement par react-pdf — on ne re-encode pas
-  const safeTypes = ['image/jpeg', 'image/jpg', 'image/png']
-  if (safeTypes.includes(file.type) && !isHeicFile(file)) return file
+  // PNG uniquement passe directement — react-pdf le gère sans problème
+  if (file.type === 'image/png' && !isHeicFile(file)) return file
 
-  // Stratégie 1 : Canvas — fonctionne pour tout ce que le navigateur peut afficher,
-  // y compris HEIC natif sur macOS/iOS et les JPEG mal étiquetés avec extension .heic
+  // Tout le reste (JPEG, WEBP, HEIC…) passe par canvas pour normaliser :
+  // orientation EXIF, progressif → baseline, CMYK → RGB.
+  // Les JPEGs "directs" de certains appareils/apps sont progressifs ou CMYK
+  // et ne s'affichent pas dans react-pdf sans cette étape.
   try {
     return await canvasToJpeg(file)
   } catch {
-    // Stratégie 2 : heic2any — fallback pour les navigateurs sans support HEIC natif (Chrome Windows/Linux)
+    // Fallback heic2any pour les navigateurs sans support HEIC natif (Chrome Windows/Linux)
     if (isHeicFile(file)) {
       const heic2any = (await import('heic2any')).default
       const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 })
