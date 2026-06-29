@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select'
 
 const VILLES = ['Reims', 'Paris', 'Toulouse', 'Amiens', 'Nancy', 'Troyes', 'Épernay', 'Châlons-en-Champagne']
-const TYPES_BIEN = ['studio', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6+', 'maison']
+const TYPES_BIEN = ['studio', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6+', 'maison', 'immeuble']
 const DPE_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 
 const DPE_COLORS: Record<string, string> = {

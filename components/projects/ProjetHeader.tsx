@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateProjectStatus, deleteProject } from '@/lib/supabase/projects'
+import { createBrowserClient } from '@supabase/ssr'
+import { updateProjectStatus, deleteProject, duplicateProject } from '@/lib/supabase/projects'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; dot: string }> = {
   draft:      { label: 'Brouillon',  bg: '#F0EDE7',               color: '#6E6E73', dot: '#6E6E73' },
@@ -29,6 +30,7 @@ export default function ProjetHeader({ project }: { project: any }) {
   const [statusSaving, setStatusSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting]       = useState(false)
+  const [duplicating, setDuplicating] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft
@@ -55,6 +57,24 @@ export default function ProjetHeader({ project }: { project: any }) {
       console.error(err)
     } finally {
       setStatusSaving(false)
+    }
+  }
+
+  const handleDuplicate = async () => {
+    setDuplicating(true)
+    try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const newId = await duplicateProject(project.id, user.id)
+      router.push(`/projets/${newId}/modifier`)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setDuplicating(false)
     }
   }
 
@@ -184,6 +204,21 @@ export default function ProjetHeader({ project }: { project: any }) {
                 <path d="M9 2l2 2-7 7H2V9l7-7z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Modifier
+            </button>
+
+            <button
+              onClick={handleDuplicate}
+              disabled={duplicating}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-medium transition-all disabled:opacity-50"
+              style={{ border: '1px solid #DDD9D0', color: '#1C1C1E', backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#F7F5F1' }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <rect x="4" y="4" width="7" height="7" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+                <path d="M2.5 9V2.5H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {duplicating ? 'Duplication…' : 'Dupliquer'}
             </button>
 
             {/* Supprimer */}

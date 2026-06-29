@@ -28,12 +28,14 @@ export function suggererScenarios(state: WizardState): Suggestion[] {
 
   // Colocation
   let scoreColoc = 40
-  if (['T3', 'T4', 'T5', 'T6+', 'maison'].includes(type)) scoreColoc += 25
+  if (['T3', 'T4', 'T5', 'T6+', 'maison', 'immeuble'].includes(type)) scoreColoc += 25
+  if (type === 'immeuble') scoreColoc += 15  // immeuble = plusieurs lots, colocation naturelle
   if (surface >= 80) scoreColoc += 10
 
   // Courte durée
   let scoreCourte = 35
   if (['T1', 'studio', 'T2'].includes(type)) scoreCourte += 15
+  if (type === 'immeuble') scoreCourte += 10  // plusieurs unités exploitables
   if (villesTouristiques.includes(ville)) scoreCourte += 20
   if (surface < 40) scoreCourte += 10
 

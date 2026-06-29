@@ -185,6 +185,61 @@ export async function updateProjectStatus(
   if (error) throw error
 }
 
+export async function duplicateProject(projectId: string, userId: string): Promise<string> {
+  const supabase = getClient()
+  const project = await getProjectById(projectId, userId)
+
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      charge_id: userId,
+      name: `Copie — ${project.name}`,
+      status: 'draft',
+      city: project.city,
+
+      adresse: project.adresse,
+      ville: project.ville,
+      surface_m2: project.surface_m2,
+      type_bien: project.type_bien,
+      description_bien: project.description_bien,
+      dpe_actuel: project.dpe_actuel,
+      dpe_apres_travaux: project.dpe_apres_travaux,
+      dpe: project.dpe_actuel,
+
+      prix_achat: project.prix_achat,
+      frais_notaire_pct: project.frais_notaire_pct,
+      travaux: project.travaux,
+      mobilier: project.mobilier,
+      honoraires_capsul: project.honoraires_capsul,
+      honoraires_override: project.honoraires_override,
+      plan_3d: project.plan_3d,
+      autres_frais: project.autres_frais,
+
+      is_comptant: project.is_comptant,
+      apport: project.apport,
+      duree_annees: project.duree_annees,
+      taux_interet_pct: project.taux_interet_pct,
+      taux_assurance_pct: project.taux_assurance_pct,
+
+      taxe_fonciere: project.taxe_fonciere,
+      charges_copro_annuelles: project.charges_copro_annuelles,
+      assurance_pno: project.assurance_pno,
+      frais_comptabilite: project.frais_comptabilite,
+      electricite_eau: project.electricite_eau,
+      internet: project.internet,
+      chauffage: project.chauffage,
+      cfe: project.cfe,
+      autres_charges: project.autres_charges,
+      frais_gestion_pct: project.frais_gestion_pct,
+      concierge_pct: project.concierge_pct,
+    })
+    .select('id')
+    .single()
+
+  if (error) throw error
+  return data.id
+}
+
 export async function deleteProject(projectId: string): Promise<void> {
   const supabase = getClient()
   const { error } = await supabase
