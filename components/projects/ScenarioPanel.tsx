@@ -20,16 +20,26 @@ function euros(n: number) {
 }
 
 export default function ScenarioPanel({ project }: { project: any }) {
-  const [scenarioType, setScenarioType] = useState<'lmnp_meuble' | 'colocation' | 'courte_duree'>('lmnp_meuble')
-  const [loyerMensuel, setLoyerMensuel]       = useState<number | ''>('')
+  const initScenario = (project.scenario_type ?? 'lmnp_meuble') as 'lmnp_meuble' | 'colocation' | 'courte_duree'
+
+  const [scenarioType, setScenarioType] = useState<'lmnp_meuble' | 'colocation' | 'courte_duree'>(initScenario)
+  const [loyerMensuel, setLoyerMensuel]       = useState<number | ''>(
+    initScenario === 'lmnp_meuble' ? (project.loyer_cible || '') : ''
+  )
   const [tmi, setTmi]                         = useState(30)
-  const [vacance, setVacance]                 = useState<number | ''>(5)
+  const [vacance, setVacance]                 = useState<number | ''>(initScenario === 'colocation' ? 8 : 5)
   const [nbChambres, setNbChambres]           = useState<number | ''>(2)
-  const [loyerParChambre, setLoyerParChambre] = useState<number | ''>('')
-  const [prixNuit, setPrixNuit]               = useState<number | ''>('')
+  const [loyerParChambre, setLoyerParChambre] = useState<number | ''>(
+    initScenario === 'colocation' ? (project.loyer_cible || '') : ''
+  )
+  const [prixNuit, setPrixNuit]               = useState<number | ''>(
+    initScenario === 'courte_duree' ? (project.loyer_cible || '') : ''
+  )
   const [nuitsCons, setNuitsCons]             = useState<number | ''>(16)
   const [nuitsOpti, setNuitsOpti]             = useState<number | ''>(22)
-  const [cfe, setCfe]                         = useState(300)
+  const [cfe, setCfe]                         = useState(project.cfe ?? 300)
+  const [fraisGestion, setFraisGestion]       = useState<number | ''>(project.frais_gestion_pct ?? 7)
+  const [conciergerie, setConciergerie]       = useState<number | ''>(project.concierge_pct ?? 20)
   const [result, setResult]                   = useState<any>(null)
   const [error, setError]                     = useState<string | null>(null)
   const [saved, setSaved]                     = useState(false)
@@ -84,10 +94,11 @@ export default function ScenarioPanel({ project }: { project: any }) {
         scenarioInput = {
           type: 'lmnp_meuble' as const,
           params: {
-            loyerMensuel:  Number(loyerMensuel),
-            vacancePct:    Number(vacance) || 0,
-            regimeFiscal:  'lmnp_reel' as const,
-            tmiClientPct:  tmi,
+            loyerMensuel:    Number(loyerMensuel),
+            vacancePct:      Number(vacance) || 0,
+            fraisGestionPct: Number(fraisGestion) || 0,
+            regimeFiscal:    'lmnp_reel' as const,
+            tmiClientPct:    tmi,
           },
         }
       } else if (scenarioType === 'colocation') {
@@ -98,6 +109,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
             nbChambres:      Number(nbChambres) || 1,
             loyerParChambre: Number(loyerParChambre),
             vacancePct:      Number(vacance) || 0,
+            fraisGestionPct: Number(fraisGestion) || 0,
             tmiClientPct:    tmi,
             regimeFiscal:    'lmnp_reel' as const,
           },
@@ -110,7 +122,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
             prixNuitee:          Number(prixNuit),
             nuitsConservateur:   Number(nuitsCons) || 0,
             nuitsOptimiste:      Number(nuitsOpti) || 0,
-            conciergeriePct:     20,
+            conciergeriePct:     Number(conciergerie) || 0,
             electriciteEau:      chargesData.electriciteEau,
             internet:            chargesData.internet,
             chauffage:           chargesData.chauffage,
@@ -130,7 +142,10 @@ export default function ScenarioPanel({ project }: { project: any }) {
         scenarioType === 'colocation'  ? Number(loyerParChambre) :
                                          Number(prixNuit)
 
-      updateProjectScenario(project.id, loyerCible, scenarioType).then(() => setSaved(true))
+      updateProjectScenario(project.id, loyerCible, scenarioType, {
+        fraisGestionPct: Number(fraisGestion) || 0,
+        conciergePct: Number(conciergerie) || 0,
+      }).then(() => setSaved(true))
 
     } catch (err: any) {
       setError(err?.message ?? 'Erreur de calcul.')
@@ -226,6 +241,32 @@ export default function ScenarioPanel({ project }: { project: any }) {
                 <Label htmlFor="vacance">Vacance locative (%)</Label>
                 <Input id="vacance" type="number" min={0} max={100} value={vacance}
                   onChange={(e) => setVacance(e.target.value === '' ? '' : Number(e.target.value))} />
+              </div>
+            )}
+
+            {/* Frais de gestion (LMNP et colocation) */}
+            {scenarioType !== 'courte_duree' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="fraisGestion">Frais de gestion locative (%)</Label>
+                <div className="relative">
+                  <Input id="fraisGestion" type="number" min={0} max={30} value={fraisGestion}
+                    className="pr-8"
+                    onChange={(e) => setFraisGestion(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                </div>
+              </div>
+            )}
+
+            {/* Conciergerie (courte durée uniquement) */}
+            {scenarioType === 'courte_duree' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="conciergerie">Conciergerie (%)</Label>
+                <div className="relative">
+                  <Input id="conciergerie" type="number" min={0} max={50} value={conciergerie}
+                    className="pr-8"
+                    onChange={(e) => setConciergerie(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                </div>
               </div>
             )}
           </div>

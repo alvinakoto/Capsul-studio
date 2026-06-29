@@ -369,7 +369,18 @@ export default function WizardShell({
             Précédent
           </button>
 
-          {currentIndex < blocs.length - 1 ? (
+          {editProjectId ? (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+              style={{ backgroundColor: '#C9943A', color: '#fff' }}
+              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#B8841F' }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#C9943A' }}
+            >
+              {saving ? 'Enregistrement...' : 'Sauvegarder les modifications'}
+            </button>
+          ) : currentIndex < blocs.length - 1 ? (
             <button
               onClick={() => setActiveBloc(blocs[currentIndex + 1].id)}
               className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
@@ -391,7 +402,7 @@ export default function WizardShell({
               onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#B8841F' }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#C9943A' }}
             >
-              {saving ? 'Enregistrement...' : editProjectId ? 'Sauvegarder les modifications' : 'Enregistrer le projet'}
+              {saving ? 'Enregistrement...' : 'Enregistrer le projet'}
             </button>
           )}
         </div>

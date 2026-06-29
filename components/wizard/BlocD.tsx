@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -47,7 +48,24 @@ function FieldInput({
 
 const DUREES = [10, 15, 20, 25]
 
+function calculerPrixProjetTotal(state: WizardState): number {
+  const prixAchat = Number(state.prix_achat) || 0
+  const travaux = Number(state.travaux) || 0
+  const mobilier = Number(state.mobilier) || 0
+  const fraisNotaire = Math.round(prixAchat * state.frais_notaire_pct / 100)
+  const honoraires = state.honoraires_override && state.honoraires_capsul
+    ? Number(state.honoraires_capsul) || 0
+    : Math.max(Math.round(prixAchat * 0.0828), prixAchat > 0 ? 8280 : 0) + Math.round(travaux * 0.05)
+  return prixAchat + fraisNotaire + travaux + mobilier + honoraires + state.plan_3d + state.autres_frais
+}
+
 export default function BlocD({ state, setField }: Props) {
+  const [apportMode, setApportMode] = useState<'eur' | 'pct'>('eur')
+
+  const prixProjetTotal = calculerPrixProjetTotal(state)
+  const apportEuros = Number(state.apport) || 0
+  const apportPct = prixProjetTotal > 0 ? Math.round((apportEuros / prixProjetTotal) * 1000) / 10 : 0
+
   return (
     <div className="space-y-6">
 
@@ -92,14 +110,67 @@ export default function BlocD({ state, setField }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent className={`grid grid-cols-1 gap-4 ${!state.is_comptant ? 'sm:grid-cols-2' : ''}`}>
-          <FieldInput
-            id="apport"
-            label="Apport personnel"
-            value={state.apport}
-            onChange={(v) => setField('apport', v)}
-            suffix="€"
-            hint={state.is_comptant ? 'Optionnel — pour information uniquement' : undefined}
-          />
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="apport">Apport personnel</Label>
+              <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
+                <button
+                  type="button"
+                  onClick={() => setApportMode('eur')}
+                  className="px-2 py-1 transition"
+                  style={{
+                    backgroundColor: apportMode === 'eur' ? '#0E2240' : '#F7F5F1',
+                    color: apportMode === 'eur' ? '#fff' : '#6E6E73',
+                  }}
+                >€</button>
+                <button
+                  type="button"
+                  onClick={() => prixProjetTotal > 0 && setApportMode('pct')}
+                  className="px-2 py-1 transition"
+                  style={{
+                    backgroundColor: apportMode === 'pct' ? '#0E2240' : '#F7F5F1',
+                    color: apportMode === 'pct' ? '#fff' : prixProjetTotal > 0 ? '#6E6E73' : '#C0BDB7',
+                    borderLeft: '1px solid #DDD9D0',
+                    cursor: prixProjetTotal > 0 ? 'pointer' : 'not-allowed',
+                  }}
+                >%</button>
+              </div>
+            </div>
+            <div className="relative">
+              <Input
+                id="apport"
+                type="number"
+                min={0}
+                step={apportMode === 'eur' ? 1000 : 1}
+                value={apportMode === 'eur' ? state.apport : apportPct}
+                onChange={(e) => {
+                  const v = e.target.value === '' ? '' : Number(e.target.value)
+                  if (apportMode === 'eur') {
+                    setField('apport', v)
+                  } else if (prixProjetTotal > 0) {
+                    setField('apport', Math.round((Number(v) / 100) * prixProjetTotal))
+                  }
+                }}
+                className="pr-8"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                {apportMode === 'eur' ? '€' : '%'}
+              </span>
+            </div>
+            {apportMode === 'eur' && prixProjetTotal > 0 && apportEuros > 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                soit {apportPct.toFixed(1)} % du projet
+              </p>
+            )}
+            {apportMode === 'pct' && (
+              <p className="text-[11px] text-muted-foreground">
+                soit {apportEuros.toLocaleString('fr-FR')} €
+              </p>
+            )}
+            {state.is_comptant && (
+              <p className="text-[11px] text-muted-foreground">Optionnel — pour information uniquement</p>
+            )}
+          </div>
 
           {!state.is_comptant && (
             <div className="space-y-1.5">

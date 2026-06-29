@@ -39,6 +39,7 @@ export interface DonneesCharges {
 export interface ParamsLMNP {
   loyerMensuel: number
   vacancePct: number            // ex: 5 pour 5%
+  fraisGestionPct?: number      // ex: 7 pour 7% — défaut 0 si absent
   regimeFiscal: 'micro_bic' | 'lmnp_reel'
   tmiClientPct: number          // ex: 30 pour 30%
 }
@@ -48,6 +49,7 @@ export interface ParamsColocation {
   nbChambres: number
   loyerParChambre: number
   vacancePct: number
+  fraisGestionPct?: number      // ex: 7 pour 7%
   regimeFiscal: 'micro_bic' | 'lmnp_reel'
   tmiClientPct: number
 }

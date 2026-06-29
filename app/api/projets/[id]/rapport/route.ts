@@ -86,12 +86,12 @@ export async function GET(
 
     const scenarioInput =
       scenarioType === 'lmnp_meuble'
-        ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct: 5, regimeFiscal: 'lmnp_reel' as const, tmiClientPct: TMI_DEFAULT } }
+        ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct: 5, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct: TMI_DEFAULT } }
         : scenarioType === 'colocation'
-        ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct: 8, tmiClientPct: TMI_DEFAULT, regimeFiscal: 'lmnp_reel' as const } }
+        ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct: 8, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct: TMI_DEFAULT, regimeFiscal: 'lmnp_reel' as const } }
         : { type: 'courte_duree' as const, params: {
             prixNuitee: loyer, nuitsConservateur: 16, nuitsOptimiste: 22,
-            conciergeriePct: 20, electriciteEau: chargesData.electriciteEau,
+            conciergeriePct: project.concierge_pct ?? 20, electriciteEau: chargesData.electriciteEau,
             internet: chargesData.internet, chauffage: chargesData.chauffage,
             cfe: project.cfe ?? 300, tmiClientPct: TMI_DEFAULT, regimeFiscal: 'lmnp_reel' as const,
           } }

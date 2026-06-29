@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -50,9 +51,14 @@ function EuroInput({
 }
 
 export default function BlocC({ state, setField }: Props) {
+  const [fraisNotaireMode, setFraisNotaireMode] = useState<'pct' | 'eur'>('pct')
+
   const prixAchat = Number(state.prix_achat) || 0
   const travaux = Number(state.travaux) || 0
   const honorairesAuto = prixAchat > 0 ? calculerHonorairesAuto(prixAchat, travaux) : 0
+  const fraisNotaireEuros = prixAchat > 0
+    ? Math.round(prixAchat * state.frais_notaire_pct / 100)
+    : 0
 
   // Quand prixAchat ou travaux changent, recalculer les honoraires si pas d'override
   const handlePrixAchatChange = (v: number | '') => {
@@ -92,16 +98,62 @@ export default function BlocC({ state, setField }: Props) {
             onChange={handlePrixAchatChange}
           />
           <div className="space-y-1.5">
-            <Label htmlFor="frais_notaire">Frais de notaire (%)</Label>
-            <Input
-              id="frais_notaire"
-              type="number"
-              min={0}
-              max={15}
-              step={0.1}
-              value={state.frais_notaire_pct}
-              onChange={(e) => setField('frais_notaire_pct', Number(e.target.value))}
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="frais_notaire">Frais de notaire</Label>
+              <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
+                <button
+                  type="button"
+                  onClick={() => setFraisNotaireMode('pct')}
+                  className="px-2 py-1 transition"
+                  style={{
+                    backgroundColor: fraisNotaireMode === 'pct' ? '#0E2240' : '#F7F5F1',
+                    color: fraisNotaireMode === 'pct' ? '#fff' : '#6E6E73',
+                  }}
+                >%</button>
+                <button
+                  type="button"
+                  onClick={() => prixAchat > 0 && setFraisNotaireMode('eur')}
+                  className="px-2 py-1 transition"
+                  style={{
+                    backgroundColor: fraisNotaireMode === 'eur' ? '#0E2240' : '#F7F5F1',
+                    color: fraisNotaireMode === 'eur' ? '#fff' : prixAchat > 0 ? '#6E6E73' : '#C0BDB7',
+                    borderLeft: '1px solid #DDD9D0',
+                    cursor: prixAchat > 0 ? 'pointer' : 'not-allowed',
+                  }}
+                >€</button>
+              </div>
+            </div>
+            <div className="relative">
+              <Input
+                id="frais_notaire"
+                type="number"
+                min={0}
+                step={fraisNotaireMode === 'pct' ? 0.1 : 100}
+                value={fraisNotaireMode === 'pct' ? state.frais_notaire_pct : fraisNotaireEuros}
+                onChange={(e) => {
+                  const v = Number(e.target.value)
+                  if (fraisNotaireMode === 'pct') {
+                    setField('frais_notaire_pct', v)
+                  } else if (prixAchat > 0) {
+                    setField('frais_notaire_pct', (v / prixAchat) * 100)
+                  }
+                }}
+                className="pr-8"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                {fraisNotaireMode === 'pct' ? '%' : '€'}
+              </span>
+            </div>
+            {fraisNotaireMode === 'pct' && prixAchat > 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                soit {fraisNotaireEuros.toLocaleString('fr-FR')} €
+              </p>
+            )}
+            {fraisNotaireMode === 'eur' && (
+              <p className="text-[11px] text-muted-foreground">
+                soit {state.frais_notaire_pct.toFixed(2)} %
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

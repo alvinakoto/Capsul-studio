@@ -156,12 +156,19 @@ export async function updateProject(
 export async function updateProjectScenario(
   projectId: string,
   loyerCible: number,
-  scenarioType: 'lmnp_meuble' | 'colocation' | 'courte_duree'
+  scenarioType: 'lmnp_meuble' | 'colocation' | 'courte_duree',
+  extras?: { fraisGestionPct?: number; conciergePct?: number }
 ): Promise<void> {
   const supabase = getClient()
   const { error } = await supabase
     .from('projects')
-    .update({ loyer_cible: loyerCible, scenario_type: scenarioType, status: 'simulation' })
+    .update({
+      loyer_cible: loyerCible,
+      scenario_type: scenarioType,
+      status: 'simulation',
+      ...(extras?.fraisGestionPct !== undefined && { frais_gestion_pct: extras.fraisGestionPct }),
+      ...(extras?.conciergePct !== undefined && { concierge_pct: extras.conciergePct }),
+    })
     .eq('id', projectId)
   if (error) throw error
 }

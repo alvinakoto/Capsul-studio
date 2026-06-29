@@ -35,6 +35,9 @@ export function calculerColocation(
 
   // ── Charges annuelles ─────────────────────────────────────────
   // En colocation : fluides souvent à charge bailleur
+  const fraisGestionAnnuels = Math.round(
+    revenusAnnuelsNets * ((params.fraisGestionPct ?? 0) / 100)
+  )
   const chargesAnnuelles =
     charges.taxeFonciere +
     charges.chargesCoproAnnuelles +
@@ -43,7 +46,8 @@ export function calculerColocation(
     charges.internet +
     charges.chauffage +
     charges.fraisComptabilite +
-    charges.autresCharges
+    charges.autresCharges +
+    fraisGestionAnnuels
 
   // ── Rentabilité ───────────────────────────────────────────────
   const rentabiliteBrutePct = Math.round(

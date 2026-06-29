@@ -35,12 +35,16 @@ export function calculerLMNP(
   // ── Charges annuelles ────────────────────────────────────────
   // En LMNP meublé : fluides généralement à charge locataire
   // On inclut uniquement les charges propriétaire
+  const fraisGestionAnnuels = Math.round(
+    revenusAnnuelsNets * ((params.fraisGestionPct ?? 0) / 100)
+  )
   const chargesAnnuelles =
     charges.taxeFonciere +
     charges.chargesCoproAnnuelles +
     charges.assurancePno +
     charges.fraisComptabilite +
-    charges.autresCharges
+    charges.autresCharges +
+    fraisGestionAnnuels
 
   // ── Rentabilité ──────────────────────────────────────────────
   const rentabiliteBrutePct = Math.round(
