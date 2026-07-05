@@ -186,10 +186,10 @@ export default function PageScenario({ data }: Props) {
   const sc = scenarioResult
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const scenarioLabel = SCENARIO_LABELS[project.scenario_type ?? 'lmnp_meuble'] ?? 'LMNP Meublé — Régime Réel'
-  const tmi = 30  // TODO: store tmi in project
+  const tmi = data.tmiClientPct
 
   const loyer = project.loyer_cible ?? 0
-  const vacancePct = 5
+  const vacancePct = data.vacancePct
   const chargesMois = sc ? Math.round(sc.chargesAnnuelles / 12) : null
   const mensualite = Math.round(data.mensualiteTotale)
   const impot = sc ? sc.impotMensuelEstime : null

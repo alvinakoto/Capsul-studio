@@ -82,6 +82,8 @@ export interface FicheData {
   prixProjetTotal: number
   capitalEmprunte: number
   mensualiteTotale: number
+  vacancePct: number
+  tmiClientPct: number
   projectionConservateur: any[]
   projectionRealiste: any[]
 }

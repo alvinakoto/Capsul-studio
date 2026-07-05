@@ -84,16 +84,19 @@ export async function GET(
       autresCharges:         project.autres_charges ?? 0,
     }
 
+    const tmiClientPct = project.tmi_client_pct ?? TMI_DEFAULT
+    const vacancePct = project.vacance_pct ?? (scenarioType === 'colocation' ? 8 : 5)
+
     const scenarioInput =
       scenarioType === 'lmnp_meuble'
-        ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct: 5, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct: TMI_DEFAULT } }
+        ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct } }
         : scenarioType === 'colocation'
-        ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct: 8, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct: TMI_DEFAULT, regimeFiscal: 'lmnp_reel' as const } }
+        ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
         : { type: 'courte_duree' as const, params: {
             prixNuitee: loyer, nuitsConservateur: 16, nuitsOptimiste: 22,
             conciergeriePct: project.concierge_pct ?? 20, electriciteEau: chargesData.electriciteEau,
             internet: chargesData.internet, chauffage: chargesData.chauffage,
-            cfe: project.cfe ?? 300, tmiClientPct: TMI_DEFAULT, regimeFiscal: 'lmnp_reel' as const,
+            cfe: project.cfe ?? 300, tmiClientPct, regimeFiscal: 'lmnp_reel' as const,
           } }
 
     let r: any = null
@@ -141,7 +144,7 @@ export async function GET(
       const chargesDeductibles = scenarioResult.chargesAnnuelles
       const revenusNets        = scenarioResult.revenusAnnuelsNets
       const resultatFiscal     = revenusNets - chargesDeductibles - interetsAnnee1 - amortTotal
-      const impotAnnuel        = Math.round(Math.max(0, resultatFiscal) * (TMI_DEFAULT / 100 + 0.172))
+      const impotAnnuel        = Math.round(Math.max(0, resultatFiscal) * (tmiClientPct / 100 + 0.172))
 
       detailFiscal = {
         amortBien, amortMobilier, amortTravaux, amortTotal,

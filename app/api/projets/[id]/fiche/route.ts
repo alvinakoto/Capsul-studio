@@ -74,6 +74,11 @@ export async function GET(
     const loyer = project.loyer_cible ?? 0
     const hasData = loyer > 0
 
+    const scenarioTypeForDefaults = (project.scenario_type ?? 'lmnp_meuble') as
+      'lmnp_meuble' | 'colocation' | 'courte_duree'
+    const tmiClientPct = project.tmi_client_pct ?? 30
+    const vacancePct = project.vacance_pct ?? (scenarioTypeForDefaults === 'colocation' ? 8 : 5)
+
     if (hasData) {
       try {
         const projetData = {
@@ -104,14 +109,13 @@ export async function GET(
           autresCharges: project.autres_charges ?? 0,
         }
 
-        const scenarioType = (project.scenario_type ?? 'lmnp_meuble') as
-          'lmnp_meuble' | 'colocation' | 'courte_duree'
+        const scenarioType = scenarioTypeForDefaults
 
         const scenarioInput =
           scenarioType === 'lmnp_meuble'
-            ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct: 5, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct: 30 } }
+            ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct } }
             : scenarioType === 'colocation'
-            ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct: 8, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct: 30, regimeFiscal: 'lmnp_reel' as const } }
+            ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
             : {
                 type: 'courte_duree' as const,
                 params: {
@@ -123,7 +127,7 @@ export async function GET(
                   internet:          chargesData.internet,
                   chauffage:         chargesData.chauffage,
                   cfe:               project.cfe ?? 300,
-                  tmiClientPct:      30,
+                  tmiClientPct,
                   regimeFiscal:      'lmnp_reel' as const,
                 },
               }
@@ -181,6 +185,8 @@ export async function GET(
       prixProjetTotal,
       capitalEmprunte,
       mensualiteTotale,
+      vacancePct,
+      tmiClientPct,
       projectionConservateur,
       projectionRealiste,
     }

@@ -26,8 +26,10 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const [loyerMensuel, setLoyerMensuel]       = useState<number | ''>(
     initScenario === 'lmnp_meuble' ? (project.loyer_cible || '') : ''
   )
-  const [tmi, setTmi]                         = useState(30)
-  const [vacance, setVacance]                 = useState<number | ''>(initScenario === 'colocation' ? 8 : 5)
+  const [tmi, setTmi]                         = useState(project.tmi_client_pct ?? 30)
+  const [vacance, setVacance]                 = useState<number | ''>(
+    project.vacance_pct ?? (initScenario === 'colocation' ? 8 : 5)
+  )
   const [nbChambres, setNbChambres]           = useState<number | ''>(2)
   const [loyerParChambre, setLoyerParChambre] = useState<number | ''>(
     initScenario === 'colocation' ? (project.loyer_cible || '') : ''
@@ -145,6 +147,8 @@ export default function ScenarioPanel({ project }: { project: any }) {
       updateProjectScenario(project.id, loyerCible, scenarioType, {
         fraisGestionPct: Number(fraisGestion) || 0,
         conciergePct: Number(conciergerie) || 0,
+        vacancePct: Number(vacance) || 0,
+        tmiClientPct: tmi,
       }).then(() => setSaved(true))
 
     } catch (err: any) {
