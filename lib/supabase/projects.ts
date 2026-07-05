@@ -57,6 +57,10 @@ export async function createProject(
       honoraires_override: state.honoraires_override,
       plan_3d: state.plan_3d,
       autres_frais: state.autres_frais,
+      travaux_estime: state.travaux_estime,
+      frais_notaire_estime: state.frais_notaire_estime,
+      negociation_envisagee: state.negociation_envisagee,
+      prix_affiche_origine: state.prix_affiche_origine === '' ? null : state.prix_affiche_origine,
 
       // Financement
       is_comptant: state.is_comptant,
@@ -75,6 +79,8 @@ export async function createProject(
       chauffage: state.chauffage,
       cfe: state.cfe,
       autres_charges: state.autres_charges,
+      charges_copro_estime: state.charges_copro_estime,
+      taxe_fonciere_estime: state.taxe_fonciere_estime,
     })
     .select('id')
     .single()
@@ -112,6 +118,7 @@ export async function updateProject(
     .update({
       name: genererNomProjet(state),
       city: state.ville || '',
+      prix_achat: state.prix_achat || 0,
 
       adresse: state.adresse || null,
       ville: state.ville || null,
@@ -130,6 +137,10 @@ export async function updateProject(
       honoraires_override: state.honoraires_override,
       plan_3d: state.plan_3d,
       autres_frais: state.autres_frais,
+      travaux_estime: state.travaux_estime,
+      frais_notaire_estime: state.frais_notaire_estime,
+      negociation_envisagee: state.negociation_envisagee,
+      prix_affiche_origine: state.prix_affiche_origine === '' ? null : state.prix_affiche_origine,
 
       is_comptant: state.is_comptant,
       apport: state.apport === '' ? null : state.apport,
@@ -146,6 +157,8 @@ export async function updateProject(
       chauffage: state.chauffage,
       cfe: state.cfe,
       autres_charges: state.autres_charges,
+      charges_copro_estime: state.charges_copro_estime,
+      taxe_fonciere_estime: state.taxe_fonciere_estime,
     })
     .eq('id', projectId)
     .eq('charge_id', userId)
@@ -157,7 +170,10 @@ export async function updateProjectScenario(
   projectId: string,
   loyerCible: number,
   scenarioType: 'lmnp_meuble' | 'colocation' | 'courte_duree',
-  extras?: { fraisGestionPct?: number; conciergePct?: number; vacancePct?: number; tmiClientPct?: number }
+  extras?: {
+    fraisGestionPct?: number; conciergePct?: number; vacancePct?: number; tmiClientPct?: number
+    nuitsConservateur?: number; nuitsOptimiste?: number
+  }
 ): Promise<void> {
   const supabase = getClient()
   const { error } = await supabase
@@ -170,6 +186,8 @@ export async function updateProjectScenario(
       ...(extras?.conciergePct !== undefined && { concierge_pct: extras.conciergePct }),
       ...(extras?.vacancePct !== undefined && { vacance_pct: extras.vacancePct }),
       ...(extras?.tmiClientPct !== undefined && { tmi_client_pct: extras.tmiClientPct }),
+      ...(extras?.nuitsConservateur !== undefined && { nuits_conservateur: extras.nuitsConservateur }),
+      ...(extras?.nuitsOptimiste !== undefined && { nuits_optimiste: extras.nuitsOptimiste }),
     })
     .eq('id', projectId)
   if (error) throw error
@@ -216,6 +234,10 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       honoraires_override: project.honoraires_override,
       plan_3d: project.plan_3d,
       autres_frais: project.autres_frais,
+      travaux_estime: project.travaux_estime,
+      frais_notaire_estime: project.frais_notaire_estime,
+      negociation_envisagee: project.negociation_envisagee,
+      prix_affiche_origine: project.prix_affiche_origine,
 
       is_comptant: project.is_comptant,
       apport: project.apport,
@@ -232,6 +254,8 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       chauffage: project.chauffage,
       cfe: project.cfe,
       autres_charges: project.autres_charges,
+      charges_copro_estime: project.charges_copro_estime,
+      taxe_fonciere_estime: project.taxe_fonciere_estime,
       frais_gestion_pct: project.frais_gestion_pct,
       concierge_pct: project.concierge_pct,
     })

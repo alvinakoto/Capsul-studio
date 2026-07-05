@@ -1,8 +1,8 @@
 import React from 'react'
-import { Page, View, Text, StyleSheet, Svg, Line, Polyline, Circle } from '@react-pdf/renderer'
+import { Page, View, Text, StyleSheet, Svg, Rect, Defs, LinearGradient, Stop } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
 import { FicheData } from '../types'
-import { eurosShort } from '../helpers'
+import { euros } from '../helpers'
 
 // SVG Text avec props correctes pour react-pdf
 const SvgText = Text as any
@@ -19,56 +19,69 @@ const s = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
   },
-  chartWrap: {
-    marginTop: 16,
-    marginBottom: 16,
-    position: 'relative',
+
+  // ─── Chiffre choc ─────────────────────────────────────────────────────────
+  hero: {
+    backgroundColor: colors.navy,
+    borderRadius: 8,
+    paddingVertical: 34,
+    paddingHorizontal: 26,
+    marginBottom: 26,
+    alignItems: 'center',
   },
-  milestones: {
-    flexDirection: 'row',
-    borderTopWidth: 0.5,
-    borderTopColor: colors.rule,
-    borderTopStyle: 'solid',
-    marginBottom: 20,
-  },
-  milestone: {
-    flex: 1,
-    paddingTop: 14,
-    paddingBottom: 14,
-    paddingLeft: 14,
-    paddingRight: 14,
-    borderRightWidth: 0.5,
-    borderRightColor: colors.rule,
-    borderRightStyle: 'solid',
-  },
-  milestoneLast: {
-    flex: 1,
-    paddingTop: 14,
-    paddingBottom: 14,
-    paddingLeft: 14,
-    paddingRight: 14,
-  },
-  msYear: {
-    fontSize: 5.5,
+  heroLabel: {
+    fontSize: 7.5,
     fontWeight: 600,
-    letterSpacing: 1.5,
-    color: colors.muted,
+    letterSpacing: 2,
+    color: '#8aa4bd',
     textTransform: 'uppercase',
-    marginBottom: 6,
+    marginBottom: 10,
   },
-  msValue: {
-    fontSize: 20,
+  heroValue: {
+    fontSize: 46,
     fontWeight: 900,
-    color: colors.navy,
-    letterSpacing: -0.5,
+    color: colors.white,
+    letterSpacing: -1.2,
     lineHeight: 1,
-    marginBottom: 3,
   },
-  msLabel: {
-    fontSize: 6,
+  heroSub: {
+    fontSize: 8,
+    fontWeight: 300,
+    color: '#8aa4bd',
+    marginTop: 10,
+  },
+  heroSubStrong: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: colors.gold,
+  },
+
+  chartCard: {
+    backgroundColor: colors.paper,
+    borderRadius: 8,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+
+  chartWrap: {
+    marginTop: 4,
+    marginBottom: 18,
+    alignItems: 'center',
+  },
+
+  caption: {
+    fontSize: 7,
     fontWeight: 300,
     color: colors.muted,
+    textAlign: 'center',
   },
+  captionStrong: {
+    fontSize: 7,
+    fontWeight: 700,
+    color: colors.navy,
+  },
+
   disclaimer: {
     fontSize: 6,
     fontWeight: 300,
@@ -106,44 +119,28 @@ const s = StyleSheet.create({
   },
 })
 
-function buildPoints(
-  data: any[], cw: number, ch: number,
-  maxVal: number, padL: number, padR: number, padT: number, padB: number
-): string {
-  if (!data?.length) return ''
-  return data.map((d, i) => {
-    const x = padL + (i / (data.length - 1)) * (cw - padL - padR)
-    const val = Math.max(0, d.patrimoineNet)
-    const y = padT + (1 - val / Math.max(maxVal, 1)) * (ch - padT - padB)
-    return `${x.toFixed(1)},${y.toFixed(1)}`
-  }).join(' ')
-}
-
 interface Props { data: FicheData }
+
+const MILESTONES = [5, 10, 15, 20]
 
 export default function PageProjection({ data }: Props) {
   const { project, projectionRealiste, projectionConservateur } = data
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const hasData = projectionRealiste?.length > 0
 
-  const CW = 489
-  const CH = 150
-  const PAD_L = 36
-  const PAD_R = 10 // marge droite pour que la dernière étiquette ne dépasse pas
-  const PAD_T = 6
-  const PAD_B = 18
+  const CW = 449
+  const CH = 340
+  const PAD_T = 40   // espace pour l'étiquette de valeur au-dessus de la barre
+  const PAD_B = 36   // espace pour l'étiquette d'année + valeur conservatrice
 
-  const maxVal = hasData
-    ? Math.max(...projectionRealiste.map(d => d.patrimoineNet), 1)
-    : 300000
+  const realisteVals = MILESTONES.map(yr => hasData ? (projectionRealiste[yr - 1]?.patrimoineNet ?? 0) : 0)
+  const conservateurVals = MILESTONES.map(yr => hasData ? (projectionConservateur[yr - 1]?.patrimoineNet ?? 0) : 0)
+  const maxVal = Math.max(...realisteVals, 1)
 
-  const gridVals = [maxVal, maxVal * 0.5, 0]
-  const realistePoints = hasData ? buildPoints(projectionRealiste, CW, CH, maxVal, PAD_L, PAD_R, PAD_T, PAD_B) : ''
-  const consPoints = hasData ? buildPoints(projectionConservateur, CW, CH, maxVal, PAD_L, PAD_R, PAD_T, PAD_B) : ''
+  const patrimoineA20 = realisteVals[3]
 
-  const at10 = hasData ? projectionRealiste[9]?.patrimoineNet ?? 0 : 0
-  const at15 = hasData ? projectionRealiste[14]?.patrimoineNet ?? 0 : 0
-  const at20 = hasData ? projectionRealiste[19]?.patrimoineNet ?? 0 : 0
+  const colW = CW / MILESTONES.length
+  const barW = colW * 0.42
 
   return (
     <Page size="A4" style={s.page}>
@@ -160,101 +157,77 @@ export default function PageProjection({ data }: Props) {
       <View style={s.body}>
         <Text style={common.secLabel}>Évolution du patrimoine net sur 20 ans</Text>
 
-        {/* Chart */}
+        {/* Chiffre choc */}
+        <View style={s.hero}>
+          <Text style={s.heroLabel}>Patrimoine net constitué à 20 ans</Text>
+          <Text style={s.heroValue}>{hasData ? euros(patrimoineA20) : '—'}</Text>
+          <Text style={s.heroSub}>
+            {'Scénario '}<Text style={s.heroSubStrong}>réaliste</Text>{' (+2 % /an de revalorisation)'}
+          </Text>
+        </View>
+
+        {/* Barres par palier */}
+        <View style={s.chartCard}>
         <View style={s.chartWrap}>
           <Svg width={CW} height={CH}>
-            {/* Grid */}
-            {gridVals.map((val, i) => {
-              const y = PAD_T + (1 - val / Math.max(maxVal, 1)) * (CH - PAD_T - PAD_B)
+            <Defs>
+              <LinearGradient id="barGrad" x1="0" y1="1" x2="0" y2="0">
+                <Stop offset="0" stopColor={colors.navy} />
+                <Stop offset="1" stopColor={colors.navyLight} />
+              </LinearGradient>
+            </Defs>
+
+            {/* Ligne de base */}
+            <Rect x={0} y={CH - PAD_B} width={CW} height={0.75} fill={colors.rule} />
+
+            {MILESTONES.map((yr, i) => {
+              const val = realisteVals[i]
+              const consVal = conservateurVals[i]
+              const barH = hasData ? Math.max(2, (val / maxVal) * (CH - PAD_T - PAD_B)) : 2
+              const colX = i * colW
+              const barX = colX + (colW - barW) / 2
+              const barY = CH - PAD_B - barH
+
               return (
-                <React.Fragment key={i}>
-                  <Line x1={PAD_L} y1={y} x2={CW - PAD_R} y2={y}
-                    stroke={colors.rule} strokeWidth={0.5} />
+                <React.Fragment key={yr}>
+                  <Rect x={barX} y={barY} width={barW} height={barH} rx={4} fill="url(#barGrad)" />
+                  <Rect x={barX} y={barY} width={barW} height={3.5} fill={colors.gold} />
+
                   <SvgText
-                    x={PAD_L - 3} y={y + 2}
-                    fontSize={6} fontFamily="Montserrat" fontWeight={300}
-                    fill={colors.muted} textAnchor="end"
+                    x={colX + colW / 2} y={barY - 13}
+                    fontSize={13} fontFamily="Montserrat" fontWeight={800}
+                    fill={colors.navy} textAnchor="middle"
                   >
-                    {eurosShort(val)}
+                    {hasData ? euros(val, false) : '—'}
+                  </SvgText>
+
+                  <SvgText
+                    x={colX + colW / 2} y={CH - PAD_B + 17}
+                    fontSize={9} fontFamily="Montserrat" fontWeight={700}
+                    fill={colors.navy} textAnchor="middle"
+                  >
+                    {`${yr} ans`}
+                  </SvgText>
+                  <SvgText
+                    x={colX + colW / 2} y={CH - PAD_B + 29}
+                    fontSize={7} fontFamily="Montserrat" fontWeight={300}
+                    fill={colors.muted} textAnchor="middle"
+                  >
+                    {`Cons. ${hasData ? euros(consVal, false) : '—'}`}
                   </SvgText>
                 </React.Fragment>
               )
             })}
-
-            {/* X labels — la dernière (A20) est ancrée à droite pour ne pas dépasser */}
-            {[1, 5, 10, 15, 20].map((yr) => {
-              const x = PAD_L + ((yr - 1) / 19) * (CW - PAD_L - PAD_R)
-              const isLast = yr === 20
-              return (
-                <SvgText
-                  key={yr} x={isLast ? CW - PAD_R : x} y={CH - 4}
-                  fontSize={6} fontFamily="Montserrat" fontWeight={300}
-                  fill={colors.muted} textAnchor={isLast ? 'end' : 'middle'}
-                >
-                  {`A${yr}`}
-                </SvgText>
-              )
-            })}
-
-            {/* Conservateur */}
-            {consPoints && (
-              <Polyline points={consPoints} fill="none"
-                stroke={colors.muted} strokeWidth={1.2} strokeDasharray="4,3" />
-            )}
-
-            {/* Réaliste */}
-            {realistePoints && (
-              <Polyline points={realistePoints} fill="none"
-                stroke={colors.navy} strokeWidth={2} />
-            )}
-
-            {/* Dots at A10 and A20 */}
-            {hasData && (() => {
-              const x10 = PAD_L + (9 / 19) * (CW - PAD_L - PAD_R)
-              const y10 = PAD_T + (1 - Math.max(0, at10) / maxVal) * (CH - PAD_T - PAD_B)
-              const x20 = PAD_L + (19 / 19) * (CW - PAD_L - PAD_R)
-              const y20 = PAD_T + (1 - Math.max(0, at20) / maxVal) * (CH - PAD_T - PAD_B)
-              return <>
-                <Circle cx={x10} cy={y10} r={3} fill={colors.navy} />
-                <Circle cx={x20} cy={y20} r={3} fill={colors.navy} />
-              </>
-            })()}
-
-            {/* Legend */}
-            <Line x1={CW - PAD_R - 120} y1={12} x2={CW - PAD_R - 102} y2={12}
-              stroke={colors.navy} strokeWidth={2} />
-            <SvgText x={CW - PAD_R - 98} y={15}
-              fontSize={6} fontFamily="Montserrat" fontWeight={600}
-              fill={colors.navy}>
-              Réaliste
-            </SvgText>
-            <Line x1={CW - PAD_R - 120} y1={24} x2={CW - PAD_R - 102} y2={24}
-              stroke={colors.muted} strokeWidth={1.2} strokeDasharray="4,3" />
-            <SvgText x={CW - PAD_R - 98} y={27}
-              fontSize={6} fontFamily="Montserrat" fontWeight={300}
-              fill={colors.muted}>
-              Conservateur
-            </SvgText>
           </Svg>
         </View>
 
-        {/* Milestones */}
-        <View style={s.milestones}>
-          <View style={s.milestone}>
-            <Text style={s.msYear}>Patrimoine à 10 ans</Text>
-            <Text style={s.msValue}>{hasData ? eurosShort(at10) : '—'}</Text>
-            <Text style={s.msLabel}>Scénario réaliste</Text>
-          </View>
-          <View style={s.milestone}>
-            <Text style={s.msYear}>Patrimoine à 15 ans</Text>
-            <Text style={s.msValue}>{hasData ? eurosShort(at15) : '—'}</Text>
-            <Text style={s.msLabel}>Scénario réaliste</Text>
-          </View>
-          <View style={s.milestoneLast}>
-            <Text style={s.msYear}>Patrimoine à 20 ans</Text>
-            <Text style={s.msValue}>{hasData ? eurosShort(at20) : '—'}</Text>
-            <Text style={s.msLabel}>Scénario réaliste</Text>
-          </View>
+        <Text style={s.caption}>
+          {'Barres : patrimoine net en scénario '}
+          <Text style={s.captionStrong}>réaliste</Text>
+          {' (+2 % /an). "Cons." : valeur en scénario '}
+          <Text style={s.captionStrong}>conservateur</Text>
+          {' (0 % /an), sans plus-value latente.'}
+        </Text>
         </View>
 
         <Text style={s.disclaimer}>

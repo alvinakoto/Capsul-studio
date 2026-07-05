@@ -4,6 +4,7 @@ import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 
 interface Props {
   state: WizardState
@@ -11,17 +12,26 @@ interface Props {
 }
 
 function ChargeInput({
-  id, label, value, onChange, hint,
+  id, label, value, onChange, hint, estimate,
 }: {
   id: string
   label: string
   value: number | ''
   onChange: (v: number | '') => void
   hint?: string
+  estimate?: { checked: boolean; onChange: (v: boolean) => void }
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        {estimate && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground">Estimation</span>
+            <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
+          </div>
+        )}
+      </div>
       <div className="relative">
         <Input
           id={id}
@@ -66,12 +76,20 @@ export default function BlocE({ state, setField }: Props) {
             label="Taxe foncière"
             value={state.taxe_fonciere}
             onChange={(v) => setField('taxe_fonciere', v)}
+            estimate={{
+              checked: state.taxe_fonciere_estime,
+              onChange: (v) => setField('taxe_fonciere_estime', v),
+            }}
           />
           <ChargeInput
             id="charges_copro"
             label="Charges de copropriété"
             value={state.charges_copro_annuelles}
             onChange={(v) => setField('charges_copro_annuelles', v)}
+            estimate={{
+              checked: state.charges_copro_estime,
+              onChange: (v) => setField('charges_copro_estime', v),
+            }}
           />
           <ChargeInput
             id="assurance_pno"
@@ -121,7 +139,7 @@ export default function BlocE({ state, setField }: Props) {
             label="CFE (Cotisation Foncière)"
             value={state.cfe}
             onChange={(v) => setField('cfe', Number(v) || 0)}
-            hint="Courte durée uniquement (~300 €/an)"
+            hint="~300 €/an, exonérée la 1ère année"
           />
           <ChargeInput
             id="autres_charges"

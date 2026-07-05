@@ -47,6 +47,7 @@ export function calculerColocation(
     charges.chauffage +
     charges.fraisComptabilite +
     charges.autresCharges +
+    charges.cfe +
     fraisGestionAnnuels
 
   // ── Rentabilité ───────────────────────────────────────────────

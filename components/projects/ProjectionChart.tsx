@@ -43,8 +43,9 @@ export default function ProjectionChart({
               tickLine={false}
             />
             <YAxis
-              tickFormatter={(v: number) => `${Math.round(v / 1000)}k€`}
-              tick={{ fontSize: 11 }}
+              tickFormatter={(v: number) => `${Math.round(v).toLocaleString('fr-FR')} €`}
+              tick={{ fontSize: 10 }}
+              width={72}
               tickLine={false}
               axisLine={false}
             />
@@ -63,7 +64,7 @@ export default function ProjectionChart({
               stroke="#94a3b8"
               strokeWidth={2}
               strokeDasharray="5 3"
-              dot={false}
+              dot={{ r: 2, fill: '#94a3b8', strokeWidth: 0 }}
               isAnimationActive={false}
             />
             <Line
@@ -71,7 +72,7 @@ export default function ProjectionChart({
               dataKey="Réaliste"
               stroke="#1e3a5f"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 2.5, fill: '#1e3a5f', strokeWidth: 0 }}
               isAnimationActive={false}
             />
           </LineChart>

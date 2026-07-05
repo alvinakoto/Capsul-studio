@@ -57,10 +57,9 @@ export function calculerCourteDuree(
   const chargesSpecifiquesCD =
     params.electriciteEau +
     params.internet +
-    params.chauffage +
-    params.cfe
+    params.chauffage
 
-  const chargesAnnuelles = chargesGenerales + chargesSpecifiquesCD
+  const chargesAnnuelles = chargesGenerales + chargesSpecifiquesCD + charges.cfe
 
   // ── Rentabilité ───────────────────────────────────────────────
   const rentabiliteBrutePct = Math.round(

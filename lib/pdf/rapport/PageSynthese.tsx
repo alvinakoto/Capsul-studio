@@ -97,6 +97,21 @@ export default function PageSynthese({ data }: { data: RapportData }) {
 
   const scenarioLabel = SCENARIO_LABELS[scenarioType] ?? scenarioType
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
+  const fraisGestionPct = project.frais_gestion_pct ?? 7
+  const fraisGestionAnnuel = scenarioType !== 'courte_duree' && scenarioResult
+    ? Math.round(scenarioResult.revenusAnnuelsNets * (fraisGestionPct / 100))
+    : 0
+  const cfeAnnuel = project.cfe ?? 300
+  const conciergeriePct = project.concierge_pct ?? 20
+  const conciergerieAnnuel = scenarioType === 'courte_duree' && scenarioResult
+    ? Math.round(scenarioResult.revenusAnnuelsBruts * (conciergeriePct / 100))
+    : 0
+  const nuitsOptimiste = project.nuits_optimiste ?? 22
+  const cashflowOptimiste = scenarioType === 'courte_duree' && scenarioResult
+    ? scenarioResult.cashflowOptimiste
+    : null
+  const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
+  const hasEstimations = !!(project.travaux_estime || project.frais_notaire_estime)
   const autresFrais = (project.plan_3d ?? 0) + (project.autres_frais ?? 0)
 
   return (
@@ -124,13 +139,33 @@ export default function PageSynthese({ data }: { data: RapportData }) {
         {/* Colonne gauche — Prix projet + Financement */}
         <View style={s.col}>
           <Text style={[s.secLabel, s.secLabelFirst]}>Composition du projet</Text>
-          <Row label="Prix d'achat" value={euros(project.prix_achat)} />
-          <Row label={`Frais de notaire (${project.frais_notaire_pct} %)`} value={euros(fraisNotaireEuros)} />
-          {(project.travaux ?? 0) > 0 && <Row label="Travaux" value={euros(project.travaux)} />}
+          {negociationEnvisagee && (
+            <Row label="Prix affiché (FAI)" value={euros(project.prix_affiche_origine)} muted />
+          )}
+          <Row
+            label={negociationEnvisagee ? 'Prix négocié envisagé' : "Prix d'achat"}
+            value={euros(project.prix_achat)}
+          />
+          <Row
+            label={`Frais de notaire (${project.frais_notaire_pct} %)${project.frais_notaire_estime ? '*' : ''}`}
+            value={euros(fraisNotaireEuros)}
+          />
+          {(project.travaux ?? 0) > 0 &&
+            <Row label={`Travaux${project.travaux_estime ? '*' : ''}`} value={euros(project.travaux)} />}
           {(project.mobilier ?? 0) > 0 && <Row label="Mobilier" value={euros(project.mobilier)} />}
           {honorairesCapsul > 0 && <Row label="Honoraires Capsul" value={euros(honorairesCapsul)} />}
           {autresFrais > 0 && <Row label="Autres frais" value={euros(autresFrais)} />}
           <Row label="Prix projet total" value={euros(prixProjetTotal)} bold />
+          {negociationEnvisagee && (
+            <Text style={{ fontSize: 6, color: colors.gold, fontWeight: 600, marginTop: 4 }}>
+              Négociation envisagée
+            </Text>
+          )}
+          {hasEstimations && (
+            <Text style={{ fontSize: 6, color: colors.muted, fontStyle: 'italic', marginTop: 4 }}>
+              * Estimation
+            </Text>
+          )}
 
           <Text style={s.secLabel}>Plan de financement</Text>
           <Row label="Apport personnel" value={euros(project.apport ?? 0)} />
@@ -166,8 +201,13 @@ export default function PageSynthese({ data }: { data: RapportData }) {
                 />
               )}
               <Row label="Revenus annuels bruts" value={euros(scenarioResult.revenusAnnuelsBruts)} />
+              {conciergerieAnnuel > 0 &&
+                <Row label={`dont conciergerie (${conciergeriePct} %)`} value={euros(conciergerieAnnuel) + ' /an'} muted />}
               <Row label="Revenus nets perçus" value={euros(scenarioResult.revenusAnnuelsNets)} />
               <Row label="Charges annuelles" value={euros(scenarioResult.chargesAnnuelles)} />
+              {fraisGestionAnnuel > 0 &&
+                <Row label={`dont frais de gestion (${fraisGestionPct} %)`} value={euros(fraisGestionAnnuel) + ' /an'} muted />}
+              <Row label="dont CFE (exonérée 1ère année)" value={euros(cfeAnnuel) + ' /an'} muted />
               <Row label="Mensualité totale" value={euros(mensualiteTotale)} />
               <Row label="Impôt mensuel estimé" value={euros(scenarioResult.impotMensuelEstime)} />
               <Row
@@ -176,6 +216,13 @@ export default function PageSynthese({ data }: { data: RapportData }) {
                 bold
                 color={scenarioResult.cashflowMensuelApresIR >= 0 ? 'green' : 'red'}
               />
+              {cashflowOptimiste !== null && (
+                <Row
+                  label={`Scénario optimiste (${nuitsOptimiste} nuits/mois)`}
+                  value={euros(cashflowOptimiste) + ' /mois'}
+                  muted
+                />
+              )}
               <Row label="Rentabilité brute" value={`${scenarioResult.rentabiliteBrutePct} %`} />
               <Row label="Rentabilité nette" value={`${scenarioResult.rentabiliteNettePct} %`} />
             </>

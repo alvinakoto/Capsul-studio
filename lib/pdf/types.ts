@@ -70,8 +70,23 @@ export interface FicheData {
     charges_copro_annuelles: number | null
     assurance_pno: number | null
     frais_comptabilite: number | null
+    frais_gestion_pct: number | null
+    autres_charges: number | null
+    electricite_eau: number | null
+    internet: number | null
+    chauffage: number | null
+    cfe: number | null
     scenario_type: string | null
     loyer_cible: number | null
+    travaux_estime: boolean | null
+    frais_notaire_estime: boolean | null
+    charges_copro_estime: boolean | null
+    taxe_fonciere_estime: boolean | null
+    negociation_envisagee: boolean | null
+    prix_affiche_origine: number | null
+    concierge_pct: number | null
+    nuits_conservateur: number | null
+    nuits_optimiste: number | null
   }
   chargeNom: string
   coverPhotoUrl: string | null

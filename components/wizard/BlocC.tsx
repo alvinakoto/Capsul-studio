@@ -19,7 +19,7 @@ function calculerHonorairesAuto(prixAchat: number, travaux: number): number {
 }
 
 function EuroInput({
-  id, label, value, onChange, readOnly = false, hint,
+  id, label, value, onChange, readOnly = false, hint, estimate,
 }: {
   id: string
   label: string
@@ -27,10 +27,19 @@ function EuroInput({
   onChange: (v: number | '') => void
   readOnly?: boolean
   hint?: string
+  estimate?: { checked: boolean; onChange: (v: boolean) => void }
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        {estimate && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground">Estimation</span>
+            <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
+          </div>
+        )}
+      </div>
       <div className="relative">
         <Input
           id={id}
@@ -88,39 +97,66 @@ export default function BlocC({ state, setField }: Props) {
       {/* Acquisition */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Acquisition</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Acquisition</CardTitle>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Négociation envisagée</span>
+              <Switch
+                checked={state.negociation_envisagee}
+                onCheckedChange={(checked) => setField('negociation_envisagee', checked)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {state.negociation_envisagee && (
+            <EuroInput
+              id="prix_affiche_origine"
+              label="Prix affiché (FAI)"
+              value={state.prix_affiche_origine}
+              onChange={(v) => setField('prix_affiche_origine', v)}
+              hint="Prix d'origine annoncé par l'agence"
+            />
+          )}
           <EuroInput
             id="prix_achat"
-            label="Prix d'achat FAI"
+            label={state.negociation_envisagee ? "Prix négocié envisagé" : "Prix d'achat FAI"}
             value={state.prix_achat}
             onChange={handlePrixAchatChange}
           />
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="frais_notaire">Frais de notaire</Label>
-              <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
-                <button
-                  type="button"
-                  onClick={() => setFraisNotaireMode('pct')}
-                  className="px-2 py-1 transition"
-                  style={{
-                    backgroundColor: fraisNotaireMode === 'pct' ? '#0E2240' : '#F7F5F1',
-                    color: fraisNotaireMode === 'pct' ? '#fff' : '#6E6E73',
-                  }}
-                >%</button>
-                <button
-                  type="button"
-                  onClick={() => prixAchat > 0 && setFraisNotaireMode('eur')}
-                  className="px-2 py-1 transition"
-                  style={{
-                    backgroundColor: fraisNotaireMode === 'eur' ? '#0E2240' : '#F7F5F1',
-                    color: fraisNotaireMode === 'eur' ? '#fff' : prixAchat > 0 ? '#6E6E73' : '#C0BDB7',
-                    borderLeft: '1px solid #DDD9D0',
-                    cursor: prixAchat > 0 ? 'pointer' : 'not-allowed',
-                  }}
-                >€</button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-muted-foreground">Estimation</span>
+                  <Switch
+                    checked={state.frais_notaire_estime}
+                    onCheckedChange={(checked) => setField('frais_notaire_estime', checked)}
+                  />
+                </div>
+                <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
+                  <button
+                    type="button"
+                    onClick={() => setFraisNotaireMode('pct')}
+                    className="px-2 py-1 transition"
+                    style={{
+                      backgroundColor: fraisNotaireMode === 'pct' ? '#0E2240' : '#F7F5F1',
+                      color: fraisNotaireMode === 'pct' ? '#fff' : '#6E6E73',
+                    }}
+                  >%</button>
+                  <button
+                    type="button"
+                    onClick={() => prixAchat > 0 && setFraisNotaireMode('eur')}
+                    className="px-2 py-1 transition"
+                    style={{
+                      backgroundColor: fraisNotaireMode === 'eur' ? '#0E2240' : '#F7F5F1',
+                      color: fraisNotaireMode === 'eur' ? '#fff' : prixAchat > 0 ? '#6E6E73' : '#C0BDB7',
+                      borderLeft: '1px solid #DDD9D0',
+                      cursor: prixAchat > 0 ? 'pointer' : 'not-allowed',
+                    }}
+                  >€</button>
+                </div>
               </div>
             </div>
             <div className="relative">
@@ -169,6 +205,10 @@ export default function BlocC({ state, setField }: Props) {
             label="Budget travaux"
             value={state.travaux}
             onChange={handleTravauxChange}
+            estimate={{
+              checked: state.travaux_estime,
+              onChange: (v) => setField('travaux_estime', v),
+            }}
           />
           <EuroInput
             id="mobilier"
@@ -213,7 +253,7 @@ export default function BlocC({ state, setField }: Props) {
           />
           <EuroInput
             id="plan3d"
-            label="Plan 3D"
+            label="Honoraires décoration Capsul"
             value={state.plan_3d}
             onChange={(v) => setField('plan_3d', Number(v) || 0)}
           />

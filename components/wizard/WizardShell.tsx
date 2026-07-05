@@ -36,6 +36,10 @@ export interface WizardState {
   honoraires_override: boolean
   plan_3d: number
   autres_frais: number
+  travaux_estime: boolean
+  frais_notaire_estime: boolean
+  negociation_envisagee: boolean
+  prix_affiche_origine: number | ''
 
   // Bloc D
   is_comptant: boolean
@@ -54,6 +58,8 @@ export interface WizardState {
   chauffage: number
   cfe: number
   autres_charges: number
+  charges_copro_estime: boolean
+  taxe_fonciere_estime: boolean
 }
 
 export type WizardAction =
@@ -77,6 +83,10 @@ const initialState: WizardState = {
   honoraires_override: false,
   plan_3d: 0,
   autres_frais: 0,
+  travaux_estime: false,
+  frais_notaire_estime: false,
+  negociation_envisagee: false,
+  prix_affiche_origine: '',
 
   is_comptant: false,
   apport: '',
@@ -93,6 +103,8 @@ const initialState: WizardState = {
   chauffage: 0,
   cfe: 300,
   autres_charges: 0,
+  charges_copro_estime: false,
+  taxe_fonciere_estime: false,
 }
 
 function wizardReducer(state: WizardState, action: WizardAction): WizardState {

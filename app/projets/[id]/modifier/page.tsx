@@ -25,6 +25,10 @@ function projectToWizardState(p: any): Partial<WizardState> {
     honoraires_override: p.honoraires_override ?? false,
     plan_3d:             p.plan_3d ?? 0,
     autres_frais:        p.autres_frais ?? 0,
+    travaux_estime:      p.travaux_estime ?? false,
+    frais_notaire_estime: p.frais_notaire_estime ?? false,
+    negociation_envisagee: p.negociation_envisagee ?? false,
+    prix_affiche_origine: p.prix_affiche_origine ?? '',
 
     is_comptant:         p.is_comptant ?? false,
     apport:              p.apport ?? '',
@@ -41,6 +45,8 @@ function projectToWizardState(p: any): Partial<WizardState> {
     chauffage:                p.chauffage ?? 0,
     cfe:                      p.cfe ?? 300,
     autres_charges:           p.autres_charges ?? 0,
+    charges_copro_estime:     p.charges_copro_estime ?? false,
+    taxe_fonciere_estime:     p.taxe_fonciere_estime ?? false,
   }
 }
 

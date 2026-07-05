@@ -1,7 +1,7 @@
 import React from 'react'
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
-import { euros, eurosShort } from '../helpers'
+import { euros } from '../helpers'
 import type { RapportData } from '../types'
 
 const ROW_H = 16
@@ -151,8 +151,8 @@ export default function PageProjection({ data }: { data: RapportData }) {
             return (
               <View key={yr} style={isLast ? s.msCellLast : s.msCell}>
                 <Text style={s.msLabel}>Patrimoine à {yr} ans</Text>
-                <Text style={s.msCons}>Cons. {eurosShort(c?.patrimoineNet ?? 0)}</Text>
-                <Text style={s.msReal}>{eurosShort(r?.patrimoineNet ?? 0)}</Text>
+                <Text style={s.msCons}>Cons. {euros(c?.patrimoineNet ?? 0)}</Text>
+                <Text style={s.msReal}>{euros(r?.patrimoineNet ?? 0)}</Text>
                 <Text style={s.msSub}>Scénario réaliste</Text>
               </View>
             )

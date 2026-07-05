@@ -190,6 +190,29 @@ export default function PageScenario({ data }: Props) {
 
   const loyer = project.loyer_cible ?? 0
   const vacancePct = data.vacancePct
+  const scenarioType = project.scenario_type ?? 'lmnp_meuble'
+  const loyerLabel =
+    scenarioType === 'colocation' ? 'Loyer / chambre' :
+    scenarioType === 'courte_duree' ? 'Prix par nuit' :
+    'Loyer mensuel brut'
+  const revenusNetsMensuel = loyer * (1 - vacancePct / 100)
+  const fraisGestionPct = project.frais_gestion_pct ?? 7
+  const fraisGestionMois = scenarioType !== 'courte_duree'
+    ? Math.round(revenusNetsMensuel * (fraisGestionPct / 100))
+    : 0
+  const autresChargesMois = Math.round((project.autres_charges ?? 0) / 12)
+  const cfeMois = Math.round((project.cfe ?? 300) / 12)
+  const fluidesMois = (scenarioType === 'colocation' || scenarioType === 'courte_duree')
+    ? Math.round(((project.electricite_eau ?? 0) + (project.internet ?? 0) + (project.chauffage ?? 0)) / 12)
+    : 0
+  const nuitsConservateur = project.nuits_conservateur ?? 16
+  const nuitsOptimiste = project.nuits_optimiste ?? 22
+  const revenusMensuelsBrutsCD = Math.round(loyer * nuitsConservateur)
+  const conciergeriePct = project.concierge_pct ?? 20
+  const conciergerieMois = scenarioType === 'courte_duree'
+    ? Math.round(revenusMensuelsBrutsCD * (conciergeriePct / 100))
+    : 0
+  const cashflowOptimiste = scenarioType === 'courte_duree' && sc ? sc.cashflowOptimiste : null
   const chargesMois = sc ? Math.round(sc.chargesAnnuelles / 12) : null
   const mensualite = Math.round(data.mensualiteTotale)
   const impot = sc ? sc.impotMensuelEstime : null
@@ -200,6 +223,11 @@ export default function PageScenario({ data }: Props) {
   const travaux = project.travaux ?? 0
   const mobilier = project.mobilier ?? 0
   const fraisNotaire = Math.round(project.prix_achat * (project.frais_notaire_pct / 100))
+  const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
+  const hasEstimations = !!(
+    project.travaux_estime || project.frais_notaire_estime ||
+    project.charges_copro_estime || project.taxe_fonciere_estime
+  )
   const honoraires = project.honoraires_capsul ?? 0
   const budgetTotal = project.prix_achat + travaux + mobilier + fraisNotaire + honoraires + (project.plan_3d ?? 0) + (project.autres_frais ?? 0)
 
@@ -253,16 +281,34 @@ export default function PageScenario({ data }: Props) {
         <View style={s.col}>
           <Text style={common.secLabel}>Flux mensuels</Text>
           <View style={{ marginTop: 12 }}>
-            {[
-              ['Loyer mensuel brut', euros(loyer)],
-              [`Vacance locative (${vacancePct} %)`, `− ${euros(Math.round(loyer * vacancePct / 100))}`],
-              ['Charges de copropriété', `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
-              ['Taxe foncière', `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
+            {([
+              [loyerLabel, euros(loyer)],
+              scenarioType === 'courte_duree'
+                ? [`Revenus mensuels bruts (${nuitsConservateur} nuits/mois)`, euros(revenusMensuelsBrutsCD)]
+                : null,
+              scenarioType !== 'courte_duree'
+                ? [`Vacance locative (${vacancePct} %)`, `− ${euros(Math.round(loyer * vacancePct / 100))}`]
+                : null,
+              scenarioType === 'courte_duree'
+                ? [`Conciergerie (${conciergeriePct} %)`, `− ${euros(conciergerieMois)}`]
+                : null,
+              fraisGestionMois > 0
+                ? [`Frais de gestion locative (${fraisGestionPct} %)`, `− ${euros(fraisGestionMois)}`]
+                : null,
+              [`Charges de copropriété${project.charges_copro_estime ? '*' : ''}`, `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
+              [`Taxe foncière${project.taxe_fonciere_estime ? '*' : ''}`, `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
               ['Assurance PNO', `− ${euros(Math.round((project.assurance_pno ?? 0) / 12))}`],
               ['Frais de comptabilité', `− ${euros(Math.round((project.frais_comptabilite ?? 0) / 12))}`],
+              ['CFE (exonérée 1ère année)', `− ${euros(cfeMois)}`],
+              fluidesMois > 0
+                ? ['Charges locatives (élec/eau/internet/chauffage)', `− ${euros(fluidesMois)}`]
+                : null,
+              autresChargesMois > 0
+                ? ['Autres charges', `− ${euros(autresChargesMois)}`]
+                : null,
               ['Mensualité crédit', `− ${euros(mensualite)}`],
               ['Impôt estimé', `− ${impot !== null ? euros(Math.round(impot)) : euros(0)}`],
-            ].map(([k, v], i) => (
+            ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
                 <Text style={s.tableTd}>{k}</Text>
                 <Text style={s.tableTdVal}>{v}</Text>
@@ -288,6 +334,11 @@ export default function PageScenario({ data }: Props) {
                     ? 'Le bien génère un excédent de trésorerie grâce à l\'optimisation fiscale LMNP réel.'
                     : 'L\'effort mensuel reste limité et compensé par la constitution patrimoniale.'}
                 </Text>
+                {cashflowOptimiste !== null && (
+                  <Text style={[s.cashNote, { marginTop: 4 }]}>
+                    {`Scénario optimiste (${nuitsOptimiste} nuits/mois) : cash-flow de ${cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(cashflowOptimiste)))}/mois`}
+                  </Text>
+                )}
               </>
             ) : (
               <Text style={s.cashNote}>Renseignez un scénario pour calculer le cash-flow.</Text>
@@ -299,11 +350,24 @@ export default function PageScenario({ data }: Props) {
         <View style={s.col}>
           <Text style={common.secLabel}>Structure du projet</Text>
           <View style={{ marginTop: 12 }}>
+            {negociationEnvisagee && (
+              <View style={s.tableRow}>
+                <Text style={s.tableTd}>Prix affiché (FAI)</Text>
+                <Text style={[s.tableTdVal, { color: colors.muted, textDecoration: 'line-through' }]}>
+                  {euros(project.prix_affiche_origine)}
+                </Text>
+              </View>
+            )}
+            <View style={s.tableRow}>
+              <Text style={s.tableTd}>
+                {negociationEnvisagee ? 'Prix négocié envisagé' : "Prix d'achat FAI"}
+              </Text>
+              <Text style={s.tableTdVal}>{euros(project.prix_achat)}</Text>
+            </View>
             {[
-              ["Prix d'achat FAI", euros(project.prix_achat)],
-              ['Travaux de rénovation', euros(travaux)],
+              [`Travaux de rénovation${project.travaux_estime ? '*' : ''}`, euros(travaux)],
               ['Mobilier & équipement', euros(mobilier)],
-              [`Frais de notaire (${project.frais_notaire_pct} %)`, euros(fraisNotaire)],
+              [`Frais de notaire (${project.frais_notaire_pct} %)${project.frais_notaire_estime ? '*' : ''}`, euros(fraisNotaire)],
               ['Honoraires Capsul', euros(Math.round(honoraires))],
             ].map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
@@ -315,6 +379,16 @@ export default function PageScenario({ data }: Props) {
               <Text style={s.tableTdTotalK}>Investissement total</Text>
               <Text style={s.tableTdTotalV}>{euros(Math.round(budgetTotal))}</Text>
             </View>
+            {negociationEnvisagee && (
+              <Text style={{ fontSize: 6, color: colors.gold, fontWeight: 600, marginTop: 4 }}>
+                Négociation envisagée
+              </Text>
+            )}
+            {hasEstimations && (
+              <Text style={{ fontSize: 6, color: colors.muted, fontStyle: 'italic', marginTop: 4 }}>
+                * Estimation
+              </Text>
+            )}
           </View>
 
           <View style={{ height: 16 }} />

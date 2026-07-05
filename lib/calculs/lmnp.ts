@@ -44,6 +44,7 @@ export function calculerLMNP(
     charges.assurancePno +
     charges.fraisComptabilite +
     charges.autresCharges +
+    charges.cfe +
     fraisGestionAnnuels
 
   // ── Rentabilité ──────────────────────────────────────────────

@@ -95,7 +95,7 @@ export default function RecapSticky({ state }: { state: WizardState }) {
               <Line label="Mobilier" value={euros(Number(state.mobilier))} />
             )}
             {Number(state.plan_3d) > 0 && (
-              <Line label="Plan 3D" value={euros(Number(state.plan_3d))} />
+              <Line label="Honoraires décoration Capsul" value={euros(Number(state.plan_3d))} />
             )}
             {Number(state.autres_frais) > 0 && (
               <Line label="Autres frais" value={euros(Number(state.autres_frais))} />

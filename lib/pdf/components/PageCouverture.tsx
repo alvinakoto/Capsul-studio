@@ -104,7 +104,7 @@ const s = StyleSheet.create({
 
   // ─── Metrics strip ────────────────────────────────────────────────────────
   metrics: {
-    height: 62,
+    height: 78,
     flexDirection: 'row',
     borderTopWidth: 0.5,
     borderTopColor: '#2a4a6a',
@@ -127,23 +127,23 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   metricLabel: {
-    fontSize: 5.5,
-    fontWeight: 500,
-    letterSpacing: 1.5,
-    color: '#5a7a9a',
-    marginBottom: 5,
+    fontSize: 7,
+    fontWeight: 600,
+    letterSpacing: 1,
+    color: '#a8c0d8',
+    marginBottom: 6,
     textTransform: 'uppercase',
   },
   metricValue: {
-    fontSize: 15,
-    fontWeight: 700,
+    fontSize: 21,
+    fontWeight: 800,
     color: colors.white,
-    letterSpacing: -0.5,
+    letterSpacing: -0.7,
   },
   metricUnit: {
-    fontSize: 8,
-    fontWeight: 300,
-    color: '#5a7a9a',
+    fontSize: 10,
+    fontWeight: 400,
+    color: '#a8c0d8',
   },
 })
 
@@ -172,6 +172,7 @@ export default function PageCouverture({ data }: Props) {
   ].filter(Boolean).join('  ·  ')
 
   const budgetTotal = data.prixProjetTotal
+  const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
 
   return (
     <Page size="A4" style={s.page}>
@@ -212,15 +213,22 @@ export default function PageCouverture({ data }: Props) {
       {/* Metrics */}
       <View style={s.metrics}>
         <View style={s.metric}>
-          <Text style={s.metricLabel}>Prix d'achat</Text>
-          <Text style={s.metricValue}>
-            {Math.round(project.prix_achat / 1000)} <Text style={s.metricUnit}>k€</Text>
+          <Text style={s.metricLabel}>
+            {negociationEnvisagee ? 'Prix négocié envisagé' : "Prix d'achat"}
           </Text>
+          <Text style={s.metricValue}>
+            {euros(project.prix_achat, false)} <Text style={s.metricUnit}>€</Text>
+          </Text>
+          {negociationEnvisagee && (
+            <Text style={{ fontSize: 7, color: '#7692ae', marginTop: 3, textDecoration: 'line-through' }}>
+              {euros(project.prix_affiche_origine)}
+            </Text>
+          )}
         </View>
         <View style={s.metric}>
           <Text style={s.metricLabel}>Budget total</Text>
           <Text style={s.metricValue}>
-            {Math.round(budgetTotal / 1000)} <Text style={s.metricUnit}>k€</Text>
+            {euros(budgetTotal, false)} <Text style={s.metricUnit}>€</Text>
           </Text>
         </View>
         <View style={s.metric}>

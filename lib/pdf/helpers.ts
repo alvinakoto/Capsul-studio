@@ -29,14 +29,6 @@ export function pct(n: number | null | undefined, decimals = 2): string {
 }
 
 /**
- * Formate une valeur en milliers d'euros pour graphiques.
- * Ex: 118000 → "118 k€"
- */
-export function eurosShort(n: number): string {
-  return stripNbsp(`${Math.round(n / 1000)} k€`)
-}
-
-/**
  * Affiche un tiret discret si la valeur est null/undefined/empty.
  */
 export function orDash(v: string | number | null | undefined): string {

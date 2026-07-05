@@ -32,6 +32,11 @@ const s = StyleSheet.create({
   introLabel: { fontSize: 6, color: colors.muted, fontWeight: 300, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.8 },
   introValue: { fontSize: 12, fontWeight: 700, color: colors.navy },
 
+  tableWrap: {
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: colors.navy,
@@ -60,9 +65,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 6,
     backgroundColor: colors.navy,
-    marginTop: 1,
   },
-  totalLabel: { flex: 1, fontSize: 6.5, fontWeight: 700, color: colors.gold },
+  totalLabel: { flexGrow: 0, flexShrink: 0, fontSize: 6.5, fontWeight: 700, color: colors.gold, textAlign: 'center' },
   totalVal:   { flex: 1, fontSize: 6.5, fontWeight: 700, color: colors.white, textAlign: 'right' },
 
   noData: { fontSize: 8, color: colors.muted, fontStyle: 'italic', marginTop: 20, textAlign: 'center' },
@@ -120,7 +124,7 @@ export default function PageAmortissement({ data }: { data: RapportData }) {
               : 'Données de financement insuffisantes pour générer le tableau.'}
           </Text>
         ) : (
-          <>
+          <View style={s.tableWrap}>
             <View style={s.tableHeader}>
               <Text style={s.thCell0}>An.</Text>
               <Text style={s.thCell}>Mensualité</Text>
@@ -142,13 +146,13 @@ export default function PageAmortissement({ data }: { data: RapportData }) {
             ))}
 
             <View style={s.totalRow}>
-              <Text style={[s.totalLabel, { width: COL[0] + 6 }]}>Total</Text>
+              <Text style={[s.totalLabel, { width: COL[0] }]}>Total</Text>
               <Text style={s.totalVal}>{euros(mensualiteTotale * 12 * tableauAmortissement.length)}</Text>
               <Text style={s.totalVal}>{euros(totalCapital)}</Text>
               <Text style={s.totalVal}>{euros(totalInterets)}</Text>
               <Text style={s.totalVal}>—</Text>
             </View>
-          </>
+          </View>
         )}
       </View>
 

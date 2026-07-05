@@ -82,6 +82,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
     chauffage:                project.chauffage || 0,
     fraisComptabilite:        project.frais_comptabilite || 0,
     autresCharges:            project.autres_charges || 0,
+    cfe:                      cfe,
   }
 
   // ─── Calcul ───────────────────────────────────────────────────────────────
@@ -128,7 +129,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
             electriciteEau:      chargesData.electriciteEau,
             internet:            chargesData.internet,
             chauffage:           chargesData.chauffage,
-            cfe,
             tmiClientPct:        tmi,
             regimeFiscal:        'lmnp_reel' as const,
           },
@@ -149,6 +149,8 @@ export default function ScenarioPanel({ project }: { project: any }) {
         conciergePct: Number(conciergerie) || 0,
         vacancePct: Number(vacance) || 0,
         tmiClientPct: tmi,
+        nuitsConservateur: Number(nuitsCons) || 0,
+        nuitsOptimiste: Number(nuitsOpti) || 0,
       }).then(() => setSaved(true))
 
     } catch (err: any) {
@@ -234,10 +236,12 @@ export default function ScenarioPanel({ project }: { project: any }) {
                   <Input type="number" min={0} value={nuitsOpti}
                     onChange={(e) => setNuitsOpti(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
-                <EuroField id="cfe" label="CFE annuelle" value={cfe}
-                  onChange={(v) => setCfe(v === '' ? 0 : v)} />
               </>
             )}
+
+            {/* CFE (tous types — exonérée la 1ère année) */}
+            <EuroField id="cfe" label="CFE annuelle" value={cfe}
+              onChange={(v) => setCfe(v === '' ? 0 : v)} />
 
             {/* Vacance (LMNP et colocation uniquement) */}
             {scenarioType !== 'courte_duree' && (

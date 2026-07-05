@@ -3,7 +3,7 @@ import { calculerAmortissementsAnnuels, calculerInteretsAnnee1 } from './fiscali
 
 const projet = { prixAchat: 195000, fraisNotairePct: 8.0, travaux: 35000, mobilier: 11000, honorairesCapsul: 13455, honorairesOverride: true, plan3d: 0, autresFrais: 0 }
 const financement = { apport: 27000, dureeAnnees: 20, tauxInteretPct: 3.6, tauxAssurancePct: 0 }
-const charges = { taxeFonciere: 804, chargesCoproAnnuelles: 1500, assurancePno: 120, electriciteEau: 0, internet: 0, chauffage: 0, fraisComptabilite: 250, autresCharges: 0 }
+const charges = { taxeFonciere: 804, chargesCoproAnnuelles: 1500, assurancePno: 120, electriciteEau: 0, internet: 0, chauffage: 0, fraisComptabilite: 250, autresCharges: 0, cfe: 300 }
 
 // Diagnostic fiscal manuel
 const capitalEmprunte = 270055 - 27000

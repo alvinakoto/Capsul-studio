@@ -82,6 +82,7 @@ export async function GET(
       chauffage:             project.chauffage ?? 0,
       fraisComptabilite:     project.frais_comptabilite ?? 0,
       autresCharges:         project.autres_charges ?? 0,
+      cfe:                   project.cfe ?? 300,
     }
 
     const tmiClientPct = project.tmi_client_pct ?? TMI_DEFAULT
@@ -93,10 +94,10 @@ export async function GET(
         : scenarioType === 'colocation'
         ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
         : { type: 'courte_duree' as const, params: {
-            prixNuitee: loyer, nuitsConservateur: 16, nuitsOptimiste: 22,
+            prixNuitee: loyer, nuitsConservateur: project.nuits_conservateur ?? 16, nuitsOptimiste: project.nuits_optimiste ?? 22,
             conciergeriePct: project.concierge_pct ?? 20, electriciteEau: chargesData.electriciteEau,
             internet: chargesData.internet, chauffage: chargesData.chauffage,
-            cfe: project.cfe ?? 300, tmiClientPct, regimeFiscal: 'lmnp_reel' as const,
+            tmiClientPct, regimeFiscal: 'lmnp_reel' as const,
           } }
 
     let r: any = null

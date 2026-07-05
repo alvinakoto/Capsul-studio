@@ -43,7 +43,7 @@ function canvasToJpeg(file: File): Promise<File> {
           else reject(new Error('toBlob failed'))
         },
         'image/jpeg',
-        0.92
+        0.97
       )
     }
     img.onerror = () => {
@@ -70,7 +70,7 @@ export async function ensureJpeg(file: File): Promise<File> {
     // Fallback heic2any pour les navigateurs sans support HEIC natif (Chrome Windows/Linux)
     if (isHeicFile(file)) {
       const heic2any = (await import('heic2any')).default
-      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 })
+      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.97 })
       const output = Array.isArray(blob) ? blob[0] : blob
       const baseName = file.name.replace(/\.[^.]+$/i, '') || 'photo'
       return new File([output], `${baseName}.jpg`, { type: 'image/jpeg' })

@@ -69,7 +69,9 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   thumb: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 0,
+    width: '32%',
     aspectRatio: 1.33,
     borderRadius: 2,
     backgroundColor: '#c4c0b8',
