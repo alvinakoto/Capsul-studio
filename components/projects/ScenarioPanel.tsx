@@ -39,7 +39,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
   )
   const [nuitsCons, setNuitsCons]             = useState<number | ''>(16)
   const [nuitsOpti, setNuitsOpti]             = useState<number | ''>(22)
-  const [cfe, setCfe]                         = useState(project.cfe ?? 300)
   const [fraisGestion, setFraisGestion]       = useState<number | ''>(project.frais_gestion_pct ?? 7)
   const [conciergerie, setConciergerie]       = useState<number | ''>(project.concierge_pct ?? 20)
   const [result, setResult]                   = useState<any>(null)
@@ -59,6 +58,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
     fraisNotairePct:    project.frais_notaire_pct,
     travaux:            project.travaux || 0,
     mobilier:           project.mobilier || 0,
+    valeurBienApresTravaux: project.valeur_bien_apres_travaux ?? undefined,
     honorairesCapsul:   project.honoraires_capsul || 0,
     honorairesOverride: project.honoraires_override,
     plan3d:             project.plan_3d || 0,
@@ -82,7 +82,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
     chauffage:                project.chauffage || 0,
     fraisComptabilite:        project.frais_comptabilite || 0,
     autresCharges:            project.autres_charges || 0,
-    cfe:                      cfe,
+    cfe:                      project.cfe ?? 300,
   }
 
   // ─── Calcul ───────────────────────────────────────────────────────────────
@@ -239,10 +239,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
               </>
             )}
 
-            {/* CFE (tous types — exonérée la 1ère année) */}
-            <EuroField id="cfe" label="CFE annuelle" value={cfe}
-              onChange={(v) => setCfe(v === '' ? 0 : v)} />
-
             {/* Vacance (LMNP et colocation uniquement) */}
             {scenarioType !== 'courte_duree' && (
               <div className="space-y-1.5">
@@ -366,7 +362,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
   <Metric label="Charges/mois"        value={euros(Math.round(result.scenario.chargesAnnuelles / 12))} />
   <Metric label="Impôt/mois"          value={euros(result.scenario.impotMensuelEstime)} />
   <Metric
-    label="Cash-flow après IR"
+    label="Cash-flow net"
     value={euros(result.scenario.cashflowMensuelApresIR)}
     highlight={result.scenario.cashflowMensuelApresIR >= 0 ? 'green' : 'red'}
   />

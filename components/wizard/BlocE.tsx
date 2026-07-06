@@ -1,7 +1,7 @@
 'use client'
 
 import { WizardState } from './WizardShell'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -104,36 +104,6 @@ export default function BlocE({ state, setField }: Props) {
             onChange={(v) => setField('frais_comptabilite', v)}
             hint="Recommandé en LMNP réel"
           />
-        </CardContent>
-      </Card>
-
-      {/* Charges locataire (courte durée / coloc) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Charges locataire
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <ChargeInput
-            id="electricite_eau"
-            label="Électricité & eau"
-            value={state.electricite_eau}
-            onChange={(v) => setField('electricite_eau', Number(v) || 0)}
-            hint="Courte durée / coloc charges incluses"
-          />
-          <ChargeInput
-            id="internet"
-            label="Internet"
-            value={state.internet}
-            onChange={(v) => setField('internet', Number(v) || 0)}
-          />
-          <ChargeInput
-            id="chauffage"
-            label="Chauffage"
-            value={state.chauffage}
-            onChange={(v) => setField('chauffage', Number(v) || 0)}
-          />
           <ChargeInput
             id="cfe"
             label="CFE (Cotisation Foncière)"
@@ -146,6 +116,38 @@ export default function BlocE({ state, setField }: Props) {
             label="Autres charges"
             value={state.autres_charges}
             onChange={(v) => setField('autres_charges', Number(v) || 0)}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Charges locataire (courte durée / coloc) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            Charges locataire
+          </CardTitle>
+          <CardDescription>
+            Concerne uniquement la colocation à la chambre et la courte durée (charges incluses au locataire)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ChargeInput
+            id="electricite_eau"
+            label="Électricité & eau"
+            value={state.electricite_eau}
+            onChange={(v) => setField('electricite_eau', Number(v) || 0)}
+          />
+          <ChargeInput
+            id="internet"
+            label="Internet"
+            value={state.internet}
+            onChange={(v) => setField('internet', Number(v) || 0)}
+          />
+          <ChargeInput
+            id="chauffage"
+            label="Chauffage"
+            value={state.chauffage}
+            onChange={(v) => setField('chauffage', Number(v) || 0)}
           />
         </CardContent>
       </Card>

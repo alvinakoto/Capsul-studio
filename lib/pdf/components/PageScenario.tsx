@@ -250,7 +250,7 @@ export default function PageScenario({ data }: Props) {
         <Text style={s.heroTitle}>{scenarioLabel}</Text>
         <View style={s.heroKpis}>
           <View style={s.heroKpi}>
-            <Text style={s.heroKpiLabel}>Cash-flow après IR</Text>
+            <Text style={s.heroKpiLabel}>Cash-flow net</Text>
             <Text style={cashflow !== null && cashflow >= 0 ? s.heroKpiValueGold : s.heroKpiValue}>
               {cashflow !== null ? (cashflow >= 0 ? '+' : '') + euros(Math.round(cashflow), false) : '—'}
               <Text style={s.heroKpiUnit}> €/mois</Text>
@@ -260,16 +260,9 @@ export default function PageScenario({ data }: Props) {
             <Text style={s.heroKpiLabel}>Rentabilité brute</Text>
             <Text style={s.heroKpiValue}>{rentaBrute !== null ? pct(rentaBrute, 1) : '—'}</Text>
           </View>
-          <View style={s.heroKpi}>
+          <View style={s.heroKpiLast}>
             <Text style={s.heroKpiLabel}>Rentabilité nette</Text>
             <Text style={s.heroKpiValue}>{rentaNette !== null ? pct(rentaNette, 1) : '—'}</Text>
-          </View>
-          <View style={s.heroKpiLast}>
-            <Text style={s.heroKpiLabel}>Impôt mensuel</Text>
-            <Text style={s.heroKpiValue}>
-              {impot !== null ? euros(Math.round(impot), false) : '—'}
-              <Text style={s.heroKpiUnit}> €</Text>
-            </Text>
           </View>
         </View>
       </View>
@@ -286,7 +279,7 @@ export default function PageScenario({ data }: Props) {
               scenarioType === 'courte_duree'
                 ? [`Revenus mensuels bruts (${nuitsConservateur} nuits/mois)`, euros(revenusMensuelsBrutsCD)]
                 : null,
-              scenarioType !== 'courte_duree'
+              scenarioType !== 'courte_duree' && vacancePct > 0
                 ? [`Vacance locative (${vacancePct} %)`, `− ${euros(Math.round(loyer * vacancePct / 100))}`]
                 : null,
               scenarioType === 'courte_duree'
@@ -307,7 +300,9 @@ export default function PageScenario({ data }: Props) {
                 ? ['Autres charges', `− ${euros(autresChargesMois)}`]
                 : null,
               ['Mensualité crédit', `− ${euros(mensualite)}`],
-              ['Impôt estimé', `− ${impot !== null ? euros(Math.round(impot)) : euros(0)}`],
+              impot !== null && impot > 0
+                ? ['Impôt estimé', `− ${euros(Math.round(impot))}`]
+                : null,
             ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
                 <Text style={s.tableTd}>{k}</Text>
@@ -315,7 +310,7 @@ export default function PageScenario({ data }: Props) {
               </View>
             ))}
             <View style={s.tableRowTotal}>
-              <Text style={s.tableTdTotalK}>Cash-flow net après IR</Text>
+              <Text style={s.tableTdTotalK}>Cash-flow net</Text>
               <Text style={s.tableTdTotalV}>
                 {cashflow !== null ? (cashflow >= 0 ? '+ ' : '− ') + euros(Math.abs(Math.round(cashflow))) : '—'}
               </Text>
@@ -366,7 +361,7 @@ export default function PageScenario({ data }: Props) {
             </View>
             {[
               [`Travaux de rénovation${project.travaux_estime ? '*' : ''}`, euros(travaux)],
-              ['Mobilier & équipement', euros(mobilier)],
+              ['Ameublement & équipement', euros(mobilier)],
               [`Frais de notaire (${project.frais_notaire_pct} %)${project.frais_notaire_estime ? '*' : ''}`, euros(fraisNotaire)],
               ['Honoraires Capsul', euros(Math.round(honoraires))],
             ].map(([k, v], i) => (

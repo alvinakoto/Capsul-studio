@@ -86,6 +86,7 @@ export async function GET(
           fraisNotairePct: project.frais_notaire_pct,
           travaux: project.travaux ?? 0,
           mobilier: project.mobilier ?? 0,
+          valeurBienApresTravaux: project.valeur_bien_apres_travaux ?? undefined,
           honorairesCapsul: project.honoraires_capsul ?? 0,
           honorairesOverride: project.honoraires_override ?? false,
           plan3d: project.plan_3d ?? 0,

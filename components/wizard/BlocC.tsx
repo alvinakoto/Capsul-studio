@@ -194,10 +194,10 @@ export default function BlocC({ state, setField }: Props) {
         </CardContent>
       </Card>
 
-      {/* Travaux & mobilier */}
+      {/* Travaux & ameublement */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Travaux & mobilier</CardTitle>
+          <CardTitle className="text-base">Travaux & ameublement</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <EuroInput
@@ -212,10 +212,17 @@ export default function BlocC({ state, setField }: Props) {
           />
           <EuroInput
             id="mobilier"
-            label="Mobilier"
+            label="Ameublement"
             value={state.mobilier}
             onChange={(v) => setField('mobilier', v)}
             hint="Pour LMNP meublé"
+          />
+          <EuroInput
+            id="valeur_bien_apres_travaux"
+            label="Valeur du bien après travaux"
+            value={state.valeur_bien_apres_travaux}
+            onChange={(v) => setField('valeur_bien_apres_travaux', v)}
+            hint={`Optionnel — par défaut prix d'achat + travaux (${(prixAchat + (Number(state.travaux) || 0)).toLocaleString('fr-FR')} €)`}
           />
         </CardContent>
       </Card>

@@ -128,7 +128,7 @@ export default function PageBien({ data }: Props) {
     { k: 'DPE actuel', v: project.dpe_actuel ?? null, isDpe: true },
     { k: 'DPE visé', v: project.dpe_apres_travaux ?? null, isDpe: true },
     { k: 'Travaux prévus', v: project.travaux ? euros(project.travaux) : '—' },
-    { k: 'Mobilier', v: project.mobilier ? euros(project.mobilier) : '—' },
+    { k: 'Ameublement', v: project.mobilier ? euros(project.mobilier) : '—' },
     { k: 'Charges copro', v: project.charges_copro_annuelles ? `${euros(project.charges_copro_annuelles)}/an` : '—' },
     { k: 'Taxe foncière', v: project.taxe_fonciere ? `${euros(project.taxe_fonciere)}/an` : '—' },
   ]

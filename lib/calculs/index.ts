@@ -59,14 +59,16 @@ export function calculerScenario(
     )
   }
 
+  const valeurBienApresTravaux = projet.valeurBienApresTravaux ?? (projet.prixAchat + projet.travaux)
+
   const projectionConservateur = calculerProjection(
-    projet.prixAchat, financement.apport, capitalEmprunte,
+    valeurBienApresTravaux, financement.apport, capitalEmprunte,
     financement.tauxInteretPct, financement.dureeAnnees,
     scenario.cashflowMensuelApresIR, 0
   )
 
   const projectionRealiste = calculerProjection(
-    projet.prixAchat, financement.apport, capitalEmprunte,
+    valeurBienApresTravaux, financement.apport, capitalEmprunte,
     financement.tauxInteretPct, financement.dureeAnnees,
     scenario.cashflowMensuelApresIR, revalorisationRealistePct
   )

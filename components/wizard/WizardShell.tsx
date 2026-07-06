@@ -32,6 +32,7 @@ export interface WizardState {
   frais_notaire_pct: number
   travaux: number | ''
   mobilier: number | ''
+  valeur_bien_apres_travaux: number | ''
   honoraires_capsul: number | ''
   honoraires_override: boolean
   plan_3d: number
@@ -79,6 +80,7 @@ const initialState: WizardState = {
   frais_notaire_pct: 8.0,
   travaux: '',
   mobilier: '',
+  valeur_bien_apres_travaux: '',
   honoraires_capsul: '',
   honoraires_override: false,
   plan_3d: 0,
@@ -96,8 +98,8 @@ const initialState: WizardState = {
 
   taxe_fonciere: '',
   charges_copro_annuelles: '',
-  assurance_pno: '',
-  frais_comptabilite: 250,
+  assurance_pno: 200,
+  frais_comptabilite: 430,
   electricite_eau: 0,
   internet: 0,
   chauffage: 0,

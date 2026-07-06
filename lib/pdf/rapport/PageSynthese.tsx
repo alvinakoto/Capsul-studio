@@ -152,7 +152,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
           />
           {(project.travaux ?? 0) > 0 &&
             <Row label={`Travaux${project.travaux_estime ? '*' : ''}`} value={euros(project.travaux)} />}
-          {(project.mobilier ?? 0) > 0 && <Row label="Mobilier" value={euros(project.mobilier)} />}
+          {(project.mobilier ?? 0) > 0 && <Row label="Ameublement" value={euros(project.mobilier)} />}
           {honorairesCapsul > 0 && <Row label="Honoraires Capsul" value={euros(honorairesCapsul)} />}
           {autresFrais > 0 && <Row label="Autres frais" value={euros(autresFrais)} />}
           <Row label="Prix projet total" value={euros(prixProjetTotal)} bold />
@@ -209,9 +209,10 @@ export default function PageSynthese({ data }: { data: RapportData }) {
                 <Row label={`dont frais de gestion (${fraisGestionPct} %)`} value={euros(fraisGestionAnnuel) + ' /an'} muted />}
               <Row label="dont CFE (exonérée 1ère année)" value={euros(cfeAnnuel) + ' /an'} muted />
               <Row label="Mensualité totale" value={euros(mensualiteTotale)} />
-              <Row label="Impôt mensuel estimé" value={euros(scenarioResult.impotMensuelEstime)} />
+              {scenarioResult.impotMensuelEstime > 0 &&
+                <Row label="Impôt mensuel estimé" value={euros(scenarioResult.impotMensuelEstime)} />}
               <Row
-                label="Cash-flow après IR"
+                label="Cash-flow net"
                 value={euros(scenarioResult.cashflowMensuelApresIR) + ' /mois'}
                 bold
                 color={scenarioResult.cashflowMensuelApresIR >= 0 ? 'green' : 'red'}
@@ -240,7 +241,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
               <Row label="Intérêts crédit (A1)" value={euros(detailFiscal.interetsAnnee1) + ' /an'} />
               <Row label={`Amort. bien (2% × 85%)`} value={euros(detailFiscal.amortBien) + ' /an'} />
               {detailFiscal.amortMobilier > 0 &&
-                <Row label="Amort. mobilier (10%)" value={euros(detailFiscal.amortMobilier) + ' /an'} />}
+                <Row label="Amort. ameublement (10%)" value={euros(detailFiscal.amortMobilier) + ' /an'} />}
               {detailFiscal.amortTravaux > 0 &&
                 <Row label="Amort. travaux (5%)" value={euros(detailFiscal.amortTravaux) + ' /an'} />}
               <Row label="Total amortissements" value={euros(detailFiscal.amortTotal) + ' /an'} />
