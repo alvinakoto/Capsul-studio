@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -61,10 +61,21 @@ function calculerPrixProjetTotal(state: WizardState): number {
 
 export default function BlocD({ state, setField }: Props) {
   const [apportMode, setApportMode] = useState<'eur' | 'pct'>('eur')
+  const apportAvantComptant = useRef<number | ''>('')
 
   const prixProjetTotal = calculerPrixProjetTotal(state)
   const apportEuros = Number(state.apport) || 0
   const apportPct = prixProjetTotal > 0 ? Math.round((apportEuros / prixProjetTotal) * 1000) / 10 : 0
+
+  // Achat comptant = financement 100% fonds propres : l'apport est asservi
+  // au prix total du projet et reste verrouillé tant que ce mode est actif,
+  // pour éviter qu'il ne garde un reliquat saisi en mode bancaire.
+  useEffect(() => {
+    if (state.is_comptant && state.apport !== prixProjetTotal) {
+      setField('apport', prixProjetTotal)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.is_comptant, prixProjetTotal])
 
   return (
     <div className="space-y-6">
@@ -78,7 +89,10 @@ export default function BlocD({ state, setField }: Props) {
         >
           <button
             type="button"
-            onClick={() => setField('is_comptant', false)}
+            onClick={() => {
+              setField('is_comptant', false)
+              setField('apport', apportAvantComptant.current)
+            }}
             className="flex-1 py-3 text-sm font-semibold transition-colors"
             style={{
               backgroundColor: !state.is_comptant ? '#0E2240' : '#F7F5F1',
@@ -89,7 +103,11 @@ export default function BlocD({ state, setField }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => setField('is_comptant', true)}
+            onClick={() => {
+              apportAvantComptant.current = state.apport
+              setField('is_comptant', true)
+              setField('apport', prixProjetTotal)
+            }}
             className="flex-1 py-3 text-sm font-semibold transition-colors"
             style={{
               backgroundColor: state.is_comptant ? '#0E2240' : '#F7F5F1',
@@ -116,22 +134,25 @@ export default function BlocD({ state, setField }: Props) {
               <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
                 <button
                   type="button"
+                  disabled={state.is_comptant}
                   onClick={() => setApportMode('eur')}
                   className="px-2 py-1 transition"
                   style={{
                     backgroundColor: apportMode === 'eur' ? '#0E2240' : '#F7F5F1',
                     color: apportMode === 'eur' ? '#fff' : '#6E6E73',
+                    cursor: state.is_comptant ? 'not-allowed' : 'pointer',
                   }}
                 >€</button>
                 <button
                   type="button"
+                  disabled={state.is_comptant}
                   onClick={() => prixProjetTotal > 0 && setApportMode('pct')}
                   className="px-2 py-1 transition"
                   style={{
                     backgroundColor: apportMode === 'pct' ? '#0E2240' : '#F7F5F1',
                     color: apportMode === 'pct' ? '#fff' : prixProjetTotal > 0 ? '#6E6E73' : '#C0BDB7',
                     borderLeft: '1px solid #DDD9D0',
-                    cursor: prixProjetTotal > 0 ? 'pointer' : 'not-allowed',
+                    cursor: state.is_comptant || prixProjetTotal === 0 ? 'not-allowed' : 'pointer',
                   }}
                 >%</button>
               </div>
@@ -143,6 +164,7 @@ export default function BlocD({ state, setField }: Props) {
                 min={0}
                 step={apportMode === 'eur' ? 1000 : 1}
                 value={apportMode === 'eur' ? state.apport : apportPct}
+                disabled={state.is_comptant}
                 onChange={(e) => {
                   const v = e.target.value === '' ? '' : Number(e.target.value)
                   if (apportMode === 'eur') {
@@ -151,7 +173,7 @@ export default function BlocD({ state, setField }: Props) {
                     setField('apport', Math.round((Number(v) / 100) * prixProjetTotal))
                   }
                 }}
-                className="pr-8"
+                className="pr-8 disabled:opacity-70 disabled:cursor-not-allowed"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 {apportMode === 'eur' ? '€' : '%'}
@@ -168,7 +190,9 @@ export default function BlocD({ state, setField }: Props) {
               </p>
             )}
             {state.is_comptant && (
-              <p className="text-[11px] text-muted-foreground">Optionnel — pour information uniquement</p>
+              <p className="text-[11px] text-muted-foreground">
+                Financement 100 % fonds propres — calculé automatiquement, non modifiable
+              </p>
             )}
           </div>
 
