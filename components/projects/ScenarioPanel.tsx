@@ -30,15 +30,15 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const [vacance, setVacance]                 = useState<number | ''>(
     project.vacance_pct ?? (initScenario === 'colocation' ? 8 : 5)
   )
-  const [nbChambres, setNbChambres]           = useState<number | ''>(2)
+  const [nbChambres, setNbChambres]           = useState<number | ''>(project.nb_chambres ?? 2)
   const [loyerParChambre, setLoyerParChambre] = useState<number | ''>(
     initScenario === 'colocation' ? (project.loyer_cible || '') : ''
   )
   const [prixNuit, setPrixNuit]               = useState<number | ''>(
     initScenario === 'courte_duree' ? (project.loyer_cible || '') : ''
   )
-  const [nuitsCons, setNuitsCons]             = useState<number | ''>(16)
-  const [nuitsOpti, setNuitsOpti]             = useState<number | ''>(22)
+  const [nuitsCons, setNuitsCons]             = useState<number | ''>(project.nuits_conservateur ?? 16)
+  const [nuitsOpti, setNuitsOpti]             = useState<number | ''>(project.nuits_optimiste ?? 22)
   const [fraisGestion, setFraisGestion]       = useState<number | ''>(project.frais_gestion_pct ?? 7)
   const [conciergerie, setConciergerie]       = useState<number | ''>(project.concierge_pct ?? 20)
   const [result, setResult]                   = useState<any>(null)
@@ -151,6 +151,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
         tmiClientPct: tmi,
         nuitsConservateur: Number(nuitsCons) || 0,
         nuitsOptimiste: Number(nuitsOpti) || 0,
+        nbChambres: Number(nbChambres) || 1,
       }).then(() => setSaved(true))
 
     } catch (err: any) {

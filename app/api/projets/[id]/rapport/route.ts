@@ -93,7 +93,7 @@ export async function GET(
       scenarioType === 'lmnp_meuble'
         ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct } }
         : scenarioType === 'colocation'
-        ? { type: 'colocation' as const, params: { nbChambres: 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
+        ? { type: 'colocation' as const, params: { nbChambres: project.nb_chambres ?? 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
         : { type: 'courte_duree' as const, params: {
             prixNuitee: loyer, nuitsConservateur: project.nuits_conservateur ?? 16, nuitsOptimiste: project.nuits_optimiste ?? 22,
             conciergeriePct: project.concierge_pct ?? 20, electriciteEau: chargesData.electriciteEau,

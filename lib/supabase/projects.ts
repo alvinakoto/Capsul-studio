@@ -174,7 +174,7 @@ export async function updateProjectScenario(
   scenarioType: 'lmnp_meuble' | 'colocation' | 'courte_duree',
   extras?: {
     fraisGestionPct?: number; conciergePct?: number; vacancePct?: number; tmiClientPct?: number
-    nuitsConservateur?: number; nuitsOptimiste?: number
+    nuitsConservateur?: number; nuitsOptimiste?: number; nbChambres?: number
   }
 ): Promise<void> {
   const supabase = getClient()
@@ -190,6 +190,7 @@ export async function updateProjectScenario(
       ...(extras?.tmiClientPct !== undefined && { tmi_client_pct: extras.tmiClientPct }),
       ...(extras?.nuitsConservateur !== undefined && { nuits_conservateur: extras.nuitsConservateur }),
       ...(extras?.nuitsOptimiste !== undefined && { nuits_optimiste: extras.nuitsOptimiste }),
+      ...(extras?.nbChambres !== undefined && { nb_chambres: extras.nbChambres }),
     })
     .eq('id', projectId)
   if (error) throw error
@@ -261,6 +262,14 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       taxe_fonciere_estime: project.taxe_fonciere_estime,
       frais_gestion_pct: project.frais_gestion_pct,
       concierge_pct: project.concierge_pct,
+
+      loyer_cible: project.loyer_cible,
+      scenario_type: project.scenario_type,
+      vacance_pct: project.vacance_pct,
+      tmi_client_pct: project.tmi_client_pct,
+      nuits_conservateur: project.nuits_conservateur,
+      nuits_optimiste: project.nuits_optimiste,
+      nb_chambres: project.nb_chambres,
     })
     .select('id')
     .single()
