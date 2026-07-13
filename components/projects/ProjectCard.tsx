@@ -61,7 +61,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   return (
     <div
       onClick={() => router.push(`/projets/${project.id}`)}
-      className="rounded-xl cursor-pointer group flex flex-col"
+      className="rounded-xl cursor-pointer group flex flex-col overflow-hidden"
       style={{
         backgroundColor: '#fff',
         border: '1px solid #DDD9D0',
