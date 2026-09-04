@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // Erreurs dans lib/pdf/rapport/ (S7 non terminé) — ne pas bloquer le déploiement
-    ignoreBuildErrors: true,
+  // Racine explicite : évite que Next remonte sur un package-lock.json parasite
+  // situé au-dessus du projet (ex. dans le dossier personnel) et se trompe de workspace.
+  turbopack: {
+    root: __dirname,
   },
 };
 
