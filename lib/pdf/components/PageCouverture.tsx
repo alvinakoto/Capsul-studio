@@ -1,6 +1,7 @@
 import React from 'react'
 import { Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes } from '../common/styles'
+import { PdfBackground } from '../common/background'
 import { FicheData } from '../types'
 import { euros, pct } from '../helpers'
 
@@ -80,18 +81,17 @@ const s = StyleSheet.create({
   },
 
   // ─── Right column ──────────────────────────────────────────────────────────
+  // position: 'relative' + enfants en 'absolute' (plutôt que width/height: '100%')
+  // — un View à 100% sans contenu ne se peint pas de façon fiable dans ce
+  // pipeline react-pdf quand son parent n'a qu'une hauteur flex (non explicite).
   right: {
+    position: 'relative',
     flex: 1,
   },
   photo: {
-    width: '100%',
-    height: '100%',
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
     objectFit: 'cover',
-  },
-  photoFallback: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#1e3e62',
   },
   sep: {
     position: 'absolute',
@@ -176,6 +176,7 @@ export default function PageCouverture({ data }: Props) {
 
   return (
     <Page size="A4" style={s.page}>
+      <PdfBackground variant="cover" />
       <View style={s.body}>
 
         {/* Left */}
@@ -203,7 +204,7 @@ export default function PageCouverture({ data }: Props) {
           {coverPhotoUrl ? (
             <Image src={coverPhotoUrl} style={s.photo} />
           ) : (
-            <View style={s.photoFallback} />
+            <PdfBackground variant="cover" />
           )}
           <View style={s.sep} />
         </View>

@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { IconNode } from '@/components/ui/IconNode'
+import { POSTES_TRAVAUX } from '@/lib/data/travaux'
 
 interface Props {
   state: WizardState
@@ -55,6 +57,65 @@ function EuroInput({
         </span>
       </div>
       {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
+  )
+}
+
+function PostesTravaux({
+  selected, onChange, travauxRenseignes,
+}: {
+  selected: string[]
+  onChange: (next: string[]) => void
+  travauxRenseignes: boolean
+}) {
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter((p) => p !== id) : [...selected, id])
+
+  return (
+    <div className="sm:col-span-2 space-y-2 pt-2">
+      <div className="flex items-center justify-between">
+        <Label>Postes de travaux</Label>
+        {selected.length > 0 && (
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            {selected.length} sélectionné{selected.length > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {POSTES_TRAVAUX.map((poste) => {
+          const active = selected.includes(poste.id)
+          return (
+            <button
+              key={poste.id}
+              type="button"
+              onClick={() => toggle(poste.id)}
+              aria-pressed={active}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-left transition-all"
+              style={{
+                backgroundColor: active ? '#0E2240' : '#fff',
+                color: active ? '#fff' : '#1C1C1E',
+                border: `1px solid ${active ? '#0E2240' : '#DDD9D0'}`,
+              }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = '#F7F5F1' }}
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = '#fff' }}
+            >
+              <span className="shrink-0" style={{ color: active ? '#C9943A' : '#6E6E73' }}>
+                <IconNode name={poste.icon} size={16} />
+              </span>
+              <span className="truncate">{poste.label}</span>
+            </button>
+          )
+        })}
+      </div>
+      {travauxRenseignes && selected.length === 0 ? (
+        <p className="text-[11px]" style={{ color: '#A67828' }}>
+          Aucun poste sélectionné : la page « Travaux » de la fiche commerciale ne sera pas générée.
+        </p>
+      ) : (
+        <p className="text-[11px] text-muted-foreground">
+          Illustre la page « Travaux » de la fiche commerciale (icône + libellé par poste).
+        </p>
+      )}
     </div>
   )
 }
@@ -223,6 +284,11 @@ export default function BlocC({ state, setField }: Props) {
             value={state.valeur_bien_apres_travaux}
             onChange={(v) => setField('valeur_bien_apres_travaux', v)}
             hint={`Optionnel — par défaut prix d'achat + travaux (${(prixAchat + (Number(state.travaux) || 0)).toLocaleString('fr-FR')} €)`}
+          />
+          <PostesTravaux
+            selected={state.travaux_postes}
+            onChange={(next) => setField('travaux_postes', next)}
+            travauxRenseignes={travaux > 0}
           />
         </CardContent>
       </Card>

@@ -1,3 +1,6 @@
+import type { VilleInfos } from '@/lib/data/villes'
+import type { PosteTravaux } from '@/lib/data/travaux'
+
 export interface PhotoInfo {
   url: string
   legende: string | null
@@ -8,18 +11,6 @@ export interface LigneAmortissement {
   capitalRembourse: number
   interets: number
   capitalRestant: number
-}
-
-export interface DetailFiscalLMNP {
-  amortBien: number
-  amortMobilier: number
-  amortTravaux: number
-  amortTotal: number
-  chargesDeductibles: number
-  interetsAnnee1: number
-  revenusNets: number
-  resultatFiscal: number
-  impotAnnuel: number
 }
 
 export interface RapportData {
@@ -38,7 +29,6 @@ export interface RapportData {
   coutTotalInterets: number
   scenarioResult: any | null
   tableauAmortissement: LigneAmortissement[]
-  detailFiscal: DetailFiscalLMNP | null
   projectionConservateur: any[]
   projectionRealiste: any[]
 }
@@ -49,6 +39,7 @@ export interface FicheData {
     name: string
     adresse: string | null
     ville: string | null
+    ville_infos: VilleInfos | null
     city: string
     surface_m2: number | null
     type_bien: string | null
@@ -58,6 +49,7 @@ export interface FicheData {
     prix_achat: number
     frais_notaire_pct: number
     travaux: number | null
+    travaux_postes: string[] | null
     mobilier: number | null
     honoraires_capsul: number | null
     plan_3d: number | null
@@ -98,7 +90,14 @@ export interface FicheData {
   capitalEmprunte: number
   mensualiteTotale: number
   vacancePct: number
-  tmiClientPct: number
   projectionConservateur: any[]
   projectionRealiste: any[]
+
+  // Page « La ville » — ville_infos du projet, sinon dataset Capsul ; null → page omise
+  villeNom: string                   // nom canonique du dataset si reconnu, sinon project.city
+  villeInfos: VilleInfos | null
+  villePhotoPath: string | null      // chemin fs public/villes/<slug>.jpg si le fichier existe
+
+  // Page « Travaux » — postes résolus dans l'ordre du catalogue ; vide → page omise
+  travauxPostes: PosteTravaux[]
 }

@@ -37,13 +37,15 @@ export interface DonneesCharges {
   cfe: number                   // Cotisation Foncière des Entreprises, défaut 300, exonérée année 1
 }
 
+// ⚠️ Fiscalité volontairement absente du moteur : la situation fiscale de
+// l'investisseur (TMI, régime micro/réel, amortissements) n'est pas modélisée.
+// Tous les flux ci-dessous sont exprimés AVANT impôt (décision direction, sept. 2026).
+
 // Paramètres spécifiques LMNP meublé
 export interface ParamsLMNP {
   loyerMensuel: number
   vacancePct: number            // ex: 5 pour 5%
   fraisGestionPct?: number      // ex: 7 pour 7% — défaut 0 si absent
-  regimeFiscal: 'micro_bic' | 'lmnp_reel'
-  tmiClientPct: number          // ex: 30 pour 30%
 }
 
 // Paramètres spécifiques Colocation
@@ -52,8 +54,6 @@ export interface ParamsColocation {
   loyerParChambre: number
   vacancePct: number
   fraisGestionPct?: number      // ex: 7 pour 7%
-  regimeFiscal: 'micro_bic' | 'lmnp_reel'
-  tmiClientPct: number
 }
 
 // Paramètres spécifiques Courte durée
@@ -65,20 +65,16 @@ export interface ParamsCourteDuree {
   electriciteEau: number        // annuel
   internet: number              // annuel
   chauffage: number             // annuel
-  regimeFiscal: 'micro_bic' | 'lmnp_reel'
-  tmiClientPct: number
 }
 
 // Résultats communs à tous les scénarios
 export interface ResultatsScenario {
   revenusAnnuelsBruts: number
-  revenusAnnuelsNets: number
+  revenusAnnuelsNets: number    // après vacance / conciergerie
   chargesAnnuelles: number
   rentabiliteBrutePct: number
   rentabiliteNettePct: number
-  impotMensuelEstime: number
-  cashflowMensuel: number
-  cashflowMensuelApresIR: number
+  cashflowMensuel: number       // revenus nets − charges − mensualité (avant impôt)
 }
 
 // Résultats spécifiques Courte durée

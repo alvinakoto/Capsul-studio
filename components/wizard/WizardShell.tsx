@@ -14,6 +14,7 @@ import type { TypeScenario } from '@/lib/engine/suggestions'
 import RecapSticky from './RecapSticky'
 import { createProject, updateProject } from '@/lib/supabase/projects'
 import { uploadPhoto, getProjectPhotos, deletePhoto, type ExistingPhoto } from '@/lib/supabase/storage'
+import { villeInfosToForm, type VilleInfosForm } from '@/lib/data/villes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ export interface WizardState {
   // Bloc A
   adresse: string
   ville: string
+  ville_infos: VilleInfosForm          // page « La ville » de la fiche — pré-rempli depuis lib/data/villes.ts
   surface_m2: number | ''
   dpe_actuel: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
   dpe_apres_travaux: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
@@ -31,6 +33,7 @@ export interface WizardState {
   prix_achat: number | ''
   frais_notaire_pct: number
   travaux: number | ''
+  travaux_postes: string[]             // identifiants du catalogue lib/data/travaux.ts
   mobilier: number | ''
   valeur_bien_apres_travaux: number | ''
   honoraires_capsul: number | ''
@@ -70,6 +73,7 @@ export type WizardAction =
 const initialState: WizardState = {
   adresse: '',
   ville: '',
+  ville_infos: villeInfosToForm(),
   surface_m2: '',
   dpe_actuel: '',
   dpe_apres_travaux: '',
@@ -79,6 +83,7 @@ const initialState: WizardState = {
   prix_achat: '',
   frais_notaire_pct: 8.0,
   travaux: '',
+  travaux_postes: [],
   mobilier: '',
   valeur_bien_apres_travaux: '',
   honoraires_capsul: '',

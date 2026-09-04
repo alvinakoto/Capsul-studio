@@ -4,6 +4,7 @@ import path from 'path';
 import { DiagnosticPayload } from '../types';
 import { fmtPct, fmtInt } from '../format';
 import { COLORS } from '../styles';
+import { PdfBackground } from '../../common/background';
 
 const LOGO_PATH = path.join(process.cwd(), 'public', 'logo-capsul-pdf.jpg');
 
@@ -148,6 +149,7 @@ export function PageCouverture({ p }: { p: DiagnosticPayload }) {
   const cfPositif = p.cashFlowMensuel >= 0;
   return (
     <Page size="A4" style={s.page} wrap={false}>
+      <PdfBackground variant="cover" />
       <View style={s.decoLine} />
 
       <View style={s.header}>

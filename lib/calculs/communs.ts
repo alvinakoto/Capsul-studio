@@ -155,7 +155,7 @@ export function calculerProjection(
   capital: number,
   tauxAnnuelPct: number,
   dureeAnnees: number,
-  cashflowMensuelApresIR: number,
+  cashflowMensuel: number,      // avant impôt
   revalorisation: number = 0   // 0 = conservateur, 2 = réaliste
 ): AnneeProjection[] {
   const isComptant = capital <= 0
@@ -167,7 +167,7 @@ export function calculerProjection(
   for (let annee = 1; annee <= 20; annee++) {
     const ligne = amortissement[annee - 1]
     if (ligne) capitalRembourseCumul += ligne.capitalRembourse
-    cashflowCumul += cashflowMensuelApresIR * 12
+    cashflowCumul += cashflowMensuel * 12
 
     const valeurBien = Math.round(
       prixBien * Math.pow(1 + revalorisation / 100, annee)

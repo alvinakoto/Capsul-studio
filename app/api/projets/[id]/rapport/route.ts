@@ -7,10 +7,7 @@ import { registerFonts } from '@/lib/pdf/common/fonts'
 import RapportAnalytique from '@/lib/pdf/rapport/RapportAnalytique'
 import { calculerScenario } from '@/lib/calculs/index'
 import { calculerAmortissement } from '@/lib/calculs/communs'
-import { calculerAmortissementsAnnuels, calculerInteretsAnnee1 } from '@/lib/calculs/fiscalite'
-import type { RapportData, LigneAmortissement, DetailFiscalLMNP } from '@/lib/pdf/types'
-
-const TMI_DEFAULT = 30
+import type { RapportData, LigneAmortissement } from '@/lib/pdf/types'
 
 export async function GET(
   _request: Request,
@@ -86,19 +83,17 @@ export async function GET(
       cfe:                   project.cfe ?? 300,
     }
 
-    const tmiClientPct = project.tmi_client_pct ?? TMI_DEFAULT
     const vacancePct = project.vacance_pct ?? (scenarioType === 'colocation' ? 8 : 5)
 
     const scenarioInput =
       scenarioType === 'lmnp_meuble'
-        ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct } }
+        ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7 } }
         : scenarioType === 'colocation'
-        ? { type: 'colocation' as const, params: { nbChambres: project.nb_chambres ?? 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
+        ? { type: 'colocation' as const, params: { nbChambres: project.nb_chambres ?? 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7 } }
         : { type: 'courte_duree' as const, params: {
             prixNuitee: loyer, nuitsConservateur: project.nuits_conservateur ?? 16, nuitsOptimiste: project.nuits_optimiste ?? 22,
             conciergeriePct: project.concierge_pct ?? 20, electriciteEau: chargesData.electriciteEau,
             internet: chargesData.internet, chauffage: chargesData.chauffage,
-            tmiClientPct, regimeFiscal: 'lmnp_reel' as const,
           } }
 
     let r: any = null
@@ -133,33 +128,12 @@ export async function GET(
 
     const coutTotalInterets = tableauAmortissement.reduce((s, l) => s + l.interets, 0)
 
-    // ─── Détail fiscal LMNP réel ─────────────────────────────────────────────
-    let detailFiscal: DetailFiscalLMNP | null = null
-    if (scenarioResult) {
-      const amortBien     = Math.round(project.prix_achat * 0.85 * 0.02)
-      const amortMobilier = Math.round((project.mobilier ?? 0) * 0.10)
-      const amortTravaux  = Math.round((project.travaux  ?? 0) * 0.05)
-      const amortTotal    = calculerAmortissementsAnnuels(
-        project.prix_achat, project.mobilier ?? 0, project.travaux ?? 0
-      )
-      const interetsAnnee1    = calculerInteretsAnnee1(capitalEmprunte, project.taux_interet_pct)
-      const chargesDeductibles = scenarioResult.chargesAnnuelles
-      const revenusNets        = scenarioResult.revenusAnnuelsNets
-      const resultatFiscal     = revenusNets - chargesDeductibles - interetsAnnee1 - amortTotal
-      const impotAnnuel        = Math.round(Math.max(0, resultatFiscal) * (tmiClientPct / 100 + 0.172))
-
-      detailFiscal = {
-        amortBien, amortMobilier, amortTravaux, amortTotal,
-        chargesDeductibles, interetsAnnee1, revenusNets, resultatFiscal, impotAnnuel,
-      }
-    }
-
     // ─── Assemblage ──────────────────────────────────────────────────────────
     const rapportData: RapportData = {
       project, chargeNom, scenarioType, loyer, isComptant,
       prixProjetTotal, fraisNotaireEuros, honorairesCapsul,
       capitalEmprunte, mensualiteCredit, assuranceMensuelle, mensualiteTotale,
-      coutTotalInterets, scenarioResult, tableauAmortissement, detailFiscal,
+      coutTotalInterets, scenarioResult, tableauAmortissement,
       projectionConservateur, projectionRealiste,
     }
 

@@ -6,11 +6,14 @@ import { createBrowserClient } from '@supabase/ssr'
 import { getProjectById } from '@/lib/supabase/projects'
 import WizardShell from '@/components/wizard/WizardShell'
 import type { WizardState } from '@/components/wizard/WizardShell'
+import { findVille, villeInfosToForm } from '@/lib/data/villes'
 
 function projectToWizardState(p: any): Partial<WizardState> {
   return {
     adresse:            p.adresse ?? '',
     ville:              p.ville ?? '',
+    // Projets antérieurs à la page « La ville » : on repart du dataset Capsul
+    ville_infos:        villeInfosToForm(p.ville_infos ?? findVille(p.ville)?.infos),
     surface_m2:         p.surface_m2 ?? '',
     dpe_actuel:         p.dpe_actuel ?? '',
     dpe_apres_travaux:  p.dpe_apres_travaux ?? '',
@@ -20,6 +23,7 @@ function projectToWizardState(p: any): Partial<WizardState> {
     prix_achat:          p.prix_achat ?? '',
     frais_notaire_pct:   p.frais_notaire_pct ?? 8.0,
     travaux:             p.travaux ?? '',
+    travaux_postes:      p.travaux_postes ?? [],
     mobilier:            p.mobilier ?? '',
     honoraires_capsul:   p.honoraires_capsul ?? '',
     honoraires_override: p.honoraires_override ?? false,

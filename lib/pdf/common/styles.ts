@@ -16,6 +16,12 @@ export const colors = {
   negRed:    '#b83232',
 }
 
+// Couleurs des étiquettes DPE (PageBien, PageTravaux)
+export const DPE_BG: Record<string, string> = {
+  A: '#16a34a', B: '#22c55e', C: '#84cc16',
+  D: '#eab308', E: '#f97316', F: '#ea580c', G: '#dc2626',
+}
+
 // ─── Mesures (en points, 1pt = 1/72 inch) ────────────────────────────────────
 // A4 = 595 × 842 points
 

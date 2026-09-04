@@ -4,8 +4,11 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import React from 'react'
 import { registerFonts } from '@/lib/pdf/common/fonts'
+import { findVillePhotoPath } from '@/lib/pdf/common/villePhoto'
 import FicheCommerciale from '@/lib/pdf/FicheCommerciale'
 import { calculerScenario } from '@/lib/calculs/index'
+import { findVille, hasVilleInfos } from '@/lib/data/villes'
+import { getPostesTravaux } from '@/lib/data/travaux'
 import type { FicheData } from '@/lib/pdf/types'
 
 export async function GET(
@@ -76,7 +79,6 @@ export async function GET(
 
     const scenarioTypeForDefaults = (project.scenario_type ?? 'lmnp_meuble') as
       'lmnp_meuble' | 'colocation' | 'courte_duree'
-    const tmiClientPct = project.tmi_client_pct ?? 30
     const vacancePct = project.vacance_pct ?? (scenarioTypeForDefaults === 'colocation' ? 8 : 5)
 
     if (hasData) {
@@ -115,9 +117,9 @@ export async function GET(
 
         const scenarioInput =
           scenarioType === 'lmnp_meuble'
-            ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, regimeFiscal: 'lmnp_reel' as const, tmiClientPct } }
+            ? { type: 'lmnp_meuble' as const, params: { loyerMensuel: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7 } }
             : scenarioType === 'colocation'
-            ? { type: 'colocation' as const, params: { nbChambres: project.nb_chambres ?? 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7, tmiClientPct, regimeFiscal: 'lmnp_reel' as const } }
+            ? { type: 'colocation' as const, params: { nbChambres: project.nb_chambres ?? 3, loyerParChambre: loyer, vacancePct, fraisGestionPct: project.frais_gestion_pct ?? 7 } }
             : {
                 type: 'courte_duree' as const,
                 params: {
@@ -128,8 +130,6 @@ export async function GET(
                   electriciteEau:    chargesData.electriciteEau,
                   internet:          chargesData.internet,
                   chauffage:         chargesData.chauffage,
-                  tmiClientPct,
-                  regimeFiscal:      'lmnp_reel' as const,
                 },
               }
 
@@ -174,6 +174,14 @@ export async function GET(
       }
     }
 
+    // ─── Ville & travaux ─────────────────────────────────────────────────────
+    const ville = findVille(project.city || project.ville)
+    const villeNom = ville?.nom ?? (project.city || project.ville || '')
+    const villeInfosRaw = project.ville_infos ?? ville?.infos ?? null
+    const villeInfos = hasVilleInfos(villeInfosRaw) ? villeInfosRaw : null
+    const villePhotoPath = findVillePhotoPath(ville?.slug)
+    const travauxPostes = getPostesTravaux(project.travaux_postes)
+
     // ─── Assemblage des données ──────────────────────────────────────────────
     const ficheData: FicheData = {
       project,
@@ -187,9 +195,12 @@ export async function GET(
       capitalEmprunte,
       mensualiteTotale,
       vacancePct,
-      tmiClientPct,
       projectionConservateur,
       projectionRealiste,
+      villeNom,
+      villeInfos,
+      villePhotoPath,
+      travauxPostes,
     }
 
     // ─── Génération du PDF ───────────────────────────────────────────────────

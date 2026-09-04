@@ -43,7 +43,7 @@ export function suggererScenarios(state: WizardState): Suggestion[] {
   {
     type: 'lmnp_meuble' as const,
     label: 'LMNP Meublé',
-    raison: 'Régime fiscal avantageux grâce aux amortissements. Idéal pour les petites surfaces.',
+    raison: 'Meublé classique : forte demande locative sur les petites surfaces, gestion simple.',
     score: scoreLMNP,
   },
   {

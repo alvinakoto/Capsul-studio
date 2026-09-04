@@ -1,5 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { WizardState } from '@/components/wizard/WizardShell'
+import { formToVilleInfos } from '@/lib/data/villes'
 
 function getClient() {
   return createBrowserClient(
@@ -39,6 +40,7 @@ export async function createProject(
       // Infos bien
       adresse: state.adresse || null,
       ville: state.ville || null,
+      ville_infos: formToVilleInfos(state.ville_infos),
       surface_m2: state.surface_m2 || null,
       type_bien: state.type_bien || null,
       description_bien: state.description_bien || null,
@@ -52,6 +54,7 @@ export async function createProject(
       // Finances
       frais_notaire_pct: state.frais_notaire_pct,
       travaux: state.travaux || 0,
+      travaux_postes: state.travaux_postes,
       mobilier: state.mobilier || 0,
       valeur_bien_apres_travaux: state.valeur_bien_apres_travaux === '' ? null : state.valeur_bien_apres_travaux,
       honoraires_capsul: state.honoraires_capsul || null,
@@ -123,6 +126,7 @@ export async function updateProject(
 
       adresse: state.adresse || null,
       ville: state.ville || null,
+      ville_infos: formToVilleInfos(state.ville_infos),
       surface_m2: state.surface_m2 || null,
       type_bien: state.type_bien || null,
       description_bien: state.description_bien || null,
@@ -133,6 +137,7 @@ export async function updateProject(
 
       frais_notaire_pct: state.frais_notaire_pct,
       travaux: state.travaux || 0,
+      travaux_postes: state.travaux_postes,
       mobilier: state.mobilier || 0,
       valeur_bien_apres_travaux: state.valeur_bien_apres_travaux === '' ? null : state.valeur_bien_apres_travaux,
       honoraires_capsul: state.honoraires_capsul || null,
@@ -173,7 +178,7 @@ export async function updateProjectScenario(
   loyerCible: number,
   scenarioType: 'lmnp_meuble' | 'colocation' | 'courte_duree',
   extras?: {
-    fraisGestionPct?: number; conciergePct?: number; vacancePct?: number; tmiClientPct?: number
+    fraisGestionPct?: number; conciergePct?: number; vacancePct?: number
     nuitsConservateur?: number; nuitsOptimiste?: number; nbChambres?: number
   }
 ): Promise<void> {
@@ -187,7 +192,6 @@ export async function updateProjectScenario(
       ...(extras?.fraisGestionPct !== undefined && { frais_gestion_pct: extras.fraisGestionPct }),
       ...(extras?.conciergePct !== undefined && { concierge_pct: extras.conciergePct }),
       ...(extras?.vacancePct !== undefined && { vacance_pct: extras.vacancePct }),
-      ...(extras?.tmiClientPct !== undefined && { tmi_client_pct: extras.tmiClientPct }),
       ...(extras?.nuitsConservateur !== undefined && { nuits_conservateur: extras.nuitsConservateur }),
       ...(extras?.nuitsOptimiste !== undefined && { nuits_optimiste: extras.nuitsOptimiste }),
       ...(extras?.nbChambres !== undefined && { nb_chambres: extras.nbChambres }),
@@ -222,6 +226,7 @@ export async function duplicateProject(projectId: string, userId: string): Promi
 
       adresse: project.adresse,
       ville: project.ville,
+      ville_infos: project.ville_infos,
       surface_m2: project.surface_m2,
       type_bien: project.type_bien,
       description_bien: project.description_bien,
@@ -232,6 +237,7 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       prix_achat: project.prix_achat,
       frais_notaire_pct: project.frais_notaire_pct,
       travaux: project.travaux,
+      travaux_postes: project.travaux_postes,
       mobilier: project.mobilier,
       valeur_bien_apres_travaux: project.valeur_bien_apres_travaux,
       honoraires_capsul: project.honoraires_capsul,
@@ -266,7 +272,6 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       loyer_cible: project.loyer_cible,
       scenario_type: project.scenario_type,
       vacance_pct: project.vacance_pct,
-      tmi_client_pct: project.tmi_client_pct,
       nuits_conservateur: project.nuits_conservateur,
       nuits_optimiste: project.nuits_optimiste,
       nb_chambres: project.nb_chambres,

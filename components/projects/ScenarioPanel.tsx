@@ -13,8 +13,6 @@ const SCENARIOS = [
   { id: 'courte_duree', label: 'Courte durée' },
 ]
 
-const TMI_OPTIONS = [0, 11, 30, 41, 45]
-
 function euros(n: number) {
   return n?.toLocaleString('fr-FR') + ' €'
 }
@@ -26,7 +24,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const [loyerMensuel, setLoyerMensuel]       = useState<number | ''>(
     initScenario === 'lmnp_meuble' ? (project.loyer_cible || '') : ''
   )
-  const [tmi, setTmi]                         = useState(project.tmi_client_pct ?? 30)
   const [vacance, setVacance]                 = useState<number | ''>(
     project.vacance_pct ?? (initScenario === 'colocation' ? 8 : 5)
   )
@@ -100,8 +97,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
             loyerMensuel:    Number(loyerMensuel),
             vacancePct:      Number(vacance) || 0,
             fraisGestionPct: Number(fraisGestion) || 0,
-            regimeFiscal:    'lmnp_reel' as const,
-            tmiClientPct:    tmi,
           },
         }
       } else if (scenarioType === 'colocation') {
@@ -113,8 +108,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
             loyerParChambre: Number(loyerParChambre),
             vacancePct:      Number(vacance) || 0,
             fraisGestionPct: Number(fraisGestion) || 0,
-            tmiClientPct:    tmi,
-            regimeFiscal:    'lmnp_reel' as const,
           },
         }
       } else {
@@ -129,8 +122,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
             electriciteEau:      chargesData.electriciteEau,
             internet:            chargesData.internet,
             chauffage:           chargesData.chauffage,
-            tmiClientPct:        tmi,
-            regimeFiscal:        'lmnp_reel' as const,
           },
         }
       }
@@ -148,7 +139,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
         fraisGestionPct: Number(fraisGestion) || 0,
         conciergePct: Number(conciergerie) || 0,
         vacancePct: Number(vacance) || 0,
-        tmiClientPct: tmi,
         nuitsConservateur: Number(nuitsCons) || 0,
         nuitsOptimiste: Number(nuitsOpti) || 0,
         nbChambres: Number(nbChambres) || 1,
@@ -169,7 +159,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
       <div className="rounded-xl border bg-card p-6">
         <h2 className="font-semibold mb-4">Simuler un scénario</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
           {/* Type */}
           <div className="space-y-1.5">
@@ -276,27 +266,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
             )}
           </div>
 
-          {/* TMI */}
-          <div className="space-y-1.5">
-            <Label>TMI client</Label>
-            <div className="flex flex-col gap-1.5 mt-1">
-              {TMI_OPTIONS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTmi(t)}
-                  className={`px-3 py-2 rounded-lg text-sm border text-left transition ${
-                    tmi === t
-                      ? 'bg-foreground text-background border-foreground'
-                      : 'hover:bg-muted'
-                  }`}
-                >
-                  {t} %
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Bouton + erreur */}
           <div className="flex flex-col justify-end gap-3">
             {error && (
@@ -361,11 +330,10 @@ export default function ScenarioPanel({ project }: { project: any }) {
   )}
   <Metric label="Revenus nets/mois"   value={euros(Math.round(result.scenario.revenusAnnuelsNets / 12))} />
   <Metric label="Charges/mois"        value={euros(Math.round(result.scenario.chargesAnnuelles / 12))} />
-  <Metric label="Impôt/mois"          value={euros(result.scenario.impotMensuelEstime)} />
   <Metric
-    label="Cash-flow net"
-    value={euros(result.scenario.cashflowMensuelApresIR)}
-    highlight={result.scenario.cashflowMensuelApresIR >= 0 ? 'green' : 'red'}
+    label="Cash-flow mensuel"
+    value={euros(result.scenario.cashflowMensuel)}
+    highlight={result.scenario.cashflowMensuel >= 0 ? 'green' : 'red'}
   />
   <Metric label="Rentabilité brute"   value={`${result.scenario.rentabiliteBrutePct?.toFixed(2)} %`} />
   <Metric label="Rentabilité nette"   value={`${result.scenario.rentabiliteNettePct?.toFixed(2)} %`} />

@@ -17,11 +17,15 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 
 - `types.ts` — toutes les interfaces (`DonneesProjet`, `DonneesFinancement`, `DonneesCharges`, `ParamsLMNP`, `ParamsColocation`, `ParamsCourteDuree`, `ResultatsScenario`, `ResultatsComplets`, etc.)
 - `communs.ts` — frais de notaire, honoraires Capsul, mensualité crédit, tableau d'amortissement, **et la projection patrimoniale** (`calculerProjection`, modes conservateur/réaliste)
-- `fiscalite.ts` — calculs micro-BIC et LMNP réel
-- `lmnp.ts`, `colocation.ts`, `courteDuree.ts` — un module par scénario
+- `lmnp.ts`, `colocation.ts`, `courteDuree.ts` — un module par scénario (signature `calculer*(charges, params, prixProjetTotal, mensualiteTotale)`)
 - `index.ts` — `calculerScenario()`, point d'entrée qui orchestre tout et retourne `ResultatsComplets`
+- `test.ts` — cas de référence Créteil, à lancer avec `npx tsx lib/calculs/test.ts`
 
-⚠️ Il existe un fichier `projections.ts` à la racine de `lib/calculs/` qui est **vide et mort** — la vraie logique de projection est dans `communs.ts::calculerProjection()`. Ne pas réimplémenter dans `projections.ts` sans vérifier qu'il est bien importé nulle part ailleurs ; à terme il faudrait soit le supprimer, soit y déplacer `calculerProjection` pour que le nom de fichier soit cohérent.
+### Données de référence (`lib/data/`)
+
+- `villes.ts` — **source unique** des villes Capsul : alimente le select « Ville » du wizard (`NOMS_VILLES`), la page « La ville » de la fiche (`infos` : surnom, habitants, étudiants, accès, atout, prix m² min/max, rendement moyen) et le comparatif marché du PDF diagnostic (bloc `diagnostic` optionnel — `marketData.ts` n'est plus qu'un adaptateur). Pour ajouter une ville : une entrée ici suffit. Chiffres du premier jeu à valider par la direction.
+- `travaux.ts` — catalogue des 13 postes de travaux (`id`, `label`, `icon`), ordre = ordre d'affichage sur la fiche
+- `icons.ts` — tracés vectoriels lucide (ISC) partagés entre l'UI (`components/ui/IconNode.tsx`) et le PDF (`lib/pdf/common/LucideIcon.tsx`) → même glyphe à l'écran et dans les documents
 
 ### Règles métier
 
@@ -29,9 +33,11 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - **Capital emprunté** = `prixProjetTotal − apport` dans le moteur (`calculerFinancement`) — clamped à 0 ; si ≤ 0 → `isComptant = true`, tout le crédit à 0. Note : la RecapSticky affiche `prixAchat + travaux − apport` (montant finançable banque) ; la détection UI "comptant" dans `BlocD` utilise aussi cette base.
 - **4 scénarios** : LLD nue, LMNP meublé, colocation, courte durée (16 nuits/mois conservateur, 22 nuits/mois optimiste — tous les champs sont overridables)
 - **Vacance locative par défaut** : 5% pour LMNP meublé et courte durée, 8% pour colocation — pré-rempli dans `ScenarioPanel.tsx` et reseté automatiquement au changement de scénario
-- **Vacance locative et TMI client persistées** : colonnes `vacance_pct NUMERIC(5,2)` et `tmi_client_pct NUMERIC(5,2)` sur `projects` (nullable, pas de `DEFAULT` — `null` = jamais calculé, distinct de `0` saisi volontairement). Sauvegardées par `updateProjectScenario()` au clic "Calculer" dans `ScenarioPanel`, puis relues par les routes PDF (`fiche/route.ts`, `rapport/route.ts`) avec fallback (5%/8%/30%) uniquement si `null`. Avant ce fix, les deux routes PDF recalculaient toujours le scénario avec des valeurs hardcodées (vacance 5%/8%, TMI 30%), ignorant ce que le chargé avait réellement saisi dans le simulateur.
+- **Vacance locative persistée** : colonne `vacance_pct NUMERIC(5,2)` sur `projects` (nullable, pas de `DEFAULT` — `null` = jamais calculé, distinct de `0` saisi volontairement). Sauvegardée par `updateProjectScenario()` au clic "Calculer" dans `ScenarioPanel`, puis relue par les routes PDF (`fiche/route.ts`, `rapport/route.ts`) avec fallback (5%/8%) uniquement si `null`.
+- **Fiscalité hors périmètre** (décision direction, septembre 2026) : aucun calcul ni affichage net d'impôt nulle part — ni TMI, ni régime micro/réel, ni amortissements. Tous les flux sont **avant impôt** : `cashflowMensuel` = revenus nets (après vacance/conciergerie) − charges − mensualité. Le module `fiscalite.ts` et la colonne `tmi_client_pct` ont été supprimés (récupérables dans l'historique git avant le commit S8). Ne pas réintroduire de vocabulaire fiscal dans le simulateur ou les documents sans validation de la direction.
 - **CFE (Cotisation Foncière des Entreprises)** : ~300 €/an, spécifique à la courte durée — incluse dans `ParamsCourteDuree.cfe`, champ modifiable dans wizard (BlocE) et ScenarioPanel ; colonne `cfe NUMERIC(10,2) DEFAULT 300` dans la table `projects`
-- **LMNP amortissements (simplifié)** : bien 2%/an sur 85% du prix, mobilier 10%/an, travaux 5%/an
+- **Page « La ville »** (page 2 de la fiche) : données = `projects.ville_infos` (JSONB, saisies/modifiées dans BlocA) sinon `infos` du dataset `lib/data/villes.ts` ; à la sélection d'une ville dans le wizard, les champs sont pré-remplis depuis le dataset et restent modifiables par projet. Page omise si aucune info. Photo optionnelle : `public/villes/<slug>.jpg`, sinon composition typographique.
+- **Page « Travaux »** (dernière page de la fiche, a remplacé la projection patrimoniale) : `projects.travaux_postes` = ids du catalogue `lib/data/travaux.ts`, sélectionnés par chips dans BlocC ; icône + libellé par poste, budget travaux et DPE actuel → visé en KPI. Page omise si aucun poste. La projection patrimoniale reste uniquement dans le rapport analytique.
 - **Projections** (`communs.ts::calculerProjection`) : mode conservateur (`revalorisation = 0`) et réaliste (`revalorisation = 2` par défaut), patrimoine net calculé sur 20 ans à partir du tableau d'amortissement + cash-flow cumulé + plus-value latente en mode réaliste
 - **Cas de référence pour tous les tests** : Créteil T4, 270 055€ projet total
 - **Logique "recommandé vs choisi"** : la suggestion auto du scénario s'affiche en badge bleu clair ; le choix final du chargé en badge étoile pleine
@@ -55,14 +61,19 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 ## Schéma Supabase — points clés
 
 - Table `projects` : `charge_id` (FK), `status` (`'draft'` → `'simulation'` après premier calcul), `city` NOT NULL, `type_bien` avec CHECK incluant studio/maison
-- Colonnes scénario dans `projects` : `cfe NUMERIC(10,2) DEFAULT 300`, `loyer_cible NUMERIC(10,2)`, `scenario_type TEXT` (`'lmnp_meuble'` | `'colocation'` | `'courte_duree'`), `vacance_pct NUMERIC(5,2)`, `tmi_client_pct NUMERIC(5,2)` (ces deux dernières nullable sans `DEFAULT`, pour distinguer "non renseigné" de "0 volontaire")
+- Colonnes scénario dans `projects` : `cfe NUMERIC(10,2) DEFAULT 300`, `loyer_cible NUMERIC(10,2)`, `scenario_type TEXT` (`'lmnp_meuble'` | `'colocation'` | `'courte_duree'`), `vacance_pct NUMERIC(5,2)` (nullable sans `DEFAULT`, pour distinguer "non renseigné" de "0 volontaire"). La colonne `tmi_client_pct` a été supprimée en S8.
+- Colonnes fiche dans `projects` (S8) : `ville_infos JSONB` (nullable — `null` = utiliser le dataset `lib/data/villes.ts`), `travaux_postes TEXT[] NOT NULL DEFAULT '{}'`
+- Pas de dossier de migrations dans le repo : les changements de schéma sont exécutés à la main dans le dashboard Supabase et documentés ici
 - Photos : 5-10 par projet, upload/suppression drag-and-drop (pas de réordonnancement ni légendes en v1), stockées dans le bucket public Supabase Storage `project-images` + table `project_images` (avec colonnes `type` : cover/main/secondary, `ordre`, `legende`, `public_url`)
 - Photos secondaires apparaissent uniquement dans la fiche commerciale PDF, pas dans le rapport analytique (qui est un document séparé)
 
 ## Stack PDF (`lib/pdf/`)
 
-- 4 pages dans la fiche commerciale : `PageCouverture.tsx`, `PageBien.tsx` (composants dans `lib/pdf/components/`), `PageScenario.tsx`, `PageProjection.tsx`
-- Helpers de formatage centralisés dans `lib/pdf/helpers.ts` : `euros()`, `pct()`, `eurosShort()`, `orDash()` — tous strippent U+00A0/U+202F
+- Fiche commerciale (composants dans `lib/pdf/components/`) : `PageCouverture.tsx` → `PageVille.tsx` → `PageBien.tsx` → `PageScenario.tsx` → `PageTravaux.tsx`. Ville et Travaux sont conditionnelles ; `FicheCommerciale.tsx` construit la liste réelle des pages et passe `pageNumber` à chacune (numérotation d'en-tête dynamique — ne jamais coder un numéro de page en dur)
+- Rapport analytique (`lib/pdf/rapport/`) : Synthèse, Amortissement du crédit, Projection patrimoniale. PDF diagnostic (`lib/pdf/diagnostic/`) : document séparé pour le pipeline Make, déjà sans fiscalité
+- Helpers de formatage centralisés dans `lib/pdf/helpers.ts` : `euros()`, `pct()`, `nombre()`, `pageNum()`, `orDash()` — tous strippent U+00A0/U+202F
+- `lib/pdf/common/LucideIcon.tsx` rend une icône de `lib/data/icons.ts` en primitives react-pdf ; `lib/pdf/common/villePhoto.ts` résout `public/villes/<slug>.(jpg|jpeg|png)` via le système de fichiers (même mécanisme que les polices)
+- Rendu local sans base ni auth : `npx tsx test/render-fiche.tsx <dossier> [photo-ville.jpg]` génère 3 variantes de la fiche (complète, avec photo, minimale) ; `npx tsx test/render-test.tsx` pour le diagnostic
 - Police Montserrat enregistrée via `lib/pdf/common/fonts.ts::registerFonts()`
 - Styles communs dans `lib/pdf/common/styles.ts` (`colors`, `sizes`, `common`)
 
@@ -118,12 +129,14 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - **S4 ✅** Dashboard `/projets` — liste projets avec cards et mensualité
 - **S5/S6 ✅** Génération PDF fiche commerciale (4 pages) + page détail projet + simulateur scénario — bugs de champs, vacance coloc, CFE, et flux téléchargement PDF résolus
 - **S-UI ✅** Refonte UI/UX globale — sidebar navigation, design system Capsul (navy/or/ivory), Montserrat, redesign dashboard/cards/header/wizard
+- **S8 ✅** Retours dirigeants (septembre 2026) — fiscalité retirée end-to-end (moteur, simulateur, fiche, rapport, base), page « La ville » avec source unique `lib/data/villes.ts`, page « Travaux » à la place de la projection, « Régime Réel » retiré des intitulés, numérotation dynamique de la fiche
 - **S7 (à venir)** Sprint dédié au rapport analytique PDF séparé
 
 ## Reste à faire / en cours
 
-- **S7** : rapport analytique PDF séparé (document distinct de la fiche commerciale, orienté chargé/investisseur — tableaux d'amortissement, fiscalité détaillée, projection chiffrée)
-- **Bug 1 (dépriorisé)** : frais de notaire non inclus dans la base amortissable LMNP — impact fiscal mineur, à traiter en S7 ou ultérieurement
+- **S7** : rapport analytique PDF séparé (document distinct de la fiche commerciale, orienté chargé/investisseur — tableaux d'amortissement, projection chiffrée ; sans fiscalité, cf. règle métier)
+- **Photos villes** : déposer 8 photos libres de droits dans `public/villes/` (`reims.jpg`, `paris.jpg`, `toulouse.jpg`, `amiens.jpg`, `nancy.jpg`, `troyes.jpg`, `epernay.jpg`, `chalons-en-champagne.jpg`) — la page fonctionne sans en attendant
+- **Chiffres villes** : faire valider par la direction le jeu de données de `lib/data/villes.ts` (habitants, étudiants, accès, atout, prix m², rendement)
 - **Bug 4 (dépriorisé)** : scénario LLD nue absent du moteur et de l'UI — à implémenter quand besoin métier confirmé
 - LinkedIn comme canal d'acquisition à activer (dépendance actuelle forte aux Google Ads)
 - Programme de parrainage et partenariats CSE/RH en axes secondaires (prospection CSE dépriorisée, jugée trop chronophage)

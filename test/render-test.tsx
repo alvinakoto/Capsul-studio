@@ -50,7 +50,8 @@ const raw = {
 
 async function main() {
   const payload = normalizePayload(raw);
-  const buf = await renderToBuffer(React.createElement(DiagnosticDocument, { payload }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const buf = await renderToBuffer(React.createElement(DiagnosticDocument, { payload }) as any);
   const path = 'test-diagnostic-render.pdf';
   writeFileSync(path, buf);
   console.log(`PDF genere : ${buf.byteLength} octets -> ${path}`);

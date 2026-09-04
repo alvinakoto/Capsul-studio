@@ -43,20 +43,11 @@ export function calculerScenario(
   let scenario
 
   if (scenarioInput.type === 'lmnp_meuble') {
-    scenario = calculerLMNP(
-      projet, financement, charges, scenarioInput.params,
-      prixProjetTotal, mensualiteTotale, capitalEmprunte
-    )
+    scenario = calculerLMNP(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
   } else if (scenarioInput.type === 'colocation') {
-    scenario = calculerColocation(
-      projet, financement, charges, scenarioInput.params,
-      prixProjetTotal, mensualiteTotale, capitalEmprunte
-    )
+    scenario = calculerColocation(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
   } else {
-    scenario = calculerCourteDuree(
-      projet, financement, charges, scenarioInput.params,
-      prixProjetTotal, mensualiteTotale, capitalEmprunte
-    )
+    scenario = calculerCourteDuree(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
   }
 
   const valeurBienApresTravaux = projet.valeurBienApresTravaux ?? (projet.prixAchat + projet.travaux)
@@ -64,13 +55,13 @@ export function calculerScenario(
   const projectionConservateur = calculerProjection(
     valeurBienApresTravaux, financement.apport, capitalEmprunte,
     financement.tauxInteretPct, financement.dureeAnnees,
-    scenario.cashflowMensuelApresIR, 0
+    scenario.cashflowMensuel, 0
   )
 
   const projectionRealiste = calculerProjection(
     valeurBienApresTravaux, financement.apport, capitalEmprunte,
     financement.tauxInteretPct, financement.dureeAnnees,
-    scenario.cashflowMensuelApresIR, revalorisationRealistePct
+    scenario.cashflowMensuel, revalorisationRealistePct
   )
 
   return {

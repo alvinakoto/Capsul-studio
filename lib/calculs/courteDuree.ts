@@ -1,25 +1,15 @@
-import {
-  DonneesProjet,
-  DonneesFinancement,
-  DonneesCharges,
-  ParamsCourteDuree,
-  ResultatsCourteDuree,
-} from './types'
-import {
-  calculerAmortissementsAnnuels,
-  calculerImpotMicroBIC,
-  calculerImpotLMNPReel,
-  calculerInteretsAnnee1,
-} from './fiscalite'
+// ============================================================
+// CAPSUL STUDIO — Scénario Courte durée
+// ============================================================
+// Flux exprimés avant impôt (cf. note dans types.ts).
+
+import { DonneesCharges, ParamsCourteDuree, ResultatsCourteDuree } from './types'
 
 export function calculerCourteDuree(
-  projet: DonneesProjet,
-  financement: DonneesFinancement,
   charges: DonneesCharges,
   params: ParamsCourteDuree,
   prixProjetTotal: number,
-  mensualiteTotale: number,
-  capitalEmprunte: number
+  mensualiteTotale: number
 ): ResultatsCourteDuree {
 
   // ── Revenus bruts (2 hypothèses) ─────────────────────────────
@@ -70,49 +60,19 @@ export function calculerCourteDuree(
     ((revenusAnnuelsNets - chargesAnnuelles) / prixProjetTotal) * 1000
   ) / 10
 
-  // ── Fiscalité ─────────────────────────────────────────────────
-  let impotAnnuel = 0
-
-  if (params.regimeFiscal === 'micro_bic') {
-    impotAnnuel = calculerImpotMicroBIC(
-      revenusAnnuelsNets,
-      params.tmiClientPct
-    )
-  } else {
-    const interetsAnnee1 = calculerInteretsAnnee1(
-      capitalEmprunte,
-      financement.tauxInteretPct
-    )
-    const chargesDeductibles = chargesAnnuelles + interetsAnnee1
-    const amortissements = calculerAmortissementsAnnuels(
-      projet.prixAchat,
-      projet.mobilier,
-      projet.travaux
-    )
-    impotAnnuel = calculerImpotLMNPReel(
-      revenusAnnuelsNets,
-      chargesDeductibles,
-      amortissements,
-      params.tmiClientPct
-    )
-  }
-
-  const impotMensuelEstime = Math.round(impotAnnuel / 12)
-
   // ── Cash-flow ─────────────────────────────────────────────────
   const chargesMensuelles = Math.round(chargesAnnuelles / 12)
 
   const revenusMensuelsNetsConservateur = Math.round(revenusNetsConservateur / 12)
   const cashflowConservateur =
-    revenusMensuelsNetsConservateur - chargesMensuelles - mensualiteTotale - impotMensuelEstime
+    revenusMensuelsNetsConservateur - chargesMensuelles - mensualiteTotale
 
   const revenusMensuelsNetsOptimiste = Math.round(revenusNetsOptimiste / 12)
   const cashflowOptimiste =
-    revenusMensuelsNetsOptimiste - chargesMensuelles - mensualiteTotale - impotMensuelEstime
+    revenusMensuelsNetsOptimiste - chargesMensuelles - mensualiteTotale
 
-  const cashflowMensuel =
-    revenusMensuelsNetsConservateur - chargesMensuelles - mensualiteTotale
-  const cashflowMensuelApresIR = cashflowConservateur
+  // Le cash-flow de référence est l'hypothèse conservatrice
+  const cashflowMensuel = cashflowConservateur
 
   return {
     revenusAnnuelsBruts,
@@ -120,9 +80,7 @@ export function calculerCourteDuree(
     chargesAnnuelles,
     rentabiliteBrutePct,
     rentabiliteNettePct,
-    impotMensuelEstime,
     cashflowMensuel,
-    cashflowMensuelApresIR,
     revenusConservateur,
     revenusOptimiste,
     cashflowConservateur,

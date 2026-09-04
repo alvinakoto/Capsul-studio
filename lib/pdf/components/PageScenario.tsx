@@ -1,13 +1,14 @@
 import React from 'react'
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
+import { PdfBackground } from '../common/background'
 import { FicheData } from '../types'
-import { euros, pct } from '../helpers'
+import { euros, pct, pageNum } from '../helpers'
 
 const SCENARIO_LABELS: Record<string, string> = {
-  lmnp_meuble:  'LMNP Meublé — Régime Réel',
-  colocation:   'Colocation — Régime Réel',
-  courte_duree: 'Courte Durée — Location Saisonnière',
+  lmnp_meuble:  'LMNP Meublé',
+  colocation:   'Colocation',
+  courte_duree: 'Courte durée — Location saisonnière',
 }
 
 const s = StyleSheet.create({
@@ -18,6 +19,7 @@ const s = StyleSheet.create({
 
   // ─── Hero navy ────────────────────────────────────────────────────────────
   hero: {
+    position: 'relative',
     backgroundColor: colors.navy,
     paddingLeft: sizes.marginAccent,
     paddingRight: sizes.margin,
@@ -179,14 +181,14 @@ const s = StyleSheet.create({
 
 interface Props {
   data: FicheData
+  pageNumber: number
 }
 
-export default function PageScenario({ data }: Props) {
+export default function PageScenario({ data, pageNumber }: Props) {
   const { project, scenarioResult } = data
   const sc = scenarioResult
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
-  const scenarioLabel = SCENARIO_LABELS[project.scenario_type ?? 'lmnp_meuble'] ?? 'LMNP Meublé — Régime Réel'
-  const tmi = data.tmiClientPct
+  const scenarioLabel = SCENARIO_LABELS[project.scenario_type ?? 'lmnp_meuble'] ?? 'LMNP Meublé'
 
   const loyer = project.loyer_cible ?? 0
   const vacancePct = data.vacancePct
@@ -215,8 +217,7 @@ export default function PageScenario({ data }: Props) {
   const cashflowOptimiste = scenarioType === 'courte_duree' && sc ? sc.cashflowOptimiste : null
   const chargesMois = sc ? Math.round(sc.chargesAnnuelles / 12) : null
   const mensualite = Math.round(data.mensualiteTotale)
-  const impot = sc ? sc.impotMensuelEstime : null
-  const cashflow = sc ? sc.cashflowMensuelApresIR : null
+  const cashflow = sc ? sc.cashflowMensuel : null
   const rentaBrute = sc ? sc.rentabiliteBrutePct : null
   const rentaNette = sc ? sc.rentabiliteNettePct : null
 
@@ -240,17 +241,18 @@ export default function PageScenario({ data }: Props) {
         <Text style={common.headerLogo}>CAPSUL</Text>
         <View style={common.headerRight}>
           <Text style={common.eyebrow}>Scénario d'investissement</Text>
-          <Text style={common.pageNum}>03</Text>
+          <Text style={common.pageNum}>{pageNum(pageNumber)}</Text>
         </View>
       </View>
 
       {/* Hero */}
       <View style={s.hero}>
-        <Text style={s.heroOver}>Scénario retenu · TMI {tmi} %</Text>
+        <PdfBackground variant="bande" />
+        <Text style={s.heroOver}>Scénario retenu</Text>
         <Text style={s.heroTitle}>{scenarioLabel}</Text>
         <View style={s.heroKpis}>
           <View style={s.heroKpi}>
-            <Text style={s.heroKpiLabel}>Cash-flow net</Text>
+            <Text style={s.heroKpiLabel}>Cash-flow mensuel</Text>
             <Text style={cashflow !== null && cashflow >= 0 ? s.heroKpiValueGold : s.heroKpiValue}>
               {cashflow !== null ? (cashflow >= 0 ? '+' : '') + euros(Math.round(cashflow), false) : '—'}
               <Text style={s.heroKpiUnit}> €/mois</Text>
@@ -300,9 +302,6 @@ export default function PageScenario({ data }: Props) {
                 ? ['Autres charges', `− ${euros(autresChargesMois)}`]
                 : null,
               ['Mensualité crédit', `− ${euros(mensualite)}`],
-              impot !== null && impot > 0
-                ? ['Impôt estimé', `− ${euros(Math.round(impot))}`]
-                : null,
             ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
                 <Text style={s.tableTd}>{k}</Text>
@@ -310,7 +309,7 @@ export default function PageScenario({ data }: Props) {
               </View>
             ))}
             <View style={s.tableRowTotal}>
-              <Text style={s.tableTdTotalK}>Cash-flow net</Text>
+              <Text style={s.tableTdTotalK}>Cash-flow mensuel</Text>
               <Text style={s.tableTdTotalV}>
                 {cashflow !== null ? (cashflow >= 0 ? '+ ' : '− ') + euros(Math.abs(Math.round(cashflow))) : '—'}
               </Text>
@@ -318,7 +317,7 @@ export default function PageScenario({ data }: Props) {
           </View>
 
           <View style={s.cashBlock}>
-            <Text style={s.cashLabel}>Bilan mensuel net</Text>
+            <Text style={s.cashLabel}>Bilan mensuel</Text>
             {cashflow !== null ? (
               <>
                 <Text style={cashflow >= 0 ? s.cashValuePos : s.cashValueNeg}>
@@ -326,7 +325,7 @@ export default function PageScenario({ data }: Props) {
                 </Text>
                 <Text style={s.cashNote}>
                   {cashflow >= 0
-                    ? 'Le bien génère un excédent de trésorerie grâce à l\'optimisation fiscale LMNP réel.'
+                    ? 'Le bien génère un excédent de trésorerie après charges et mensualité de crédit.'
                     : 'L\'effort mensuel reste limité et compensé par la constitution patrimoniale.'}
                 </Text>
                 {cashflowOptimiste !== null && (

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
-import { euros, pct, orDash } from '../helpers'
+import { euros, pct } from '../helpers'
 import type { RapportData } from '../types'
 
 const SCENARIO_LABELS: Record<string, string> = {
@@ -53,14 +53,6 @@ const s = StyleSheet.create({
   rowValueGreen: { fontSize: 7, fontWeight: 700, color: colors.posGreen, textAlign: 'right' },
   rowValueRed:   { fontSize: 7, fontWeight: 700, color: colors.negRed,   textAlign: 'right' },
   rowValueMuted: { fontSize: 7, fontWeight: 300, color: colors.muted,    textAlign: 'right', fontStyle: 'italic' },
-
-  fiscalNote: {
-    fontSize: 6,
-    color: colors.posGreen,
-    fontWeight: 600,
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
 })
 
 interface RowProps {
@@ -92,7 +84,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
     project, chargeNom, scenarioType, loyer, isComptant,
     prixProjetTotal, fraisNotaireEuros, honorairesCapsul,
     capitalEmprunte, mensualiteCredit, assuranceMensuelle, mensualiteTotale,
-    coutTotalInterets, scenarioResult, detailFiscal,
+    coutTotalInterets, scenarioResult,
   } = data
 
   const scenarioLabel = SCENARIO_LABELS[scenarioType] ?? scenarioType
@@ -209,13 +201,11 @@ export default function PageSynthese({ data }: { data: RapportData }) {
                 <Row label={`dont frais de gestion (${fraisGestionPct} %)`} value={euros(fraisGestionAnnuel) + ' /an'} muted />}
               <Row label="dont CFE (exonérée 1ère année)" value={euros(cfeAnnuel) + ' /an'} muted />
               <Row label="Mensualité totale" value={euros(mensualiteTotale)} />
-              {scenarioResult.impotMensuelEstime > 0 &&
-                <Row label="Impôt mensuel estimé" value={euros(scenarioResult.impotMensuelEstime)} />}
               <Row
-                label="Cash-flow net"
-                value={euros(scenarioResult.cashflowMensuelApresIR) + ' /mois'}
+                label="Cash-flow mensuel (avant impôt)"
+                value={euros(scenarioResult.cashflowMensuel) + ' /mois'}
                 bold
-                color={scenarioResult.cashflowMensuelApresIR >= 0 ? 'green' : 'red'}
+                color={scenarioResult.cashflowMensuel >= 0 ? 'green' : 'red'}
               />
               {cashflowOptimiste !== null && (
                 <Row
@@ -231,30 +221,6 @@ export default function PageSynthese({ data }: { data: RapportData }) {
             <Text style={{ fontSize: 7, color: colors.muted, fontStyle: 'italic' }}>
               Aucun scénario calculé — relancez une simulation depuis la page projet.
             </Text>
-          )}
-
-          {detailFiscal && (
-            <>
-              <Text style={s.secLabel}>Détail fiscal — LMNP réel</Text>
-              <Row label="Revenus locatifs nets" value={euros(detailFiscal.revenusNets) + ' /an'} />
-              <Row label="Charges déductibles" value={euros(detailFiscal.chargesDeductibles) + ' /an'} />
-              <Row label="Intérêts crédit (A1)" value={euros(detailFiscal.interetsAnnee1) + ' /an'} />
-              <Row label={`Amort. bien (2% × 85%)`} value={euros(detailFiscal.amortBien) + ' /an'} />
-              {detailFiscal.amortMobilier > 0 &&
-                <Row label="Amort. ameublement (10%)" value={euros(detailFiscal.amortMobilier) + ' /an'} />}
-              {detailFiscal.amortTravaux > 0 &&
-                <Row label="Amort. travaux (5%)" value={euros(detailFiscal.amortTravaux) + ' /an'} />}
-              <Row label="Total amortissements" value={euros(detailFiscal.amortTotal) + ' /an'} />
-              <Row
-                label="Résultat fiscal"
-                value={euros(detailFiscal.resultatFiscal) + ' /an'}
-                bold
-                color={detailFiscal.resultatFiscal <= 0 ? 'green' : 'red'}
-              />
-              {detailFiscal.resultatFiscal <= 0 && (
-                <Text style={s.fiscalNote}>Déficit BIC reportable → 0 € d'impôt</Text>
-              )}
-            </>
           )}
         </View>
       </View>

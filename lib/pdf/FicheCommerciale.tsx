@@ -2,15 +2,35 @@ import React from 'react'
 import { Document } from '@react-pdf/renderer'
 import { FicheData } from './types'
 import PageCouverture from './components/PageCouverture'
+import PageVille from './components/PageVille'
 import PageBien from './components/PageBien'
 import PageScenario from './components/PageScenario'
-import PageProjection from './components/PageProjection'
+import PageTravaux from './components/PageTravaux'
 
 interface Props {
   data: FicheData
 }
 
+type PageRenderer = (props: { data: FicheData; pageNumber: number }) => React.ReactElement
+
+/**
+ * Ordre du dossier : Couverture → Ville → Bien → Scénario → Travaux.
+ * Les pages Ville et Travaux ne sont générées que si elles ont du contenu ;
+ * la numérotation affichée dans les en-têtes suit l'ordre réel.
+ */
 export default function FicheCommerciale({ data }: Props) {
+  const pages: PageRenderer[] = [
+    ({ data }) => <PageCouverture data={data} />,
+    ...(data.villeInfos
+      ? [(({ data, pageNumber }) => <PageVille data={data} pageNumber={pageNumber} />) as PageRenderer]
+      : []),
+    ({ data, pageNumber }) => <PageBien data={data} pageNumber={pageNumber} />,
+    ({ data, pageNumber }) => <PageScenario data={data} pageNumber={pageNumber} />,
+    ...(data.travauxPostes.length > 0
+      ? [(({ data, pageNumber }) => <PageTravaux data={data} pageNumber={pageNumber} />) as PageRenderer]
+      : []),
+  ]
+
   return (
     <Document
       title={data.project.name}
@@ -19,10 +39,9 @@ export default function FicheCommerciale({ data }: Props) {
       creator="Capsul Studio"
       producer="Capsul Studio"
     >
-      <PageCouverture data={data} />
-      <PageBien data={data} />
-      <PageScenario data={data} />
-      <PageProjection data={data} />
+      {pages.map((render, i) =>
+        React.cloneElement(render({ data, pageNumber: i + 1 }), { key: i })
+      )}
     </Document>
   )
 }

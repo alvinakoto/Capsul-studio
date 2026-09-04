@@ -1,8 +1,8 @@
 import React from 'react'
 import { Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer'
-import { colors, sizes, common } from '../common/styles'
+import { colors, sizes, common, DPE_BG } from '../common/styles'
 import { FicheData } from '../types'
-import { euros } from '../helpers'
+import { euros, pageNum } from '../helpers'
 
 const s = StyleSheet.create({
   page: {
@@ -109,16 +109,12 @@ const s = StyleSheet.create({
   },
 })
 
-const DPE_BG: Record<string, string> = {
-  A: '#16a34a', B: '#22c55e', C: '#84cc16',
-  D: '#eab308', E: '#f97316', F: '#ea580c', G: '#dc2626',
-}
-
 interface Props {
   data: FicheData
+  pageNumber: number
 }
 
-export default function PageBien({ data }: Props) {
+export default function PageBien({ data, pageNumber }: Props) {
   const { project, mainPhotoUrl, mainPhotoLegende, secondaryPhotos } = data
 
   const specs = [
@@ -148,7 +144,7 @@ export default function PageBien({ data }: Props) {
         <Text style={common.headerLogo}>CAPSUL</Text>
         <View style={common.headerRight}>
           <Text style={common.eyebrow}>Le bien</Text>
-          <Text style={common.pageNum}>02</Text>
+          <Text style={common.pageNum}>{pageNum(pageNumber)}</Text>
         </View>
       </View>
 

@@ -1,29 +1,15 @@
 // ============================================================
 // CAPSUL STUDIO — Scénario Colocation
 // ============================================================
+// Flux exprimés avant impôt (cf. note dans types.ts).
 
-import {
-  DonneesProjet,
-  DonneesFinancement,
-  DonneesCharges,
-  ParamsColocation,
-  ResultatsScenario,
-} from './types'
-import {
-  calculerAmortissementsAnnuels,
-  calculerImpotMicroBIC,
-  calculerImpotLMNPReel,
-  calculerInteretsAnnee1,
-} from './fiscalite'
+import { DonneesCharges, ParamsColocation, ResultatsScenario } from './types'
 
 export function calculerColocation(
-  projet: DonneesProjet,
-  financement: DonneesFinancement,
   charges: DonneesCharges,
   params: ParamsColocation,
   prixProjetTotal: number,
-  mensualiteTotale: number,
-  capitalEmprunte: number
+  mensualiteTotale: number
 ): ResultatsScenario {
 
   // ── Revenus ──────────────────────────────────────────────────
@@ -59,35 +45,6 @@ export function calculerColocation(
     ((revenusAnnuelsNets - chargesAnnuelles) / prixProjetTotal) * 1000
   ) / 10
 
-  // ── Fiscalité ─────────────────────────────────────────────────
-  let impotAnnuel = 0
-
-  if (params.regimeFiscal === 'micro_bic') {
-    impotAnnuel = calculerImpotMicroBIC(
-      revenusAnnuelsNets,
-      params.tmiClientPct
-    )
-  } else {
-    const interetsAnnee1 = calculerInteretsAnnee1(
-      capitalEmprunte,
-      financement.tauxInteretPct
-    )
-    const chargesDeductibles = chargesAnnuelles + interetsAnnee1
-    const amortissements = calculerAmortissementsAnnuels(
-      projet.prixAchat,
-      projet.mobilier,
-      projet.travaux
-    )
-    impotAnnuel = calculerImpotLMNPReel(
-      revenusAnnuelsNets,
-      chargesDeductibles,
-      amortissements,
-      params.tmiClientPct
-    )
-  }
-
-  const impotMensuelEstime = Math.round(impotAnnuel / 12)
-
   // ── Cash-flow ─────────────────────────────────────────────────
   const chargesMensuelles = Math.round(chargesAnnuelles / 12)
   const revenusMensuelsNets = Math.round(revenusAnnuelsNets / 12)
@@ -95,16 +52,12 @@ export function calculerColocation(
   const cashflowMensuel =
     revenusMensuelsNets - chargesMensuelles - mensualiteTotale
 
-  const cashflowMensuelApresIR = cashflowMensuel - impotMensuelEstime
-
   return {
     revenusAnnuelsBruts,
     revenusAnnuelsNets,
     chargesAnnuelles,
     rentabiliteBrutePct,
     rentabiliteNettePct,
-    impotMensuelEstime,
     cashflowMensuel,
-    cashflowMensuelApresIR,
   }
 }

@@ -29,6 +29,22 @@ export function pct(n: number | null | undefined, decimals = 2): string {
 }
 
 /**
+ * Formate un entier avec séparateurs FR, sans unité.
+ * Ex: 179992 → "179 992"
+ */
+export function nombre(n: number | null | undefined): string {
+  if (n === null || n === undefined) return '—'
+  return stripNbsp(Math.round(n).toLocaleString('fr-FR'))
+}
+
+/**
+ * Numéro de page sur deux chiffres pour l'en-tête. Ex: 3 → "03"
+ */
+export function pageNum(n: number): string {
+  return String(n).padStart(2, '0')
+}
+
+/**
  * Affiche un tiret discret si la valeur est null/undefined/empty.
  */
 export function orDash(v: string | number | null | undefined): string {
