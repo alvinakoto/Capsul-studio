@@ -180,6 +180,7 @@ export async function updateProjectScenario(
   extras?: {
     fraisGestionPct?: number; conciergePct?: number; vacancePct?: number
     nuitsConservateur?: number; nuitsOptimiste?: number; nbChambres?: number
+    commentaireTravaux?: string
   }
 ): Promise<void> {
   const supabase = getClient()
@@ -195,6 +196,7 @@ export async function updateProjectScenario(
       ...(extras?.nuitsConservateur !== undefined && { nuits_conservateur: extras.nuitsConservateur }),
       ...(extras?.nuitsOptimiste !== undefined && { nuits_optimiste: extras.nuitsOptimiste }),
       ...(extras?.nbChambres !== undefined && { nb_chambres: extras.nbChambres }),
+      ...(extras?.commentaireTravaux !== undefined && { commentaire_travaux: extras.commentaireTravaux || null }),
     })
     .eq('id', projectId)
   if (error) throw error

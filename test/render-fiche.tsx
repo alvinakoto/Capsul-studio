@@ -67,6 +67,7 @@ const project: FicheData['project'] = {
   concierge_pct: 20,
   nuits_conservateur: 16,
   nuits_optimiste: 22,
+  commentaire_travaux: 'Rénovation complète prévue au T2 2027, artisan déjà identifié sur place.',
 }
 
 const r = calculerScenario(
@@ -82,6 +83,7 @@ const base: FicheData = {
   coverPhotoUrl: null,
   mainPhotoUrl: null,
   mainPhotoLegende: null,
+  localisationPhotoUrl: null,
   secondaryPhotos: [],
   scenarioResult: r.scenario,
   prixProjetTotal: r.prixProjetTotal,

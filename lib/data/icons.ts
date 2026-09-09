@@ -124,6 +124,20 @@ export const ICONS = {
     ['path', { d: 'M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2' }],
     ['path', { d: 'M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16' }],
   ],
+
+  // ─── Page Conclusion ──────────────────────────────────────────────────────
+  mapPin: [
+    ['path', { d: 'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0' }],
+    ['circle', { cx: '12', cy: '10', r: '3' }],
+  ],
+  trendingUp: [
+    ['path', { d: 'M16 7h6v6' }],
+    ['path', { d: 'm22 7-8.5 8.5-5-5L2 17' }],
+  ],
+  arrowUpRight: [
+    ['path', { d: 'M7 7h10v10' }],
+    ['path', { d: 'M7 17 17 7' }],
+  ],
 } as const satisfies Record<string, IconNode>
 
 export type IconName = keyof typeof ICONS

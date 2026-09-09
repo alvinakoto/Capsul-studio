@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { ensureJpeg, isHeicFile } from '@/lib/utils/convertHeic'
 import type { ExistingPhoto } from '@/lib/supabase/storage'
 
-export type PhotoType = 'cover' | 'main' | 'secondary'
+export type PhotoType = 'cover' | 'main' | 'secondary' | 'localisation'
 
 export interface StagedPhoto {
   file: File
@@ -20,24 +20,27 @@ interface Props {
   coverPhoto: StagedPhoto | null
   mainPhoto: StagedPhoto | null
   secondaryPhotos: StagedPhoto[]
+  localisationPhoto: StagedPhoto | null
   onSetCover: (file: File | null) => void
   onSetMain: (file: File | null) => void
   onAddSecondary: (files: File[]) => void
   onRemoveSecondary: (index: number) => void
   onUpdateLegende: (target: 'main', legende: string) => void
+  onSetLocalisation: (file: File | null) => void
   // Mode édition — photos déjà uploadées
   existingCover?: ExistingPhoto | null
   existingMain?: ExistingPhoto | null
   existingSecondary?: ExistingPhoto[]
+  existingLocalisation?: ExistingPhoto | null
   onDeleteExisting?: (photo: ExistingPhoto) => void
 }
 
 const MAX_SECONDARY = 6
 
 export default function BlocB({
-  coverPhoto, mainPhoto, secondaryPhotos,
-  onSetCover, onSetMain, onAddSecondary, onRemoveSecondary, onUpdateLegende,
-  existingCover, existingMain, existingSecondary = [], onDeleteExisting,
+  coverPhoto, mainPhoto, secondaryPhotos, localisationPhoto,
+  onSetCover, onSetMain, onAddSecondary, onRemoveSecondary, onUpdateLegende, onSetLocalisation,
+  existingCover, existingMain, existingSecondary = [], existingLocalisation, onDeleteExisting,
 }: Props) {
   const usedSecondarySlots = existingSecondary.length + secondaryPhotos.length
   return (
@@ -117,6 +120,25 @@ export default function BlocB({
             onAdd={onAddSecondary}
             onRemove={onRemoveSecondary}
             onDeleteExisting={onDeleteExisting}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Photo de localisation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Photo de localisation</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Capture d'une carte (Google Maps, Plans…) avec un repère sur l'emplacement du bien — affichée page « Le bien » du dossier.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SinglePhotoSlot
+            photo={localisationPhoto}
+            existing={existingLocalisation}
+            onSet={onSetLocalisation}
+            onDeleteExisting={onDeleteExisting}
+            placeholder="Glissez une capture de carte ici"
           />
         </CardContent>
       </Card>

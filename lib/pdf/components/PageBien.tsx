@@ -57,6 +57,15 @@ const s = StyleSheet.create({
     marginBottom: 18,
   },
 
+  // ─── Localisation ─────────────────────────────────────────────────────────
+  locaPhoto: {
+    width: '100%',
+    height: 130,
+    borderRadius: 4,
+    objectFit: 'cover',
+    marginBottom: 18,
+  },
+
   // ─── Grille photos ────────────────────────────────────────────────────────
   thumbGrid: {
     flexDirection: 'row',
@@ -115,7 +124,7 @@ interface Props {
 }
 
 export default function PageBien({ data, pageNumber }: Props) {
-  const { project, mainPhotoUrl, mainPhotoLegende, secondaryPhotos } = data
+  const { project, mainPhotoUrl, mainPhotoLegende, localisationPhotoUrl, secondaryPhotos } = data
 
   const specs = [
     { k: 'Type', v: project.type_bien ?? '—' },
@@ -172,6 +181,13 @@ export default function PageBien({ data, pageNumber }: Props) {
             {project.description_bien?.trim() ||
               `Bien situé ${project.city ? `à ${project.city}` : ''}, à proximité des commodités et des transports. Idéalement positionné pour un investissement locatif rentable dans le cadre d'une stratégie patrimoniale à long terme.`}
           </Text>
+
+          {localisationPhotoUrl && (
+            <>
+              <Text style={common.secLabel}>Localisation</Text>
+              <Image src={localisationPhotoUrl} style={s.locaPhoto} />
+            </>
+          )}
 
           {secondaryPhotos.length > 0 && (
             <>

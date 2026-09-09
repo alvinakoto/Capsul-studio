@@ -79,11 +79,13 @@ export interface FicheData {
     concierge_pct: number | null
     nuits_conservateur: number | null
     nuits_optimiste: number | null
+    commentaire_travaux: string | null
   }
   chargeNom: string
   coverPhotoUrl: string | null
   mainPhotoUrl: string | null
   mainPhotoLegende: string | null
+  localisationPhotoUrl: string | null
   secondaryPhotos: PhotoInfo[]
   scenarioResult: any | null
   prixProjetTotal: number

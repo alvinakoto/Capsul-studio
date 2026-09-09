@@ -103,9 +103,11 @@ const s = StyleSheet.create({
   },
 
   // ─── Metrics strip ────────────────────────────────────────────────────────
+  // Bandeau ~1/4 de la hauteur A4 (842pt) — chiffres clés mis en avant, centrés verticalement.
   metrics: {
-    height: 78,
+    height: sizes.pageH / 4,
     flexDirection: 'row',
+    alignItems: 'center',
     borderTopWidth: 0.5,
     borderTopColor: '#2a4a6a',
     borderTopStyle: 'solid',
@@ -113,8 +115,9 @@ const s = StyleSheet.create({
   },
   metric: {
     flex: 1,
-    paddingLeft: sizes.margin,
-    paddingRight: 12,
+    height: '100%',
+    paddingLeft: 22,
+    paddingRight: 8,
     justifyContent: 'center',
     borderRightWidth: 0.5,
     borderRightColor: '#2a4a6a',
@@ -122,26 +125,28 @@ const s = StyleSheet.create({
   },
   metricLast: {
     flex: 1,
-    paddingLeft: sizes.margin,
-    paddingRight: 12,
+    height: '100%',
+    paddingLeft: 22,
+    paddingRight: 8,
     justifyContent: 'center',
   },
   metricLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 600,
     letterSpacing: 1,
     color: '#a8c0d8',
-    marginBottom: 6,
+    marginBottom: 12,
     textTransform: 'uppercase',
   },
   metricValue: {
-    fontSize: 21,
+    fontSize: 27,
     fontWeight: 800,
     color: colors.white,
-    letterSpacing: -0.7,
+    letterSpacing: -1,
+    lineHeight: 1.05,
   },
   metricUnit: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 400,
     color: '#a8c0d8',
   },
@@ -213,7 +218,7 @@ export default function PageCouverture({ data }: Props) {
 
       {/* Metrics */}
       <View style={s.metrics}>
-        <View style={s.metric}>
+        <View style={[s.metric, { paddingLeft: sizes.margin }]}>
           <Text style={s.metricLabel}>
             {negociationEnvisagee ? 'Prix négocié envisagé' : "Prix d'achat"}
           </Text>
@@ -221,7 +226,7 @@ export default function PageCouverture({ data }: Props) {
             {euros(project.prix_achat, false)} <Text style={s.metricUnit}>€</Text>
           </Text>
           {negociationEnvisagee && (
-            <Text style={{ fontSize: 7, color: '#7692ae', marginTop: 3, textDecoration: 'line-through' }}>
+            <Text style={{ fontSize: 9, color: '#7692ae', marginTop: 6, textDecoration: 'line-through' }}>
               {euros(project.prix_affiche_origine)}
             </Text>
           )}

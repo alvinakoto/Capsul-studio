@@ -9,7 +9,7 @@ import { euros, pageNum } from '../helpers'
 const s = StyleSheet.create({
   page: {
     ...common.page,
-    paddingBottom: 0,
+    paddingBottom: 32,
   },
 
   // ─── Hero navy ────────────────────────────────────────────────────────────
@@ -138,8 +138,35 @@ const s = StyleSheet.create({
     marginTop: 10,
     lineHeight: 1.3,
   },
-  closing: {
+  bottomBlock: {
     marginTop: 'auto',
+  },
+  comment: {
+    marginBottom: 14,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: colors.paper,
+    borderLeftWidth: 2.5,
+    borderLeftColor: colors.gold,
+    borderLeftStyle: 'solid',
+  },
+  commentLabel: {
+    fontSize: 5.5,
+    fontWeight: 500,
+    letterSpacing: 1.5,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    marginBottom: 5,
+  },
+  commentText: {
+    fontSize: 7.5,
+    fontWeight: 300,
+    color: colors.ink,
+    lineHeight: 1.7,
+  },
+  closing: {
     paddingTop: 16,
     paddingBottom: 14,
     borderTopWidth: 0.5,
@@ -160,28 +187,6 @@ const s = StyleSheet.create({
     fontWeight: 600,
     color: colors.navy,
   },
-
-  // ─── Footer sombre (dernière page) ────────────────────────────────────────
-  footerDark: {
-    height: 36,
-    backgroundColor: colors.navy,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingLeft: sizes.marginAccent,
-    paddingRight: sizes.margin,
-  },
-  footerDarkL: {
-    fontSize: 5.5,
-    fontWeight: 300,
-    color: '#4a6a8a',
-  },
-  footerDarkR: {
-    fontSize: 6,
-    fontWeight: 900,
-    color: colors.gold,
-    letterSpacing: 2,
-  },
 })
 
 interface Props {
@@ -191,11 +196,12 @@ interface Props {
 
 export default function PageTravaux({ data, pageNumber }: Props) {
   const { project, travauxPostes, chargeNom } = data
+  const commentaire = project.commentaire_travaux?.trim()
   const budget = project.travaux ?? 0
   const dpeActuel = project.dpe_actuel
   const dpeVise = project.dpe_apres_travaux
   const hasDpe = !!(dpeActuel || dpeVise)
-  const annee = new Date().getFullYear()
+  const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
 
   const kpis: React.ReactNode[] = []
 
@@ -278,20 +284,28 @@ export default function PageTravaux({ data, pageNumber }: Props) {
           ))}
         </View>
 
-        <View style={s.closing}>
-          <LucideIcon name="house" size={14} color={colors.goldDeep} />
-          <Text style={s.closingText}>
-            <Text style={s.closingStrong}>Travaux pilotés par Capsul France</Text>
-            {' — sélection des artisans, suivi de chantier et réception. Dossier préparé par '}
-            <Text style={s.closingStrong}>{chargeNom}</Text>.
-          </Text>
+        <View style={s.bottomBlock}>
+          {commentaire && (
+            <View style={s.comment}>
+              <Text style={s.commentLabel}>Note du chargé de projet</Text>
+              <Text style={s.commentText}>{commentaire}</Text>
+            </View>
+          )}
+          <View style={s.closing}>
+            <LucideIcon name="house" size={14} color={colors.goldDeep} />
+            <Text style={s.closingText}>
+              <Text style={s.closingStrong}>Travaux pilotés par Capsul France</Text>
+              {' — sélection des artisans, suivi de chantier et réception. Dossier préparé par '}
+              <Text style={s.closingStrong}>{chargeNom}</Text>.
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Footer sombre : dernière page du dossier */}
-      <View style={s.footerDark}>
-        <Text style={s.footerDarkL}>Dossier confidentiel · Capsul France {annee} · capsul-france.com</Text>
-        <Text style={s.footerDarkR}>CAPSUL</Text>
+      {/* Footer */}
+      <View style={common.footer}>
+        <Text style={common.footerL}>{footerLabel}</Text>
+        <Text style={common.footerR}>Capsul France</Text>
       </View>
     </Page>
   )

@@ -156,11 +156,13 @@ export default function WizardShell({
   const [coverPhoto, setCoverPhoto] = useState<StagedPhoto | null>(null)
   const [mainPhoto, setMainPhoto] = useState<StagedPhoto | null>(null)
   const [secondaryPhotos, setSecondaryPhotos] = useState<StagedPhoto[]>([])
+  const [localisationPhoto, setLocalisationPhoto] = useState<StagedPhoto | null>(null)
 
   // Photos existantes (mode édition)
   const [existingCover, setExistingCover] = useState<ExistingPhoto | null>(null)
   const [existingMain, setExistingMain] = useState<ExistingPhoto | null>(null)
   const [existingSecondary, setExistingSecondary] = useState<ExistingPhoto[]>([])
+  const [existingLocalisation, setExistingLocalisation] = useState<ExistingPhoto | null>(null)
 
   // Chargement des photos existantes en mode édition
   useEffect(() => {
@@ -169,6 +171,7 @@ export default function WizardShell({
       setExistingCover(photos.find((p) => p.type === 'cover') ?? null)
       setExistingMain(photos.find((p) => p.type === 'main') ?? null)
       setExistingSecondary(photos.filter((p) => p.type === 'secondary'))
+      setExistingLocalisation(photos.find((p) => p.type === 'localisation') ?? null)
     })
   }, [editProjectId])
 
@@ -176,6 +179,7 @@ export default function WizardShell({
     await deletePhoto(photo.id, photo.storagePath)
     if (photo.type === 'cover') setExistingCover(null)
     else if (photo.type === 'main') setExistingMain(null)
+    else if (photo.type === 'localisation') setExistingLocalisation(null)
     else setExistingSecondary((prev) => prev.filter((p) => p.id !== photo.id))
   }
 
@@ -243,6 +247,20 @@ export default function WizardShell({
     }
   }
 
+  const handleSetLocalisation = (file: File | null) => {
+    if (localisationPhoto) URL.revokeObjectURL(localisationPhoto.preview)
+    if (file) {
+      setLocalisationPhoto({
+        file,
+        preview: URL.createObjectURL(file),
+        type: 'localisation',
+        legende: '',
+      })
+    } else {
+      setLocalisationPhoto(null)
+    }
+  }
+
   // ─── Sauvegarde ────────────────────────────────────────────────────────────
 
   const handleSave = async () => {
@@ -264,6 +282,8 @@ export default function WizardShell({
           uploads.push(uploadPhoto(editProjectId, coverPhoto.file, 0, 'cover', coverPhoto.legende))
         if (mainPhoto)
           uploads.push(uploadPhoto(editProjectId, mainPhoto.file, 0, 'main', mainPhoto.legende))
+        if (localisationPhoto)
+          uploads.push(uploadPhoto(editProjectId, localisationPhoto.file, 0, 'localisation', ''))
         secondaryPhotos.forEach((p, i) =>
           uploads.push(uploadPhoto(editProjectId, p.file, existingSecondary.length + i, 'secondary', p.legende))
         )
@@ -285,6 +305,9 @@ export default function WizardShell({
       }
       if (mainPhoto) {
         uploads.push(uploadPhoto(newProjectId, mainPhoto.file, 0, 'main', mainPhoto.legende))
+      }
+      if (localisationPhoto) {
+        uploads.push(uploadPhoto(newProjectId, localisationPhoto.file, 0, 'localisation', ''))
       }
       secondaryPhotos.forEach((p, i) => {
         uploads.push(uploadPhoto(newProjectId, p.file, i, 'secondary', p.legende))
@@ -347,14 +370,17 @@ export default function WizardShell({
               coverPhoto={coverPhoto}
               mainPhoto={mainPhoto}
               secondaryPhotos={secondaryPhotos}
+              localisationPhoto={localisationPhoto}
               onSetCover={handleSetCover}
               onSetMain={handleSetMain}
               onAddSecondary={handleAddSecondary}
               onRemoveSecondary={handleRemoveSecondary}
               onUpdateLegende={handleUpdateLegende}
+              onSetLocalisation={handleSetLocalisation}
               existingCover={existingCover}
               existingMain={existingMain}
               existingSecondary={existingSecondary}
+              existingLocalisation={existingLocalisation}
               onDeleteExisting={handleDeleteExisting}
             />
           </TabsContent>

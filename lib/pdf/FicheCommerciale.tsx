@@ -6,6 +6,7 @@ import PageVille from './components/PageVille'
 import PageBien from './components/PageBien'
 import PageScenario from './components/PageScenario'
 import PageTravaux from './components/PageTravaux'
+import PageConclusion from './components/PageConclusion'
 
 interface Props {
   data: FicheData
@@ -14,9 +15,10 @@ interface Props {
 type PageRenderer = (props: { data: FicheData; pageNumber: number }) => React.ReactElement
 
 /**
- * Ordre du dossier : Couverture → Ville → Bien → Scénario → Travaux.
+ * Ordre du dossier : Couverture → Ville → Bien → Scénario → Travaux → Conclusion.
  * Les pages Ville et Travaux ne sont générées que si elles ont du contenu ;
- * la numérotation affichée dans les en-têtes suit l'ordre réel.
+ * Conclusion est toujours présente et clôt le dossier. La numérotation
+ * affichée dans les en-têtes suit l'ordre réel.
  */
 export default function FicheCommerciale({ data }: Props) {
   const pages: PageRenderer[] = [
@@ -29,6 +31,7 @@ export default function FicheCommerciale({ data }: Props) {
     ...(data.travauxPostes.length > 0
       ? [(({ data, pageNumber }) => <PageTravaux data={data} pageNumber={pageNumber} />) as PageRenderer]
       : []),
+    ({ data, pageNumber }) => <PageConclusion data={data} pageNumber={pageNumber} />,
   ]
 
   return (

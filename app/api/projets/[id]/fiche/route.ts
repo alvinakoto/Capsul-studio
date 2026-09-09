@@ -62,6 +62,7 @@ export async function GET(
 
     const coverPhotoUrl = photos?.find(p => p.type === 'cover')?.public_url ?? null
     const mainPhoto = photos?.find(p => p.type === 'main')
+    const localisationPhotoUrl = photos?.find(p => p.type === 'localisation')?.public_url ?? null
     const secondaryPhotos = photos
       ?.filter(p => p.type === 'secondary')
       .map(p => ({ url: p.public_url, legende: p.legende })) ?? []
@@ -189,6 +190,7 @@ export async function GET(
       coverPhotoUrl,
       mainPhotoUrl: mainPhoto?.public_url ?? null,
       mainPhotoLegende: mainPhoto?.legende ?? null,
+      localisationPhotoUrl,
       secondaryPhotos,
       scenarioResult,
       prixProjetTotal,

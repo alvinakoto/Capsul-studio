@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-export type PhotoType = 'cover' | 'main' | 'secondary'
+export type PhotoType = 'cover' | 'main' | 'secondary' | 'localisation'
 
 export interface ExistingPhoto {
   id: string
