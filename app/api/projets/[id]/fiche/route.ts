@@ -202,6 +202,10 @@ export async function GET(
       villeNom,
       villeInfos,
       villePhotoPath,
+      villeAireAttraction: ville?.aireAttraction ?? null,
+      villeCroissanceDemographiquePct: ville?.croissanceDemographiquePct ?? null,
+      villeQuartiers: ville?.quartiers ?? [],
+      villeProjetsAVenir: ville?.projetsAVenir ?? [],
       travauxPostes,
     }
 

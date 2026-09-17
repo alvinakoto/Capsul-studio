@@ -23,8 +23,8 @@ const s = StyleSheet.create({
     backgroundColor: colors.navy,
     paddingLeft: sizes.marginAccent,
     paddingRight: sizes.margin,
-    paddingTop: 26,
-    paddingBottom: 26,
+    paddingTop: 30,
+    paddingBottom: 30,
   },
   heroOver: {
     fontSize: 6,
@@ -65,14 +65,14 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
   },
   heroKpiValue: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 900,
     color: colors.white,
     letterSpacing: -0.8,
     lineHeight: 1,
   },
   heroKpiValueGold: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 900,
     color: colors.gold,
     letterSpacing: -0.8,
@@ -101,8 +101,8 @@ const s = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 7,
-    paddingBottom: 7,
+    paddingTop: 8.5,
+    paddingBottom: 8.5,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.rule,
     borderBottomStyle: 'solid',
@@ -110,40 +110,40 @@ const s = StyleSheet.create({
   tableRowTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 9,
+    paddingBottom: 9,
     borderTopWidth: 1.2,
     borderTopColor: colors.navy,
     borderTopStyle: 'solid',
   },
   tableTd: {
-    fontSize: 7.5,
+    fontSize: 8,
     fontWeight: 300,
     color: '#5a5854',
   },
   tableTdVal: {
-    fontSize: 7.5,
+    fontSize: 8,
     fontWeight: 700,
     color: colors.navy,
   },
   tableTdTotalK: {
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: 700,
     color: colors.navy,
   },
   tableTdTotalV: {
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: 900,
     color: colors.navy,
   },
 
   // ─── Cashflow block ───────────────────────────────────────────────────────
   cashBlock: {
-    marginTop: 16,
-    paddingLeft: 14,
-    paddingRight: 14,
-    paddingTop: 14,
-    paddingBottom: 14,
+    marginTop: 18,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: 18,
+    paddingBottom: 18,
     backgroundColor: colors.paper,
     borderLeftWidth: 2.5,
     borderLeftColor: colors.gold,
@@ -155,27 +155,30 @@ const s = StyleSheet.create({
     letterSpacing: 1.5,
     color: colors.muted,
     textTransform: 'uppercase',
-    marginBottom: 5,
+    marginBottom: 6,
   },
   cashValuePos: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 900,
     color: '#246b3e',
     letterSpacing: -0.5,
-    marginBottom: 4,
+    marginBottom: 5,
   },
   cashValueNeg: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 900,
     color: colors.negRed,
     letterSpacing: -0.5,
-    marginBottom: 4,
+    marginBottom: 5,
   },
   cashNote: {
-    fontSize: 6.5,
+    fontSize: 7,
     fontWeight: 300,
     color: colors.muted,
     lineHeight: 1.6,
+  },
+  financementGroup: {
+    marginTop: 16,
   },
 })
 
@@ -316,31 +319,29 @@ export default function PageScenario({ data, pageNumber }: Props) {
             </View>
           </View>
 
-          <View style={s.cashBlock}>
-            <Text style={s.cashLabel}>Bilan mensuel</Text>
-            {cashflow !== null ? (
-              <>
-                <Text style={cashflow >= 0 ? s.cashValuePos : s.cashValueNeg}>
-                  {cashflow >= 0 ? 'Autofinancé' : `Effort de ${euros(Math.abs(Math.round(cashflow)))}/mois`}
-                </Text>
-                <Text style={s.cashNote}>
-                  {cashflow >= 0
-                    ? 'Le bien génère un excédent de trésorerie après charges et mensualité de crédit.'
-                    : 'L\'effort mensuel reste limité et compensé par la constitution patrimoniale.'}
-                </Text>
-                {cashflowOptimiste !== null && (
-                  <Text style={[s.cashNote, { marginTop: 4 }]}>
-                    {`Scénario optimiste (${nuitsOptimiste} nuits/mois) : cash-flow de ${cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(cashflowOptimiste)))}/mois`}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <Text style={s.cashNote}>Renseignez un scénario pour calculer le cash-flow.</Text>
-            )}
+          <View style={s.financementGroup}>
+          <Text style={common.secLabel}>Plan de financement</Text>
+          <View style={{ marginTop: 12 }}>
+            {[
+              ['Apport personnel', euros(project.apport ?? 0)],
+              ['Capital emprunté', euros(Math.round(data.capitalEmprunte))],
+              ["Taux d'intérêt", `${(project.taux_interet_pct ?? 0).toString().replace('.', ',')} %`],
+              ['Durée', `${project.duree_annees ?? 20} ans`],
+            ].map(([k, v], i) => (
+              <View key={i} style={s.tableRow}>
+                <Text style={s.tableTd}>{k}</Text>
+                <Text style={s.tableTdVal}>{v}</Text>
+              </View>
+            ))}
+            <View style={s.tableRowTotal}>
+              <Text style={s.tableTdTotalK}>Mensualité totale</Text>
+              <Text style={s.tableTdTotalV}>{euros(mensualite)}</Text>
+            </View>
+          </View>
           </View>
         </View>
 
-        {/* Structure & financement */}
+        {/* Structure & bilan */}
         <View style={s.col}>
           <Text style={common.secLabel}>Structure du projet</Text>
           <View style={{ marginTop: 12 }}>
@@ -385,25 +386,27 @@ export default function PageScenario({ data, pageNumber }: Props) {
             )}
           </View>
 
-          <View style={{ height: 16 }} />
-
-          <Text style={common.secLabel}>Plan de financement</Text>
-          <View style={{ marginTop: 12 }}>
-            {[
-              ['Apport personnel', euros(project.apport ?? 0)],
-              ['Capital emprunté', euros(Math.round(data.capitalEmprunte))],
-              ["Taux d'intérêt", `${(project.taux_interet_pct ?? 0).toString().replace('.', ',')} %`],
-              ['Durée', `${project.duree_annees ?? 20} ans`],
-            ].map(([k, v], i) => (
-              <View key={i} style={s.tableRow}>
-                <Text style={s.tableTd}>{k}</Text>
-                <Text style={s.tableTdVal}>{v}</Text>
-              </View>
-            ))}
-            <View style={s.tableRowTotal}>
-              <Text style={s.tableTdTotalK}>Mensualité totale</Text>
-              <Text style={s.tableTdTotalV}>{euros(mensualite)}</Text>
-            </View>
+          <View style={s.cashBlock}>
+            <Text style={s.cashLabel}>Bilan mensuel</Text>
+            {cashflow !== null ? (
+              <>
+                <Text style={cashflow >= 0 ? s.cashValuePos : s.cashValueNeg}>
+                  {cashflow >= 0 ? 'Autofinancé' : `Effort de ${euros(Math.abs(Math.round(cashflow)))}/mois`}
+                </Text>
+                <Text style={s.cashNote}>
+                  {cashflow >= 0
+                    ? 'Le bien génère un excédent de trésorerie après charges et mensualité de crédit.'
+                    : 'L\'effort mensuel reste limité et compensé par la constitution patrimoniale.'}
+                </Text>
+                {cashflowOptimiste !== null && (
+                  <Text style={[s.cashNote, { marginTop: 4 }]}>
+                    {`Scénario optimiste (${nuitsOptimiste} nuits/mois) : cash-flow de ${cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(cashflowOptimiste)))}/mois`}
+                  </Text>
+                )}
+              </>
+            ) : (
+              <Text style={s.cashNote}>Renseignez un scénario pour calculer le cash-flow.</Text>
+            )}
           </View>
         </View>
 

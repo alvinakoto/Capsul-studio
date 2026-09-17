@@ -95,6 +95,10 @@ const base: FicheData = {
   villeNom: 'Reims',
   villeInfos: findVille('Reims')?.infos ?? null,
   villePhotoPath: null,
+  villeAireAttraction: findVille('Reims')?.aireAttraction ?? null,
+  villeCroissanceDemographiquePct: findVille('Reims')?.croissanceDemographiquePct ?? null,
+  villeQuartiers: findVille('Reims')?.quartiers ?? [],
+  villeProjetsAVenir: findVille('Reims')?.projetsAVenir ?? [],
   travauxPostes: getPostesTravaux(project.travaux_postes),
 }
 

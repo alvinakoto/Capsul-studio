@@ -100,6 +100,13 @@ export interface FicheData {
   villeInfos: VilleInfos | null
   villePhotoPath: string | null      // chemin fs public/villes/<slug>.jpg si le fichier existe
 
+  // Page « La ville » — champs dataset uniquement (lib/data/villes.ts), jamais
+  // éditables par projet ; null/vide si non renseigné pour la ville
+  villeAireAttraction: number | null
+  villeCroissanceDemographiquePct: number | null
+  villeQuartiers: string[]
+  villeProjetsAVenir: string[]
+
   // Page « Travaux » — postes résolus dans l'ordre du catalogue ; vide → page omise
   travauxPostes: PosteTravaux[]
 }

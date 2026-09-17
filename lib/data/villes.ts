@@ -42,6 +42,13 @@ export interface Ville {
   match: string[]              // sous-chaînes reconnues, insensible à la casse
   infos: VilleInfos
   diagnostic?: VilleDiagnostic
+  // Champs dataset uniquement : jamais copiés dans projects.ville_infos, jamais
+  // éditables par le chargé dans le wizard (retour Lucas, S9 — trop chronophage
+  // à ressaisir par projet). Source : recherche INSEE + presse/urbanisme, sept. 2026.
+  aireAttraction?: number              // population aire d'attraction des villes (INSEE, zonage 2020)
+  croissanceDemographiquePct?: number  // taux de variation annuel moyen, ex: 0.8 → "+0,8 %/an"
+  quartiers?: string[]                 // 3-5 quartiers où investir, nom seul
+  projetsAVenir?: string[]             // projets d'infrastructure/aménagement à venir, une ligne chacun
 }
 
 export const VILLES: Ville[] = [
@@ -59,6 +66,15 @@ export const VILLES: Ville[] = [
       prixM2Max: 3_600,
       rendementMoyenPct: 6.0,
     },
+    aireAttraction: 356_721,
+    croissanceDemographiquePct: 0.1,
+    quartiers: ['Clairmarais', 'Croix-Rouge', 'Saint-Remi', 'Centre-ville / Cathédrale', 'Jean-Jaurès / Moissons'],
+    projetsAVenir: [
+      "Reims Grand Centre : reconversion des friches ferroviaires et pôle d'échanges multimodal bus-tram-train",
+      'Reconstruction du nouveau CHU de Reims (secteur Croix-Rouge), 564 M€ — achèvement prévu 2031',
+      'Deux lignes de bus à haut niveau de service (BHNS) portées par le Grand Reims',
+      'ZAC de Bezannes (172 ha) près de la gare Champagne-TGV : logements, activités, commerces',
+    ],
     diagnostic: {
       emoji: '👑',
       desc: 'Cité des Sacres — proche de Paris en TGV (45 min)',
@@ -84,6 +100,13 @@ export const VILLES: Ville[] = [
       prixM2Max: 11_500,
       rendementMoyenPct: 3.5,
     },
+    aireAttraction: 13_320_752,
+    croissanceDemographiquePct: 0.3,
+    // Quartiers non sourcés de façon fiable à ce stade — à compléter avant affichage
+    // (piste : secteurs proches des nouvelles gares du Grand Paris Express).
+    projetsAVenir: [
+      "Grand Paris Express : nouvelles lignes de métro automatique (15, 16, 17, 18) et prolongements — mises en service échelonnées d'ici la fin de la décennie",
+    ],
   },
   {
     nom: 'Toulouse',
@@ -99,6 +122,14 @@ export const VILLES: Ville[] = [
       prixM2Max: 4_200,
       rendementMoyenPct: 5.8,
     },
+    aireAttraction: 1_529_112,
+    croissanceDemographiquePct: 1.3,
+    quartiers: ['Saint-Cyprien', 'Compans-Caffarelli', 'Montaudran', 'Les Chalets'],
+    projetsAVenir: [
+      'Ligne C du métro (Toulouse Aerospace Express) : 27 km, 21 stations — mise en service fin 2028',
+      "Grand Matabiau (projet TESO) : réaménagement du cœur ferroviaire et quartier d'affaires — chantier en cours d'ici 2030",
+      "Reconversion de la caserne Vion à Saint-Cyprien — d'ici 2030",
+    ],
     diagnostic: {
       emoji: '🌹',
       desc: 'La Ville Rose — 4ème ville de France',
@@ -125,6 +156,15 @@ export const VILLES: Ville[] = [
       prixM2Max: 2_300,
       rendementMoyenPct: 7.5,
     },
+    aireAttraction: 354_368,
+    croissanceDemographiquePct: 0.0,
+    quartiers: ['Saint-Leu', 'Henriville', 'Gare La Vallée', 'Centre-ville / secteur Gare', 'Saint-Maurice'],
+    projetsAVenir: [
+      "ZAC Gare La Vallée (« Les 3 Mondes ») : ~500 logements et 14 500 m² de bureaux — travaux sur ~10 ans",
+      'Réseau BHNS Nemo (bus à haut niveau de service, 100 % électrique)',
+      "Écoquartier Intercampus (~1 900 logements) et transformation de la Citadelle en pôle universitaire (Renzo Piano)",
+      "Nouvelle cité administrative de l'État dans le quartier Gare La Vallée — inaugurée le 31 janvier 2025",
+    ],
     diagnostic: {
       emoji: '⛪',
       desc: 'Capitale picarde — cathédrale UNESCO, marché en progression',
@@ -151,6 +191,16 @@ export const VILLES: Ville[] = [
       prixM2Max: 2_600,
       rendementMoyenPct: 7.0,
     },
+    aireAttraction: 507_812,
+    // Taux de croissance : reconstitution sur populations légales INSEE de l'aire
+    // (511 257 hab. en 2017 → 507 812 en 2023) ; l'EPCI Grand Nancy affiche 0,0 %/an sur la même période.
+    croissanceDemographiquePct: -0.1,
+    quartiers: ['Rives de Meurthe', 'Quartier Gare / Nancy Grand Cœur', 'Hypercentre (Ville-Vieille / Stanislas)', 'Artem / campus', 'Nancy-Thermal / Haussonville'],
+    projetsAVenir: [
+      "Nancy Grand Cœur : écoquartier et pôle d'échanges autour de la gare",
+      'Complexe Nancy Thermal (thermalisme et bien-être)',
+      "Extension de l'écoquartier des Rives de Meurthe le long de la ligne T1",
+    ],
     diagnostic: {
       emoji: '🌟',
       desc: "Capitale de l'Art Nouveau — Place Stanislas UNESCO",
@@ -177,6 +227,14 @@ export const VILLES: Ville[] = [
       prixM2Max: 1_900,
       rendementMoyenPct: 8.2,
     },
+    aireAttraction: 221_893,
+    croissanceDemographiquePct: 0.4,
+    quartiers: ['Bouchon de Champagne (centre historique)', 'Quartier de la Gare', 'Chartreux', 'Sénardes', 'Les Marots'],
+    projetsAVenir: [
+      'Pôle multimodal de la Gare de Troyes',
+      "Projet Troyes 2030 (aménagement urbain d'ensemble)",
+      'Réhabilitation des digues de la Seine',
+    ],
     diagnostic: {
       emoji: '🏰',
       desc: "Cité des Ducs — l'un des meilleurs rendements de France",
@@ -202,6 +260,16 @@ export const VILLES: Ville[] = [
       prixM2Max: 2_100,
       rendementMoyenPct: 7.2,
     },
+    aireAttraction: 55_524, // à vérifier directement sur le comparateur INSEE (obtenu via source secondaire citant l'INSEE)
+    // Taux de croissance à l'échelle exacte de l'aire d'attraction non publié par l'INSEE ;
+    // proxy commune d'Épernay (51230), période 2017-2023.
+    croissanceDemographiquePct: -0.4,
+    quartiers: ['Quartier de la Gare / Centre Est', 'Centre-ville / hypercentre', 'Mont Bernon', 'Vignes Blanches – Beausoleil Est'],
+    projetsAVenir: [
+      "ÉcoQuartier Berges de Marne (18 ha, ~300-500 logements) — premières opérations en 2027, programme jusqu'à ~2040",
+      "Pôle d'échanges multimodal de la gare (~7 M€) — travaux démarrés sept. 2024, livraison ~2027",
+      'Action Cœur de Ville « Épernay, centre-ville du futur » (OPAH-RU) — phase 2 2023-2026',
+    ],
     diagnostic: {
       emoji: '🍾',
       desc: 'Capitale du Champagne — Avenue UNESCO',
@@ -227,6 +295,17 @@ export const VILLES: Ville[] = [
       prixM2Max: 1_500,
       rendementMoyenPct: 9.0,
     },
+    aireAttraction: 85_434, // à vérifier directement sur le comparateur INSEE (obtenu via source secondaire citant l'INSEE)
+    // Taux de croissance à l'échelle exacte de l'aire d'attraction non publié par l'INSEE ;
+    // proxy EPCI/bassin de vie de Châlons-en-Champagne, période 2017-2023.
+    croissanceDemographiquePct: -0.5,
+    quartiers: ['Centre-ville', 'Quartier de la Gare (rive gauche)', 'Rive gauche (Orléans, La Bidée, Mont-Saint-Michel)'],
+    projetsAVenir: [
+      'Rénovation urbaine de la rive gauche (ANRU, ~65 M€) : Orléans et La Bidée réhabilités, Mont-Saint-Michel à suivre',
+      'Nouveau quartier Chanzy (administration unifiée ville/agglo) — agents à partir de 2026, gros travaux 2027',
+      'Rénovation du quartier Schmit (~38 M€) — travaux à partir de fin 2025',
+      "Pôle multimodal de la gare et projet de quartier d'affaires (~10 000 m²)",
+    ],
     diagnostic: {
       emoji: '🌳',
       desc: 'Préfecture de la Marne — rendements parmi les plus élevés',

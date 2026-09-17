@@ -91,8 +91,11 @@ const s = StyleSheet.create({
   body: {
     paddingLeft: sizes.marginAccent,
     paddingRight: sizes.margin,
-    paddingTop: 22,
+    paddingTop: 18,
     flex: 1,
+    flexDirection: 'column',
+  },
+  topRow: {
     flexDirection: 'row',
     gap: 28,
   },
@@ -103,12 +106,72 @@ const s = StyleSheet.create({
     flex: 1,
   },
 
+  // ─── Où investir (quartiers / projets à venir) ──────────────────────────────
+  investirRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 28,
+  },
+  investirBox: {
+    flex: 1,
+    backgroundColor: colors.paper,
+    borderRadius: 6,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 14,
+    paddingRight: 14,
+  },
+  quartiersWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 5,
+  },
+  quartierChip: {
+    fontSize: 6.8,
+    fontWeight: 500,
+    color: colors.navy,
+    backgroundColor: colors.white,
+    borderRadius: 3,
+    paddingTop: 2,
+    paddingBottom: 2,
+    paddingLeft: 6,
+    paddingRight: 6,
+    marginRight: 4,
+    marginTop: 4,
+  },
+  investirItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 4,
+  },
+  investirBullet: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: colors.gold,
+    marginTop: 3.5,
+    marginRight: 7,
+  },
+  investirText: {
+    flex: 1,
+    fontSize: 6.8,
+    fontWeight: 400,
+    color: colors.navy,
+    lineHeight: 1.32,
+  },
+
   // ─── Tuiles chiffres clés ─────────────────────────────────────────────────
   tiles: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
     marginTop: 4,
+  },
+  statLine: {
+    fontSize: 6.5,
+    fontWeight: 500,
+    color: colors.muted,
+    marginTop: 8,
   },
   tile: {
     width: '47%',
@@ -224,9 +287,14 @@ interface Tile {
 }
 
 export default function PageVille({ data, pageNumber }: Props) {
-  const { project, villeNom, villeInfos, villePhotoPath, chargeNom } = data
+  const {
+    project, villeNom, villeInfos, villePhotoPath, chargeNom,
+    villeAireAttraction, villeCroissanceDemographiquePct, villeQuartiers, villeProjetsAVenir,
+  } = data
   const infos = villeInfos ?? {}
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
+
+  const croissanceLabel = (n: number) => `${n > 0 ? '+' : ''}${pct(n, 1)}/an`
 
   const tiles: Tile[] = [
     infos.habitants !== undefined
@@ -242,6 +310,13 @@ export default function PageVille({ data, pageNumber }: Props) {
       ? { icon: 'building2', value: infos.atout, label: 'atout', big: false }
       : null,
   ].filter((t): t is Tile => t !== null)
+
+  const statLineParts = [
+    villeAireAttraction !== null ? `Aire d'attraction : ${nombre(villeAireAttraction)} hab.` : null,
+    villeCroissanceDemographiquePct !== null ? `Croissance démo. : ${croissanceLabel(villeCroissanceDemographiquePct)}` : null,
+  ].filter((p): p is string => p !== null)
+
+  const hasInvestir = villeQuartiers.length > 0 || villeProjetsAVenir.length > 0
 
   const hasPrix = infos.prixM2Min !== undefined || infos.prixM2Max !== undefined
   const prixLabel =
@@ -294,53 +369,86 @@ export default function PageVille({ data, pageNumber }: Props) {
       {/* Corps */}
       <View style={s.body}>
 
-        {/* Chiffres clés */}
-        <View style={hasMarket ? s.colLeft : { flex: 1 }}>
-          {tiles.length > 0 && (
-            <>
-              <Text style={common.secLabel}>Chiffres clés</Text>
-              <View style={s.tiles}>
-                {tiles.map((t) => (
-                  <View key={t.label} style={s.tile}>
-                    <View style={s.tileIcon}>
-                      <LucideIcon name={t.icon} size={15} color={colors.goldDeep} />
+        <View style={s.topRow}>
+          {/* Chiffres clés */}
+          <View style={hasMarket ? s.colLeft : { flex: 1 }}>
+            {tiles.length > 0 && (
+              <>
+                <Text style={common.secLabel}>Chiffres clés</Text>
+                <View style={s.tiles}>
+                  {tiles.map((t) => (
+                    <View key={t.label} style={s.tile}>
+                      <View style={s.tileIcon}>
+                        <LucideIcon name={t.icon} size={15} color={colors.goldDeep} />
+                      </View>
+                      <Text style={t.big ? s.tileValueBig : s.tileValueText}>{t.value}</Text>
+                      <Text style={s.tileLabel}>{t.label}</Text>
                     </View>
-                    <Text style={t.big ? s.tileValueBig : s.tileValueText}>{t.value}</Text>
-                    <Text style={s.tileLabel}>{t.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </>
+                  ))}
+                </View>
+              </>
+            )}
+            {statLineParts.length > 0 && (
+              <Text style={s.statLine}>{statLineParts.join('   ·   ')}</Text>
+            )}
+          </View>
+
+          {/* Marché immobilier */}
+          {hasMarket && (
+            <View style={s.colRight}>
+              <Text style={common.secLabel}>Le marché immobilier</Text>
+
+              {hasPrix && (
+                <View style={{ marginTop: 4 }}>
+                  <Text style={s.marketLabel}>Prix moyen au m² · appartement</Text>
+                  <Text style={s.marketPrice}>
+                    {prixLabel}
+                    <Text style={s.marketPriceUnit}> €/m²</Text>
+                  </Text>
+                  <Text style={s.marketNote}>Fourchette constatée, quel que soit le nombre de pièces.</Text>
+                </View>
+              )}
+
+              {hasRendement && (
+                <View style={s.rendementBlock}>
+                  <Text style={s.marketLabel}>Rentabilité moyenne de la ville</Text>
+                  <Text style={s.rendementValue}>{pct(infos.rendementMoyenPct, 1)}</Text>
+                  <Text style={s.marketNote}>Rendement brut moyen observé sur le marché local.</Text>
+                </View>
+              )}
+
+              <Text style={s.source}>
+                {"Sources : observations Capsul, DVF, MeilleursAgents — données indicatives, susceptibles de varier selon le quartier et l'état du bien."}
+              </Text>
+            </View>
           )}
         </View>
 
-        {/* Marché immobilier */}
-        {hasMarket && (
-          <View style={s.colRight}>
-            <Text style={common.secLabel}>Le marché immobilier</Text>
-
-            {hasPrix && (
-              <View style={{ marginTop: 4 }}>
-                <Text style={s.marketLabel}>Prix moyen au m² · appartement</Text>
-                <Text style={s.marketPrice}>
-                  {prixLabel}
-                  <Text style={s.marketPriceUnit}> €/m²</Text>
-                </Text>
-                <Text style={s.marketNote}>Fourchette constatée, quel que soit le nombre de pièces.</Text>
+        {/* Où investir : quartiers à cibler / projets à venir */}
+        {hasInvestir && (
+          <View style={s.investirRow}>
+            {villeQuartiers.length > 0 && (
+              <View style={s.investirBox}>
+                <Text style={common.secLabel}>Quartiers à cibler</Text>
+                <View style={s.quartiersWrap}>
+                  {villeQuartiers.map((q) => (
+                    <Text key={q} style={s.quartierChip}>{q}</Text>
+                  ))}
+                </View>
               </View>
             )}
 
-            {hasRendement && (
-              <View style={s.rendementBlock}>
-                <Text style={s.marketLabel}>Rentabilité moyenne de la ville</Text>
-                <Text style={s.rendementValue}>{pct(infos.rendementMoyenPct, 1)}</Text>
-                <Text style={s.marketNote}>Rendement brut moyen observé sur le marché local.</Text>
+            {villeProjetsAVenir.length > 0 && (
+              <View style={s.investirBox}>
+                <Text style={common.secLabel}>Projets à venir</Text>
+                {villeProjetsAVenir.map((p) => (
+                  <View key={p} style={s.investirItem}>
+                    <View style={s.investirBullet} />
+                    <Text style={s.investirText}>{p}</Text>
+                  </View>
+                ))}
               </View>
             )}
-
-            <Text style={s.source}>
-              {"Sources : observations Capsul, DVF, MeilleursAgents — données indicatives, susceptibles de varier selon le quartier et l'état du bien."}
-            </Text>
           </View>
         )}
 
