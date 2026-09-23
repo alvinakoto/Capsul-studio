@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { translateAuthError } from '@/lib/supabase/authErrors'
+import { PasswordInput } from '@/components/ui/password-input'
 import { useRouter } from 'next/navigation'
 
 const ALLOWED_DOMAIN = 'capsul-france.com'
@@ -43,13 +45,7 @@ export default function InscriptionPage() {
       })
 
       if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          setError('Un compte existe déjà avec cet email.')
-        } else if (signUpError.message.includes('sending') || signUpError.message.includes('email')) {
-          setError('Erreur d\'envoi d\'email de confirmation. Réessayez dans quelques minutes, ou contactez l\'admin si le problème persiste.')
-        } else {
-          setError(signUpError.message)
-        }
+        setError(translateAuthError(signUpError.message))
         return
       }
 
@@ -72,7 +68,7 @@ export default function InscriptionPage() {
       router.push('/projets')
       router.refresh()
     } catch (err: any) {
-      setError(err?.message ?? 'Une erreur est survenue.')
+      setError(translateAuthError(err?.message))
     } finally {
       setLoading(false)
     }
@@ -88,7 +84,7 @@ export default function InscriptionPage() {
         email,
         options: { emailRedirectTo: `${window.location.origin}/login?confirmed=1` },
       })
-      if (resendError) setError(resendError.message)
+      if (resendError) setError(translateAuthError(resendError.message))
     } finally {
       setLoading(false)
     }
@@ -222,8 +218,7 @@ export default function InscriptionPage() {
               <label className="block text-[12px] font-semibold mb-1.5" style={{ color: '#1C1C1E' }}>
                 Mot de passe
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="8 caractères minimum"
@@ -239,8 +234,7 @@ export default function InscriptionPage() {
               <label className="block text-[12px] font-semibold mb-1.5" style={{ color: '#1C1C1E' }}>
                 Confirmer le mot de passe
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 placeholder="••••••••"

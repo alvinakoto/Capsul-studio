@@ -30,7 +30,10 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Si non connecté et pas sur une page publique → redirige vers /login
-  const publicPaths = ['/login', '/inscription', '/api/diagnostic-pdf']
+  const publicPaths = [
+    '/login', '/inscription', '/api/diagnostic-pdf',
+    '/mot-de-passe-oublie', '/reinitialiser-mot-de-passe',
+  ]
   const isPublic = publicPaths.some(p => request.nextUrl.pathname.startsWith(p))
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()

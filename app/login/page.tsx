@@ -2,6 +2,8 @@
 
 import { Suspense, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { translateAuthError } from '@/lib/supabase/authErrors'
+import { PasswordInput } from '@/components/ui/password-input'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
@@ -40,7 +42,7 @@ function LoginForm() {
         setError('Ce compte n\'a pas encore été confirmé. Vérifiez votre boîte mail, ou renvoyez l\'email ci-dessous.')
         setNeedsConfirm(true)
       } else {
-        setError('Email ou mot de passe incorrect')
+        setError(translateAuthError(error.message))
       }
       setLoading(false)
       return
@@ -58,7 +60,11 @@ function LoginForm() {
       email,
       options: { emailRedirectTo: `${window.location.origin}/login?confirmed=1` },
     })
-    if (!resendError) setResendDone(true)
+    if (resendError) {
+      setError(translateAuthError(resendError.message))
+    } else {
+      setResendDone(true)
+    }
     setLoading(false)
   }
 
@@ -104,11 +110,15 @@ function LoginForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mot de passe
-            </label>
-            <input
-              type="password"
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Mot de passe
+              </label>
+              <a href="/mot-de-passe-oublie" className="text-[12px] font-medium text-[#16314E] hover:text-[#e6b64c] transition-colors">
+                Mot de passe oublié ?
+              </a>
+            </div>
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
