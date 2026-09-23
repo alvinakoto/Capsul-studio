@@ -13,6 +13,7 @@ export default function InscriptionPage() {
   const [confirm, setConfirm]     = useState('')
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false)
   const router = useRouter()
 
   const validate = (): string | null => {
@@ -35,21 +36,24 @@ export default function InscriptionPage() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
+        },
       })
 
       if (signUpError) {
         if (signUpError.message.includes('already registered')) {
           setError('Un compte existe déjà avec cet email.')
         } else if (signUpError.message.includes('sending') || signUpError.message.includes('email')) {
-          setError('Erreur d\'envoi d\'email. Demandez à l\'admin de désactiver "Confirm email" dans Supabase → Authentication → Providers → Email.')
+          setError('Erreur d\'envoi d\'email de confirmation. Réessayez dans quelques minutes, ou contactez l\'admin si le problème persiste.')
         } else {
           setError(signUpError.message)
         }
         return
       }
 
-      // Insérer dans la table users avec rôle chargé
+      // Insérer dans la table users avec rôle chargé (indépendant de la confirmation email)
       if (data.user) {
         await supabase.from('users').upsert({
           id: data.user.id,
@@ -59,6 +63,12 @@ export default function InscriptionPage() {
         })
       }
 
+      // Confirmation email requise : pas de session tant que le lien n'est pas cliqué
+      if (!data.session) {
+        setAwaitingConfirm(true)
+        return
+      }
+
       router.push('/projets')
       router.refresh()
     } catch (err: any) {
@@ -66,6 +76,85 @@ export default function InscriptionPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleResend = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const supabase = createClient()
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/login?confirmed=1` },
+      })
+      if (resendError) setError(resendError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (awaitingConfirm) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0E2240' }}>
+        <div className="w-full max-w-md mx-4">
+          <div
+            className="rounded-2xl p-10 text-center"
+            style={{ backgroundColor: '#fff', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}
+          >
+            <div
+              className="mx-auto mb-5 rounded-full flex items-center justify-center"
+              style={{ width: 56, height: 56, backgroundColor: 'rgba(201,148,58,0.12)' }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 6l9 7 9-7M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"
+                  stroke="#C9943A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h1 className="text-[17px] font-bold mb-2" style={{ color: '#0E2240' }}>
+              Vérifiez votre boîte mail
+            </h1>
+            <p className="text-sm mb-1" style={{ color: '#6E6E73' }}>
+              Un email de confirmation a été envoyé à
+            </p>
+            <p className="text-sm font-semibold mb-6" style={{ color: '#1C1C1E' }}>
+              {email}
+            </p>
+            <p className="text-[12px] mb-6" style={{ color: '#6E6E73' }}>
+              Cliquez sur le lien reçu pour activer votre compte, puis connectez-vous.
+            </p>
+
+            {error && (
+              <div
+                className="text-sm px-4 py-3 rounded-lg mb-4 text-left"
+                style={{ backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}
+              >
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleResend}
+              disabled={loading}
+              className="text-sm font-semibold transition-colors disabled:opacity-50"
+              style={{ color: '#0E2240' }}
+            >
+              {loading ? 'Envoi…' : 'Renvoyer l\'email de confirmation'}
+            </button>
+
+            <p className="text-[12px] mt-4" style={{ color: '#9E9E9E' }}>
+              Adresse incorrecte ?{' '}
+              <button
+                onClick={() => { setAwaitingConfirm(false); setError('') }}
+                className="font-semibold underline"
+              >
+                Corriger et recommencer
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -1,19 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [needsConfirm, setNeedsConfirm] = useState(false)
+  const [resendDone, setResendDone] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const justConfirmed = searchParams.get('confirmed') === '1'
 
   const handleLogin = async () => {
     setLoading(true)
     setError('')
+    setNeedsConfirm(false)
+    setResendDone(false)
 
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({
@@ -22,13 +36,30 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError('Email ou mot de passe incorrect')
+      if (error.code === 'email_not_confirmed' || error.message.toLowerCase().includes('email not confirmed')) {
+        setError('Ce compte n\'a pas encore été confirmé. Vérifiez votre boîte mail, ou renvoyez l\'email ci-dessous.')
+        setNeedsConfirm(true)
+      } else {
+        setError('Email ou mot de passe incorrect')
+      }
       setLoading(false)
       return
     }
 
     router.push('/')
     router.refresh()
+  }
+
+  const handleResend = async () => {
+    setLoading(true)
+    const supabase = createClient()
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/login?confirmed=1` },
+    })
+    if (!resendError) setResendDone(true)
+    setLoading(false)
   }
 
   return (
@@ -51,6 +82,12 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+
+        {justConfirmed && (
+          <div className="text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded-lg mb-4">
+            Email confirmé — vous pouvez vous connecter.
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
@@ -83,6 +120,21 @@ export default function LoginPage() {
           {error && (
             <div className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-lg">
               {error}
+              {needsConfirm && (
+                <div className="mt-2">
+                  {resendDone ? (
+                    <span className="text-green-700">Email renvoyé.</span>
+                  ) : (
+                    <button
+                      onClick={handleResend}
+                      disabled={loading}
+                      className="font-semibold underline disabled:opacity-50"
+                    >
+                      Renvoyer l'email de confirmation
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
