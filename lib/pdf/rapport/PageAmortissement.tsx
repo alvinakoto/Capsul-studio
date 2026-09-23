@@ -4,33 +4,33 @@ import { colors, sizes, common } from '../common/styles'
 import { euros, pct } from '../helpers'
 import type { RapportData } from '../types'
 
-const COL = [28, 108, 108, 108, 108]  // largeurs colonnes en pt
-const ROW_H = 16
+const COL = [30, 108, 108, 108, 108]  // largeurs colonnes en pt
+const ROW_H = 22
 
 const s = StyleSheet.create({
   page: { ...common.page, paddingBottom: 40 },
-  body: { paddingHorizontal: sizes.marginAccent, paddingTop: 18 },
+  body: { paddingHorizontal: sizes.marginAccent, paddingTop: 22, flex: 1 },
 
   intro: {
     flexDirection: 'row',
     gap: 0,
-    marginBottom: 16,
+    marginBottom: 22,
     borderRadius: 4,
     overflow: 'hidden',
   },
   introCell: {
     flex: 1,
     backgroundColor: colors.paper,
-    padding: 10,
+    padding: 14,
     borderRight: `0.5pt solid ${colors.rule}`,
   },
   introCellLast: {
     flex: 1,
     backgroundColor: colors.paper,
-    padding: 10,
+    padding: 14,
   },
-  introLabel: { fontSize: 6, color: colors.muted, fontWeight: 300, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.8 },
-  introValue: { fontSize: 12, fontWeight: 700, color: colors.navy },
+  introLabel: { fontSize: 7, color: colors.muted, fontWeight: 300, marginBottom: 5, textTransform: 'uppercase', letterSpacing: 0.8 },
+  introValue: { fontSize: 15, fontWeight: 700, color: colors.navy },
 
   tableWrap: {
     borderRadius: 4,
@@ -42,34 +42,36 @@ const s = StyleSheet.create({
     backgroundColor: colors.navy,
     height: ROW_H,
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
   },
-  thCell0: { width: COL[0], fontSize: 6, fontWeight: 700, color: colors.gold, textAlign: 'center' },
-  thCell:  { flex: 1, fontSize: 6, fontWeight: 700, color: colors.gold, textAlign: 'right' },
+  thCell0: { width: COL[0], fontSize: 7, fontWeight: 700, color: colors.gold, textAlign: 'center' },
+  thCell:  { flex: 1, fontSize: 7, fontWeight: 700, color: colors.gold, textAlign: 'right' },
 
   row: {
     flexDirection: 'row',
     height: ROW_H,
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     borderBottom: `0.5pt solid ${colors.rule}`,
   },
   rowAlt: { backgroundColor: colors.paper },
-  tdAnnee:    { width: COL[0], fontSize: 6.5, fontWeight: 600, color: colors.navy, textAlign: 'center' },
-  tdVal:      { flex: 1, fontSize: 6.5, fontWeight: 300, color: colors.ink, textAlign: 'right' },
-  tdValBold:  { flex: 1, fontSize: 6.5, fontWeight: 700, color: colors.navy, textAlign: 'right' },
+  tdAnnee:    { width: COL[0], fontSize: 8, fontWeight: 600, color: colors.navy, textAlign: 'center' },
+  tdVal:      { flex: 1, fontSize: 8, fontWeight: 300, color: colors.ink, textAlign: 'right' },
+  tdValBold:  { flex: 1, fontSize: 8, fontWeight: 700, color: colors.navy, textAlign: 'right' },
 
   totalRow: {
     flexDirection: 'row',
-    height: 20,
+    height: 28,
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     backgroundColor: colors.navy,
   },
-  totalLabel: { flexGrow: 0, flexShrink: 0, fontSize: 6.5, fontWeight: 700, color: colors.gold, textAlign: 'center' },
-  totalVal:   { flex: 1, fontSize: 6.5, fontWeight: 700, color: colors.white, textAlign: 'right' },
+  totalLabel: { flexGrow: 0, flexShrink: 0, fontSize: 8, fontWeight: 700, color: colors.gold, textAlign: 'center' },
+  totalVal:   { flex: 1, fontSize: 8, fontWeight: 700, color: colors.white, textAlign: 'right' },
 
-  noData: { fontSize: 8, color: colors.muted, fontStyle: 'italic', marginTop: 20, textAlign: 'center' },
+  noDataWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  noDataTitle: { fontSize: 12, fontWeight: 700, color: colors.navy, marginBottom: 8 },
+  noData: { fontSize: 9, color: colors.muted, fontStyle: 'italic', textAlign: 'center', maxWidth: 320 },
 })
 
 export default function PageAmortissement({ data }: { data: RapportData }) {
@@ -118,11 +120,14 @@ export default function PageAmortissement({ data }: { data: RapportData }) {
 
         {/* Tableau */}
         {tableauAmortissement.length === 0 ? (
-          <Text style={s.noData}>
-            {capitalEmprunte === 0
-              ? 'Achat comptant — aucun crédit, aucun tableau d\'amortissement à afficher.'
-              : 'Données de financement insuffisantes pour générer le tableau.'}
-          </Text>
+          <View style={s.noDataWrap}>
+            <Text style={s.noDataTitle}>Aucun tableau d'amortissement</Text>
+            <Text style={s.noData}>
+              {capitalEmprunte === 0
+                ? "Achat comptant : ce projet ne comporte aucun crédit, donc aucun tableau d'amortissement à afficher."
+                : 'Données de financement insuffisantes pour générer le tableau.'}
+            </Text>
+          </View>
         ) : (
           <View style={s.tableWrap}>
             <View style={s.tableHeader}>

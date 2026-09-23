@@ -20,6 +20,7 @@ import { villeInfosToForm, type VilleInfosForm } from '@/lib/data/villes'
 
 export interface WizardState {
   // Bloc A
+  nom_projet: string                   // vide → le nom du projet suit l'adresse du bien
   adresse: string
   ville: string
   ville_infos: VilleInfosForm          // page « La ville » de la fiche — pré-rempli depuis lib/data/villes.ts
@@ -35,10 +36,8 @@ export interface WizardState {
   travaux: number | ''
   travaux_postes: string[]             // identifiants du catalogue lib/data/travaux.ts
   mobilier: number | ''
-  valeur_bien_apres_travaux: number | ''
   honoraires_capsul: number | ''
   honoraires_override: boolean
-  plan_3d: number
   autres_frais: number
   travaux_estime: boolean
   frais_notaire_estime: boolean
@@ -71,6 +70,7 @@ export type WizardAction =
   | { type: 'RESET' }
 
 const initialState: WizardState = {
+  nom_projet: '',
   adresse: '',
   ville: '',
   ville_infos: villeInfosToForm(),
@@ -85,14 +85,12 @@ const initialState: WizardState = {
   travaux: '',
   travaux_postes: [],
   mobilier: '',
-  valeur_bien_apres_travaux: '',
   honoraires_capsul: '',
   honoraires_override: false,
-  plan_3d: 0,
   autres_frais: 0,
-  travaux_estime: false,
-  frais_notaire_estime: false,
-  negociation_envisagee: false,
+  travaux_estime: true,
+  frais_notaire_estime: true,
+  negociation_envisagee: true,
   prix_affiche_origine: '',
 
   is_comptant: false,
@@ -186,7 +184,6 @@ export default function WizardShell({
   const [activeBloc, setActiveBloc] = useState('A')
   const [saving, setSaving] = useState(false)
   const [wizardScenario, setWizardScenario] = useState<TypeScenario | null>(null)
-  const [wizardLoyer, setWizardLoyer] = useState<number | ''>('')
   const router = useRouter()
 
   const setField = <K extends keyof WizardState>(field: K, value: WizardState[K]) => {
@@ -293,11 +290,13 @@ export default function WizardShell({
       }
 
       // ── Mode création : INSERT + upload photos ──────────────────────
-      const scenario =
-        wizardScenario && wizardLoyer !== ''
-          ? { loyerCible: wizardLoyer as number, scenarioType: wizardScenario }
-          : undefined
-      const newProjectId = await createProject(state, user.id, scenario)
+      // Le loyer cible se saisit désormais uniquement dans le simulateur
+      // (ScenarioPanel) après création du projet ; seul le type de scénario
+      // choisi ici est transmis.
+      const newProjectId = await createProject(
+        state, user.id,
+        wizardScenario ? { scenarioType: wizardScenario } : undefined
+      )
 
       const uploads: Promise<void>[] = []
       if (coverPhoto) {
@@ -390,10 +389,7 @@ export default function WizardShell({
           <TabsContent value="F">
             <BlocF
               state={state}
-              onScenarioChange={(type, loyer) => {
-                setWizardScenario(type)
-                setWizardLoyer(loyer)
-              }}
+              onScenarioChange={setWizardScenario}
             />
           </TabsContent>
         </Tabs>

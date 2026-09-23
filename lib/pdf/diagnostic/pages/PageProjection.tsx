@@ -58,7 +58,7 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
             <View style={dS.noteBox}>
               <Text style={dS.noteText}>
                 En achat comptant, le bien vous appartient intégralement depuis le
-                premier jour — aucun capital restant à rembourser. La colonne
+                premier jour : aucun capital restant à rembourser. La colonne
                 ci-dessous reflète uniquement l'évolution du cash-flow cumulé et du
                 patrimoine net (valeur du bien + trésorerie accumulée).
               </Text>
@@ -66,7 +66,7 @@ export function PageProjection({ p }: { p: DiagnosticPayload }) {
           </>
         ) : (
           <>
-            <SecLabel>{`Capital remboursé cumulé — sur ${fmtInt(p.capitalEmprunte)} € empruntés`}</SecLabel>
+            <SecLabel>{`Capital remboursé cumulé sur ${fmtInt(p.capitalEmprunte)} € empruntés`}</SecLabel>
             <View style={{ flexDirection: 'column', gap: 8 }}>
               {rows.map((row) => (
                 <View key={row.annee} style={s.barRow}>

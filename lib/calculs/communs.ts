@@ -35,7 +35,6 @@ export function calculerPrixProjet(projet: DonneesProjet): {
     projet.travaux +
     projet.mobilier +
     honorairesCapsul +
-    projet.plan3d +
     projet.autresFrais
 
   return { fraisNotaireEuros, honorairesCapsul, prixProjetTotal }

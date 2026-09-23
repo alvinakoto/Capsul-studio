@@ -26,10 +26,10 @@ export default function ProjectionChart({
 
   return (
     <div className="rounded-xl border bg-card p-6">
-      <h2 className="font-semibold mb-1">Projection patrimoniale — 20 ans</h2>
+      <h2 className="font-semibold mb-1">Projection patrimoniale sur 20 ans</h2>
       <p className="text-xs text-muted-foreground mb-6">
         {isComptant
-          ? 'Achat comptant — patrimoine net = valeur du bien + trésorerie cumulée'
+          ? 'Achat comptant : patrimoine net = valeur du bien + trésorerie cumulée'
           : 'Patrimoine net après remboursement du crédit'}
       </p>
 

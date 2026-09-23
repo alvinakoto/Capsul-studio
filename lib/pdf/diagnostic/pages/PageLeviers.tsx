@@ -15,7 +15,7 @@ const INTRO_TEXT: Record<string, string> = {
   positif:
     "Votre projet est déjà bien structuré. Ces optimisations peuvent encore renforcer sa performance et préparer les prochaines étapes de votre stratégie patrimoniale.",
   neutre:
-    "Votre projet est à l'équilibre — c'est une bonne base. Ces leviers peuvent le faire basculer en cash-flow positif ou consolider sa rentabilité sur le long terme.",
+    "Votre projet est à l'équilibre, c'est une bonne base. Ces leviers peuvent le faire basculer en cash-flow positif ou consolider sa rentabilité sur le long terme.",
   negatif_modere:
     "Quelques ajustements ciblés peuvent significativement améliorer la performance de votre projet. Ces recommandations sont classées par impact potentiel.",
   negatif_fort:

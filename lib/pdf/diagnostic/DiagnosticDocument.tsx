@@ -15,7 +15,7 @@ registerFonts();
 
 export function DiagnosticDocument({ payload }: { payload: DiagnosticPayload }) {
   return (
-    <Document title={`Diagnostic Capsul — ${payload.prenom}`}>
+    <Document title={`Diagnostic Capsul · ${payload.prenom}`}>
       <PageCouverture p={payload} />
       <PageSynthese p={payload} />
       <PageFinancement p={payload} />

@@ -71,17 +71,17 @@ export const VILLES: Ville[] = [
     quartiers: ['Clairmarais', 'Croix-Rouge', 'Saint-Remi', 'Centre-ville / Cathédrale', 'Jean-Jaurès / Moissons'],
     projetsAVenir: [
       "Reims Grand Centre : reconversion des friches ferroviaires et pôle d'échanges multimodal bus-tram-train",
-      'Reconstruction du nouveau CHU de Reims (secteur Croix-Rouge), 564 M€ — achèvement prévu 2031',
+      'Reconstruction du nouveau CHU de Reims (secteur Croix-Rouge), 564 M€, achèvement prévu 2031',
       'Deux lignes de bus à haut niveau de service (BHNS) portées par le Grand Reims',
       'ZAC de Bezannes (172 ha) près de la gare Champagne-TGV : logements, activités, commerces',
     ],
     diagnostic: {
       emoji: '👑',
-      desc: 'Cité des Sacres — proche de Paris en TGV (45 min)',
+      desc: 'Cité des Sacres, proche de Paris en TGV (45 min)',
       tension: 'Forte',
       tensionDesc:
         "Ville universitaire (40 000+ étudiants : URCA, Sciences Po, NEOMA). Zone B1 Pinel. TGV Paris en 45 min : forte attractivité pour les actifs franciliens.",
-      strategie: 'Studio & T2 — proche Sciences Po et gare TGV',
+      strategie: 'Studio & T2, proche Sciences Po et gare TGV',
       strategieDesc:
         "Petites surfaces meublées proches des établissements d'enseignement supérieur ou de la gare TGV pour capter étudiants et navetteurs Paris.",
       rendementNetPct: 4.5,
@@ -105,7 +105,7 @@ export const VILLES: Ville[] = [
     // Quartiers non sourcés de façon fiable à ce stade — à compléter avant affichage
     // (piste : secteurs proches des nouvelles gares du Grand Paris Express).
     projetsAVenir: [
-      "Grand Paris Express : nouvelles lignes de métro automatique (15, 16, 17, 18) et prolongements — mises en service échelonnées d'ici la fin de la décennie",
+      "Grand Paris Express : nouvelles lignes de métro automatique (15, 16, 17, 18) et prolongements, mises en service échelonnées d'ici la fin de la décennie",
     ],
   },
   {
@@ -126,17 +126,17 @@ export const VILLES: Ville[] = [
     croissanceDemographiquePct: 1.3,
     quartiers: ['Saint-Cyprien', 'Compans-Caffarelli', 'Montaudran', 'Les Chalets'],
     projetsAVenir: [
-      'Ligne C du métro (Toulouse Aerospace Express) : 27 km, 21 stations — mise en service fin 2028',
-      "Grand Matabiau (projet TESO) : réaménagement du cœur ferroviaire et quartier d'affaires — chantier en cours d'ici 2030",
-      "Reconversion de la caserne Vion à Saint-Cyprien — d'ici 2030",
+      'Ligne C du métro (Toulouse Aerospace Express) : 27 km, 21 stations, mise en service fin 2028',
+      "Grand Matabiau (projet TESO) : réaménagement du cœur ferroviaire et quartier d'affaires, chantier en cours d'ici 2030",
+      "Reconversion de la caserne Vion à Saint-Cyprien, d'ici 2030",
     ],
     diagnostic: {
       emoji: '🌹',
-      desc: 'La Ville Rose — 4ème ville de France',
+      desc: 'La Ville Rose, 4ème ville de France',
       tension: 'Forte',
       tensionDesc:
         "Pôle universitaire majeur (100 000+ étudiants), aéronautique et tech. Demande locative soutenue toute l'année, faible vacance.",
-      strategie: 'Studio & T2 — rendement optimisé',
+      strategie: 'Studio & T2, rendement optimisé',
       strategieDesc:
         'Petites surfaces meublées (LMNP) proches du métro ou des campus pour maximiser la demande locative.',
       rendementNetPct: 4.2,
@@ -160,20 +160,20 @@ export const VILLES: Ville[] = [
     croissanceDemographiquePct: 0.0,
     quartiers: ['Saint-Leu', 'Henriville', 'Gare La Vallée', 'Centre-ville / secteur Gare', 'Saint-Maurice'],
     projetsAVenir: [
-      "ZAC Gare La Vallée (« Les 3 Mondes ») : ~500 logements et 14 500 m² de bureaux — travaux sur ~10 ans",
+      "ZAC Gare La Vallée (« Les 3 Mondes ») : ~500 logements et 14 500 m² de bureaux, travaux sur ~10 ans",
       'Réseau BHNS Nemo (bus à haut niveau de service, 100 % électrique)',
       "Écoquartier Intercampus (~1 900 logements) et transformation de la Citadelle en pôle universitaire (Renzo Piano)",
-      "Nouvelle cité administrative de l'État dans le quartier Gare La Vallée — inaugurée le 31 janvier 2025",
+      "Nouvelle cité administrative de l'État dans le quartier Gare La Vallée, inaugurée le 31 janvier 2025",
     ],
     diagnostic: {
       emoji: '⛪',
-      desc: 'Capitale picarde — cathédrale UNESCO, marché en progression',
+      desc: 'Capitale picarde, cathédrale UNESCO, marché en progression',
       tension: 'Modérée',
       tensionDesc:
         "Ville en renouveau économique. Prix d'achat bas = rendements élevés. Idéal pour stratégie cash-flow positif.",
-      strategie: 'Colocation & T3 — cash-flow positif',
+      strategie: 'Colocation & T3, cash-flow positif',
       strategieDesc:
-        'T3 ou T4 en colocation — stratégie favorite Capsul sur cette ville pour atteindre le cash-flow positif.',
+        'T3 ou T4 en colocation, stratégie favorite Capsul sur cette ville pour atteindre le cash-flow positif.',
       rendementNetPct: 5.8,
     },
   },
@@ -186,7 +186,7 @@ export const VILLES: Ville[] = [
       habitants: 104_260,
       etudiants: 50_000,
       acces: 'à 1h30 de Paris en TGV',
-      atout: 'Place Stanislas — UNESCO',
+      atout: 'Place Stanislas (UNESCO)',
       prixM2Min: 1_800,
       prixM2Max: 2_600,
       rendementMoyenPct: 7.0,
@@ -203,7 +203,7 @@ export const VILLES: Ville[] = [
     ],
     diagnostic: {
       emoji: '🌟',
-      desc: "Capitale de l'Art Nouveau — Place Stanislas UNESCO",
+      desc: "Capitale de l'Art Nouveau, Place Stanislas UNESCO",
       tension: 'Modérée à forte',
       tensionDesc:
         'Forte population étudiante (60 000+). Quartiers Haussonville et Rives de Meurthe très prisés.',
@@ -237,11 +237,11 @@ export const VILLES: Ville[] = [
     ],
     diagnostic: {
       emoji: '🏰',
-      desc: "Cité des Ducs — l'un des meilleurs rendements de France",
+      desc: "Cité des Ducs, l'un des meilleurs rendements de France",
       tension: 'Modérée',
       tensionDesc:
         "Prix d'achat parmi les plus accessibles de France. Rendements attractifs, idéal pour les primo-investisseurs.",
-      strategie: 'T2/T3 meublé — fort rendement brut',
+      strategie: 'T2/T3 meublé, fort rendement brut',
       strategieDesc:
         'Marché adapté aux budgets 80 000–130 000 €. Les T2/T3 rénovés offrent les meilleurs ratios prix/loyer.',
       rendementNetPct: 6.5,
@@ -255,7 +255,7 @@ export const VILLES: Ville[] = [
       surnom: 'Capitale du Champagne',
       habitants: 22_300,
       acces: 'à 1h30 de Paris en TGV',
-      atout: 'Avenue de Champagne — UNESCO',
+      atout: 'Avenue de Champagne (UNESCO)',
       prixM2Min: 1_400,
       prixM2Max: 2_100,
       rendementMoyenPct: 7.2,
@@ -266,17 +266,17 @@ export const VILLES: Ville[] = [
     croissanceDemographiquePct: -0.4,
     quartiers: ['Quartier de la Gare / Centre Est', 'Centre-ville / hypercentre', 'Mont Bernon', 'Vignes Blanches – Beausoleil Est'],
     projetsAVenir: [
-      "ÉcoQuartier Berges de Marne (18 ha, ~300-500 logements) — premières opérations en 2027, programme jusqu'à ~2040",
-      "Pôle d'échanges multimodal de la gare (~7 M€) — travaux démarrés sept. 2024, livraison ~2027",
-      'Action Cœur de Ville « Épernay, centre-ville du futur » (OPAH-RU) — phase 2 2023-2026',
+      "ÉcoQuartier Berges de Marne (18 ha, ~300-500 logements), premières opérations en 2027, programme jusqu'à ~2040",
+      "Pôle d'échanges multimodal de la gare (~7 M€), travaux démarrés sept. 2024, livraison ~2027",
+      'Action Cœur de Ville « Épernay, centre-ville du futur » (OPAH-RU), phase 2 2023-2026',
     ],
     diagnostic: {
       emoji: '🍾',
-      desc: 'Capitale du Champagne — Avenue UNESCO',
+      desc: 'Capitale du Champagne, Avenue UNESCO',
       tension: 'Modérée à forte',
       tensionDesc:
         "Bassin d'emploi solide (Moët & Chandon, Mercier). TGV Paris en 1h30. Programme Action Cœur de Ville en cours, marché porté par l'industrie viticole.",
-      strategie: 'T2/T3 — équilibre rendement et stabilité',
+      strategie: 'T2/T3, équilibre rendement et stabilité',
       strategieDesc:
         'Centre-ville et Berges de Marne très demandés. Bon choix pour primo-investisseur recherchant cash-flow stable et appréciation patrimoniale.',
       rendementNetPct: 5.5,
@@ -302,17 +302,17 @@ export const VILLES: Ville[] = [
     quartiers: ['Centre-ville', 'Quartier de la Gare (rive gauche)', 'Rive gauche (Orléans, La Bidée, Mont-Saint-Michel)'],
     projetsAVenir: [
       'Rénovation urbaine de la rive gauche (ANRU, ~65 M€) : Orléans et La Bidée réhabilités, Mont-Saint-Michel à suivre',
-      'Nouveau quartier Chanzy (administration unifiée ville/agglo) — agents à partir de 2026, gros travaux 2027',
-      'Rénovation du quartier Schmit (~38 M€) — travaux à partir de fin 2025',
+      'Nouveau quartier Chanzy (administration unifiée ville/agglo), agents à partir de 2026, gros travaux 2027',
+      'Rénovation du quartier Schmit (~38 M€), travaux à partir de fin 2025',
       "Pôle multimodal de la gare et projet de quartier d'affaires (~10 000 m²)",
     ],
     diagnostic: {
       emoji: '🌳',
-      desc: 'Préfecture de la Marne — rendements parmi les plus élevés',
+      desc: 'Préfecture de la Marne, rendements parmi les plus élevés',
       tension: 'Faible à modérée',
       tensionDesc:
         "Marché peu concurrentiel à l'achat. Prix très accessibles, idéal pour un premier investissement à fort rendement.",
-      strategie: 'T2/T3 — priorité cash-flow et rendement',
+      strategie: 'T2/T3, priorité cash-flow et rendement',
       strategieDesc:
         "Budget d'entrée très accessible (50 000–100 000 €). Focus sur les biens bien situés en centre-ville ou proche gare.",
       rendementNetPct: 7.2,

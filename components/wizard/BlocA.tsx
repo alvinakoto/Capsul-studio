@@ -3,6 +3,7 @@
 import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { NOMS_VILLES, findVille, villeInfosToForm, type VilleInfosForm } from '@/lib/data/villes'
+import { nomProjetAuto } from '@/lib/supabase/projects'
 
 const TYPES_BIEN = ['studio', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6+', 'maison', 'immeuble']
 const DPE_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
@@ -21,7 +23,12 @@ const DPE_COLORS: Record<string, string> = {
   D: 'text-yellow-500', E: 'text-orange-400', F: 'text-orange-600', G: 'text-red-600',
 }
 
-const MAX_DESCRIPTION = 600
+// Calé pour garantir que la description + les 6 photos supplémentaires
+// tiennent toujours sur une seule page du PDF (page « Le bien »). Testé
+// empiriquement : au-delà de ~550 caractères avec 1-2 sauts de paragraphe
+// (usage réel), le texte déborde sur la page suivante — marge de sécurité
+// prise en dessous de ce seuil.
+const MAX_DESCRIPTION = 400
 
 interface Props {
   state: WizardState
@@ -53,7 +60,7 @@ function DpeSelect({
           {DPE_OPTIONS.map((d) => (
             <SelectItem key={d} value={d}>
               <span className={`font-bold ${DPE_COLORS[d]}`}>{d}</span>
-              {d === 'F' || d === 'G' ? ' — passoire thermique' : ''}
+              {d === 'F' || d === 'G' ? ' (passoire thermique)' : ''}
             </SelectItem>
           ))}
         </SelectContent>
@@ -136,7 +143,7 @@ function VilleInfosCard({
           <div>
             <CardTitle className="text-base">Infos ville</CardTitle>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Page 2 de la fiche commerciale — modifiable pour ce projet.
+              Page 2 de la fiche commerciale, modifiable pour ce projet.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -146,7 +153,7 @@ function VilleInfosCard({
                 ? { backgroundColor: 'rgba(201,148,58,0.12)', color: '#A67828' }
                 : { backgroundColor: '#F0EDE7', color: '#6E6E73' }}
             >
-              {dataset ? 'Données Capsul' : 'Aucune donnée — à compléter'}
+              {dataset ? 'Données Capsul' : 'Aucune donnée à compléter'}
             </span>
             {dataset && (
               <button
@@ -177,9 +184,9 @@ function VilleInfosCard({
           onChange={(v) => set('acces', v)} />
         <TextField id="ville_atout" label="Atout" value={infos.atout} placeholder="12ème ville de France"
           onChange={(v) => set('atout', v)} />
-        <NumField id="ville_prix_min" label="Prix au m² — bas de fourchette" value={infos.prixM2Min} suffix="€/m²" step={50}
+        <NumField id="ville_prix_min" label="Prix au m² (bas de fourchette)" value={infos.prixM2Min} suffix="€/m²" step={50}
           onChange={(v) => set('prixM2Min', v)} />
-        <NumField id="ville_prix_max" label="Prix au m² — haut de fourchette" value={infos.prixM2Max} suffix="€/m²" step={50}
+        <NumField id="ville_prix_max" label="Prix au m² (haut de fourchette)" value={infos.prixM2Max} suffix="€/m²" step={50}
           onChange={(v) => set('prixM2Max', v)} />
         <NumField id="ville_rendement" label="Rentabilité moyenne de la ville" value={infos.rendementMoyenPct} suffix="%" step={0.1}
           onChange={(v) => set('rendementMoyenPct', v)} />
@@ -234,6 +241,19 @@ export default function BlocA({ state, setField }: Props) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label htmlFor="nom_projet">Nom du projet</Label>
+            <Input
+              id="nom_projet"
+              placeholder={nomProjetAuto(state.adresse, state.ville)}
+              value={state.nom_projet}
+              onChange={(e) => setField('nom_projet', e.target.value)}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Optionnel : laissé vide, le projet prend l'adresse du bien. Modifiable à tout moment.
+            </p>
           </div>
 
         </CardContent>
@@ -313,17 +333,13 @@ export default function BlocA({ state, setField }: Props) {
             <Label htmlFor="description">
               Présentation textuelle pour la fiche commerciale
             </Label>
-            <textarea
+            <Textarea
               id="description"
-              rows={5}
+              minRows={5}
               maxLength={MAX_DESCRIPTION}
               placeholder="Appartement traversant situé au cœur du centre-ville, à 5 minutes à pied de…"
               value={state.description_bien}
               onChange={(e) => setField('description_bien', e.target.value)}
-              className="flex w-full rounded-md border border-input bg-background
-                         px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                         resize-none"
             />
             <div className="flex justify-between items-center">
               <p className="text-[11px] text-muted-foreground">

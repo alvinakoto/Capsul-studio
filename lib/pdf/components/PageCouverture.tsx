@@ -41,9 +41,9 @@ const s = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 6,
-    fontWeight: 500,
+    fontWeight: 700,
     letterSpacing: 1.8,
-    color: '#8ba4bf',
+    color: '#b6cbe0',
     marginBottom: 10,
     textTransform: 'uppercase',
   },
@@ -56,11 +56,12 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   addressSub: {
-    fontSize: 8,
-    fontWeight: 300,
-    color: '#8ba4bf',
-    letterSpacing: 0.8,
-    marginBottom: 36,
+    fontSize: 10,
+    fontWeight: 500,
+    color: '#cddcea',
+    letterSpacing: 0.6,
+    lineHeight: 1.5,
+    marginBottom: 34,
   },
   divider: {
     width: '100%',
@@ -116,8 +117,8 @@ const s = StyleSheet.create({
   metric: {
     flex: 1,
     height: '100%',
-    paddingLeft: 22,
-    paddingRight: 8,
+    paddingLeft: 26,
+    paddingRight: 14,
     justifyContent: 'center',
     borderRightWidth: 0.5,
     borderRightColor: '#2a4a6a',
@@ -126,31 +127,52 @@ const s = StyleSheet.create({
   metricLast: {
     flex: 1,
     height: '100%',
-    paddingLeft: 22,
-    paddingRight: 8,
+    paddingLeft: 26,
+    paddingRight: 14,
     justifyContent: 'center',
   },
   metricLabel: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontWeight: 600,
-    letterSpacing: 1,
-    color: '#a8c0d8',
-    marginBottom: 12,
+    letterSpacing: 1.1,
+    color: '#b6cbe0',
+    height: 12,
+    marginBottom: 14,
     textTransform: 'uppercase',
   },
   metricValue: {
-    fontSize: 27,
     fontWeight: 800,
     color: colors.white,
     letterSpacing: -1,
     lineHeight: 1.05,
   },
   metricUnit: {
-    fontSize: 11,
     fontWeight: 400,
-    color: '#a8c0d8',
+    color: '#b6cbe0',
+  },
+  // Emplacement réservé dans les trois colonnes pour que les libellés et les
+  // valeurs restent alignés même quand une seule affiche le prix barré.
+  metricNote: {
+    height: 14,
+    marginTop: 6,
+  },
+  metricNoteText: {
+    fontSize: 9.5,
+    color: '#7692ae',
+    textDecoration: 'line-through',
   },
 })
+
+/**
+ * Taille de police adaptée à la longueur de la valeur : sans ça, un montant à
+ * 7 chiffres passe à la ligne et le symbole « € » se retrouve décroché en dessous.
+ */
+function tailleValeur(valeur: string): { value: number; unit: number } {
+  const n = valeur.length
+  if (n >= 11) return { value: 24, unit: 11 }
+  if (n >= 9)  return { value: 28, unit: 12 }
+  return { value: 32, unit: 13 }
+}
 
 interface Props {
   data: FicheData
@@ -178,6 +200,17 @@ export default function PageCouverture({ data }: Props) {
 
   const budgetTotal = data.prixProjetTotal
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
+
+  const metrics: { label: string; value: string; unit?: string; note?: string }[] = [
+    {
+      label: negociationEnvisagee ? 'Prix négocié envisagé' : "Prix d'achat",
+      value: euros(project.prix_achat, false),
+      unit: '€',
+      note: negociationEnvisagee ? euros(project.prix_affiche_origine) : undefined,
+    },
+    { label: 'Budget total', value: euros(budgetTotal, false), unit: '€' },
+    { label: 'Rentabilité brute', value: pct(data.scenarioResult?.rentabiliteBrutePct, 1) },
+  ]
 
   return (
     <Page size="A4" style={s.page}>
@@ -218,37 +251,28 @@ export default function PageCouverture({ data }: Props) {
 
       {/* Metrics */}
       <View style={s.metrics}>
-        <View style={[s.metric, { paddingLeft: sizes.margin }]}>
-          <Text style={s.metricLabel}>
-            {negociationEnvisagee ? 'Prix négocié envisagé' : "Prix d'achat"}
-          </Text>
-          <Text style={s.metricValue}>
-            {euros(project.prix_achat, false)} <Text style={s.metricUnit}>€</Text>
-          </Text>
-          {negociationEnvisagee && (
-            <Text style={{ fontSize: 9, color: '#7692ae', marginTop: 6, textDecoration: 'line-through' }}>
-              {euros(project.prix_affiche_origine)}
-            </Text>
-          )}
-        </View>
-        <View style={s.metric}>
-          <Text style={s.metricLabel}>Budget total</Text>
-          <Text style={s.metricValue}>
-            {euros(budgetTotal, false)} <Text style={s.metricUnit}>€</Text>
-          </Text>
-        </View>
-        <View style={s.metric}>
-          <Text style={s.metricLabel}>Mensualité</Text>
-          <Text style={s.metricValue}>
-            {euros(data.mensualiteTotale, false)} <Text style={s.metricUnit}>€/mois</Text>
-          </Text>
-        </View>
-        <View style={s.metricLast}>
-          <Text style={s.metricLabel}>Rentabilité brute</Text>
-          <Text style={s.metricValue}>
-            {pct(data.scenarioResult?.rentabiliteBrutePct, 1)}
-          </Text>
-        </View>
+        {metrics.map((m, i) => {
+          const taille = tailleValeur(m.value + (m.unit ?? ''))
+          const isLast = i === metrics.length - 1
+          return (
+            <View
+              key={m.label}
+              style={[
+                isLast ? s.metricLast : s.metric,
+                i === 0 ? { paddingLeft: sizes.margin } : {},
+              ]}
+            >
+              <Text style={s.metricLabel}>{m.label}</Text>
+              <Text style={[s.metricValue, { fontSize: taille.value }]}>
+                {m.value}
+                {m.unit ? <Text style={[s.metricUnit, { fontSize: taille.unit }]}> {m.unit}</Text> : null}
+              </Text>
+              <View style={s.metricNote}>
+                {m.note ? <Text style={s.metricNoteText}>{m.note}</Text> : null}
+              </View>
+            </View>
+          )
+        })}
       </View>
     </Page>
   )

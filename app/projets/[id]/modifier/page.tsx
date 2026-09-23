@@ -3,13 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { getProjectById } from '@/lib/supabase/projects'
+import { getProjectById, nomProjetAuto } from '@/lib/supabase/projects'
 import WizardShell from '@/components/wizard/WizardShell'
 import type { WizardState } from '@/components/wizard/WizardShell'
 import { findVille, villeInfosToForm } from '@/lib/data/villes'
 
 function projectToWizardState(p: any): Partial<WizardState> {
   return {
+    // Nom laissé vide s'il n'a jamais été personnalisé, pour qu'il continue
+    // de suivre l'adresse du bien tant que le chargé ne le renomme pas.
+    nom_projet:         p.name && p.name !== nomProjetAuto(p.adresse, p.ville) ? p.name : '',
     adresse:            p.adresse ?? '',
     ville:              p.ville ?? '',
     // Projets antérieurs à la page « La ville » : on repart du dataset Capsul
@@ -27,7 +30,6 @@ function projectToWizardState(p: any): Partial<WizardState> {
     mobilier:            p.mobilier ?? '',
     honoraires_capsul:   p.honoraires_capsul ?? '',
     honoraires_override: p.honoraires_override ?? false,
-    plan_3d:             p.plan_3d ?? 0,
     autres_frais:        p.autres_frais ?? 0,
     travaux_estime:      p.travaux_estime ?? false,
     frais_notaire_estime: p.frais_notaire_estime ?? false,

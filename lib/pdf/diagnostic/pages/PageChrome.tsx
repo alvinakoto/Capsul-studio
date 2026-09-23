@@ -254,7 +254,7 @@ export function PageFooter({ p }: { p: DiagnosticPayload }) {
   return (
     <View style={interiorBase.footer}>
       <Text style={interiorBase.footerL}>
-        Rapport confidentiel — {p.prenom} — {p.dateRapport}
+        Rapport confidentiel · {p.prenom} · {p.dateRapport}
       </Text>
       <Text style={interiorBase.footerR}>capsul-france.com</Text>
     </View>

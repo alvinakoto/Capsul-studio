@@ -23,9 +23,9 @@ const s = StyleSheet.create({
   },
   heroOver: {
     fontSize: 6,
-    fontWeight: 500,
+    fontWeight: 700,
     letterSpacing: 1.8,
-    color: '#5a7a9a',
+    color: '#b6cbe0',
     marginBottom: 5,
     textTransform: 'uppercase',
   },
@@ -53,9 +53,9 @@ const s = StyleSheet.create({
   },
   heroKpiLabel: {
     fontSize: 6,
-    fontWeight: 400,
+    fontWeight: 600,
     letterSpacing: 1.4,
-    color: '#5a7a9a',
+    color: '#b6cbe0',
     marginBottom: 6,
     textTransform: 'uppercase',
   },
@@ -295,7 +295,7 @@ export default function PageTravaux({ data, pageNumber }: Props) {
             <LucideIcon name="house" size={14} color={colors.goldDeep} />
             <Text style={s.closingText}>
               <Text style={s.closingStrong}>Travaux pilotés par Capsul France</Text>
-              {' — sélection des artisans, suivi de chantier et réception. Dossier préparé par '}
+              {' : sélection des artisans, suivi de chantier et réception. Dossier préparé par '}
               <Text style={s.closingStrong}>{chargeNom}</Text>.
             </Text>
           </View>

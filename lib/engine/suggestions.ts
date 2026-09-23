@@ -70,19 +70,19 @@ export function detecterAlertes(state: WizardState): AlerteReglementaire[] {
   if (dpe === 'G') {
     alertes.push({
       niveau: 'error',
-      titre: 'DPE G — Location interdite',
+      titre: 'Location interdite (DPE G)',
       message: 'Les logements classés G sont interdits à la location depuis le 1er janvier 2025. Des travaux de rénovation énergétique sont nécessaires avant toute mise en location.',
     })
   } else if (dpe === 'F') {
     alertes.push({
       niveau: 'warning',
-      titre: 'DPE F — Passoire thermique',
+      titre: 'Passoire thermique (DPE F)',
       message: 'Les logements classés F seront interdits à la location à partir de 2028. Prévoir un budget travaux pour améliorer la performance énergétique.',
     })
   } else if (dpe === 'E') {
     alertes.push({
       niveau: 'warning',
-      titre: 'DPE E — Attention à l\'échéance 2034',
+      titre: 'DPE E : échéance 2034',
       message: 'Les logements classés E seront interdits à la location à partir de 2034. Anticipez les travaux dans votre plan d\'investissement.',
     })
   }
@@ -92,7 +92,7 @@ export function detecterAlertes(state: WizardState): AlerteReglementaire[] {
 
     alertes.push({
       niveau: 'warning',
-      titre: 'Zone tendue — Réglementation courte durée',
+      titre: 'Réglementation courte durée en zone tendue',
       message: `${state.ville} est soumis à des restrictions sur la location courte durée. Une déclaration en mairie et une compensation peuvent être requises.`,
     })
   }
@@ -102,7 +102,7 @@ export function detecterAlertes(state: WizardState): AlerteReglementaire[] {
   if (travaux > 0) {
     alertes.push({
       niveau: 'warning',
-      titre: 'Travaux — Vérifier zone ABF',
+      titre: 'Vérifier la zone ABF',
       message: 'Si le bien est situé en zone protégée (ABF, site patrimonial), les travaux nécessitent une autorisation spéciale. Vérifier avec la mairie.',
     })
   }

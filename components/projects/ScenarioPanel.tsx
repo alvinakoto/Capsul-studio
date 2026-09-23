@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { calculerScenario } from '@/lib/calculs/index'
 import { updateProjectScenario } from '@/lib/supabase/projects'
@@ -56,10 +57,8 @@ export default function ScenarioPanel({ project }: { project: any }) {
     fraisNotairePct:    project.frais_notaire_pct,
     travaux:            project.travaux || 0,
     mobilier:           project.mobilier || 0,
-    valeurBienApresTravaux: project.valeur_bien_apres_travaux ?? undefined,
     honorairesCapsul:   project.honoraires_capsul || 0,
     honorairesOverride: project.honoraires_override,
-    plan3d:             project.plan_3d || 0,
     autresFrais:        project.autres_frais || 0,
   }
 
@@ -286,17 +285,13 @@ export default function ScenarioPanel({ project }: { project: any }) {
 
         <div className="mt-6 space-y-1.5">
           <Label htmlFor="commentaireTravaux">Commentaire travaux (optionnel)</Label>
-          <textarea
+          <Textarea
             id="commentaireTravaux"
-            rows={3}
+            minRows={3}
             maxLength={400}
             placeholder="Ex : Rénovation complète prévue au T2 2027, artisan déjà identifié…"
             value={commentaireTravaux}
             onChange={(e) => setCommentaireTravaux(e.target.value)}
-            className="flex w-full rounded-md border border-input bg-background
-                       px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                       resize-none"
           />
           <p className="text-[11px] text-muted-foreground">
             Affiché en bas de la page Travaux de la fiche commerciale, si renseigné.
@@ -340,7 +335,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
         className="inline-block px-2 py-1 rounded-md text-[11px] font-semibold"
         style={{ backgroundColor: '#EDE9E1', color: '#0E2240' }}
       >
-        Achat comptant — aucun crédit
+        Achat comptant, aucun crédit
       </span>
     </div>
   ) : (

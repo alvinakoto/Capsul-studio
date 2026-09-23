@@ -63,9 +63,9 @@ const s = StyleSheet.create({
   },
   heroEyebrow: {
     fontSize: 6,
-    fontWeight: 500,
+    fontWeight: 700,
     letterSpacing: 1.8,
-    color: '#8ba4bf',
+    color: '#b6cbe0',
     textTransform: 'uppercase',
     marginBottom: 6,
   },
@@ -418,7 +418,7 @@ export default function PageVille({ data, pageNumber }: Props) {
               )}
 
               <Text style={s.source}>
-                {"Sources : observations Capsul, DVF, MeilleursAgents — données indicatives, susceptibles de varier selon le quartier et l'état du bien."}
+                {"Sources : observations Capsul, DVF, MeilleursAgents. Données indicatives, susceptibles de varier selon le quartier et l'état du bien."}
               </Text>
             </View>
           )}
@@ -429,7 +429,7 @@ export default function PageVille({ data, pageNumber }: Props) {
           <View style={s.investirRow}>
             {villeQuartiers.length > 0 && (
               <View style={s.investirBox}>
-                <Text style={common.secLabel}>Quartiers à cibler</Text>
+                <Text style={common.secLabel}>Quelques quartiers de {villeNom}</Text>
                 <View style={s.quartiersWrap}>
                   {villeQuartiers.map((q) => (
                     <Text key={q} style={s.quartierChip}>{q}</Text>

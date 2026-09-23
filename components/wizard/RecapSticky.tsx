@@ -30,7 +30,7 @@ function calculerPrixProjet(s: WizardState): number {
   }
   return (
     prixAchat + fraisNotaire + travaux + mobilier + honoraires +
-    Number(s.plan_3d || 0) + Number(s.autres_frais || 0)
+    Number(s.autres_frais || 0)
   )
 }
 
@@ -93,9 +93,6 @@ export default function RecapSticky({ state }: { state: WizardState }) {
             )}
             {Number(state.mobilier) > 0 && (
               <Line label="Ameublement" value={euros(Number(state.mobilier))} />
-            )}
-            {Number(state.plan_3d) > 0 && (
-              <Line label="Honoraires décoration Capsul" value={euros(Number(state.plan_3d))} />
             )}
             {Number(state.autres_frais) > 0 && (
               <Line label="Autres frais" value={euros(Number(state.autres_frais))} />

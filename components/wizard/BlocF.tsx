@@ -6,7 +6,7 @@ import { suggererScenarios, detecterAlertes, TypeScenario, Suggestion, AlerteReg
 
 interface Props {
   state: WizardState
-  onScenarioChange?: (type: TypeScenario, loyerCible: number | '') => void
+  onScenarioChange?: (type: TypeScenario) => void
 }
 
 const SCENARIO_LABELS: Record<TypeScenario, string> = {
@@ -17,27 +17,23 @@ const SCENARIO_LABELS: Record<TypeScenario, string> = {
 
 export default function BlocF({ state, onScenarioChange }: Props) {
   const [selectedScenario, setSelectedScenario] = useState<TypeScenario | null>(null)
-  const [loyerCible, setLoyerCible] = useState<number | ''>('')
 
   const suggestions = suggererScenarios(state)
   const alertes = detecterAlertes(state)
   const meilleureSuggestion = suggestions[0]
 
-  // Auto-sélectionne la meilleure suggestion
+  // Auto-sélectionne la meilleure suggestion (et la propage tout de suite :
+  // si le chargé ne touche à rien, c'est elle qui doit être enregistrée)
   useEffect(() => {
     if (meilleureSuggestion && !selectedScenario) {
       setSelectedScenario(meilleureSuggestion.type)
+      onScenarioChange?.(meilleureSuggestion.type)
     }
   }, [meilleureSuggestion?.type])
 
   const handleSelect = (type: TypeScenario) => {
     setSelectedScenario(type)
-    onScenarioChange?.(type, loyerCible)
-  }
-
-  const handleLoyerChange = (v: number | '') => {
-    setLoyerCible(v)
-    if (selectedScenario) onScenarioChange?.(selectedScenario, v)
+    onScenarioChange?.(type)
   }
 
   const hasPrixAchat = Number(state.prix_achat) > 0
@@ -78,33 +74,6 @@ export default function BlocF({ state, onScenarioChange }: Props) {
                 onSelect={() => handleSelect(s.type)}
               />
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Loyer cible */}
-      {selectedScenario && (
-        <div className="rounded-xl border bg-card p-6 space-y-3">
-          <h2 className="font-semibold">Loyer cible</h2>
-          <p className="text-xs text-muted-foreground">
-            {selectedScenario === 'colocation'
-              ? 'Loyer par chambre estimé'
-              : selectedScenario === 'courte_duree'
-              ? 'Prix par nuit estimé'
-              : 'Loyer mensuel estimé'}
-          </p>
-          <div className="relative max-w-xs">
-            <input
-              type="number"
-              min={0}
-              value={loyerCible}
-              onChange={(e) => handleLoyerChange(e.target.value === '' ? '' : Number(e.target.value))}
-              className="flex h-10 w-full rounded-md border border-input bg-background
-                         px-3 py-2 text-sm ring-offset-background pr-8
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Ex: 800"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
           </div>
         </div>
       )}

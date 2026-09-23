@@ -9,17 +9,25 @@ function getClient() {
   )
 }
 
-function genererNomProjet(state: WizardState): string {
-  if (state.adresse && state.ville) return `${state.adresse}, ${state.ville}`
-  if (state.ville) return state.ville
-  if (state.adresse) return state.adresse
+/** Nom par défaut d'un projet : l'adresse du bien. */
+export function nomProjetAuto(adresse?: string | null, ville?: string | null): string {
+  if (adresse && ville) return `${adresse}, ${ville}`
+  if (ville) return ville
+  if (adresse) return adresse
   return 'Nouveau projet'
+}
+
+/** Nom saisi par le chargé s'il y en a un, sinon l'adresse du bien. */
+function genererNomProjet(state: WizardState): string {
+  const saisi = state.nom_projet?.trim()
+  if (saisi) return saisi
+  return nomProjetAuto(state.adresse, state.ville)
 }
 
 export async function createProject(
   state: WizardState,
   userId: string,
-  scenario?: { loyerCible: number; scenarioType: string }
+  scenario?: { scenarioType: string }
 ): Promise<string> {
   const supabase = getClient()
 
@@ -32,10 +40,8 @@ export async function createProject(
       city: state.ville || '',
       prix_achat: state.prix_achat || 0,
       status: 'draft',
-      ...(scenario && {
-        loyer_cible: scenario.loyerCible,
-        scenario_type: scenario.scenarioType,
-      }),
+      // Loyer cible saisi plus tard dans le simulateur (ScenarioPanel)
+      ...(scenario && { scenario_type: scenario.scenarioType }),
 
       // Infos bien
       adresse: state.adresse || null,
@@ -56,10 +62,8 @@ export async function createProject(
       travaux: state.travaux || 0,
       travaux_postes: state.travaux_postes,
       mobilier: state.mobilier || 0,
-      valeur_bien_apres_travaux: state.valeur_bien_apres_travaux === '' ? null : state.valeur_bien_apres_travaux,
       honoraires_capsul: state.honoraires_capsul || null,
       honoraires_override: state.honoraires_override,
-      plan_3d: state.plan_3d,
       autres_frais: state.autres_frais,
       travaux_estime: state.travaux_estime,
       frais_notaire_estime: state.frais_notaire_estime,
@@ -139,10 +143,8 @@ export async function updateProject(
       travaux: state.travaux || 0,
       travaux_postes: state.travaux_postes,
       mobilier: state.mobilier || 0,
-      valeur_bien_apres_travaux: state.valeur_bien_apres_travaux === '' ? null : state.valeur_bien_apres_travaux,
       honoraires_capsul: state.honoraires_capsul || null,
       honoraires_override: state.honoraires_override,
-      plan_3d: state.plan_3d,
       autres_frais: state.autres_frais,
       travaux_estime: state.travaux_estime,
       frais_notaire_estime: state.frais_notaire_estime,
@@ -214,6 +216,22 @@ export async function updateProjectStatus(
   if (error) throw error
 }
 
+/** Renomme un projet ; un nom vide rétablit le nom par défaut (adresse du bien). */
+export async function updateProjectName(
+  projectId: string,
+  nom: string,
+  fallback: { adresse?: string | null; ville?: string | null }
+): Promise<string> {
+  const supabase = getClient()
+  const name = nom.trim() || nomProjetAuto(fallback.adresse, fallback.ville)
+  const { error } = await supabase
+    .from('projects')
+    .update({ name })
+    .eq('id', projectId)
+  if (error) throw error
+  return name
+}
+
 export async function duplicateProject(projectId: string, userId: string): Promise<string> {
   const supabase = getClient()
   const project = await getProjectById(projectId, userId)
@@ -241,10 +259,8 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       travaux: project.travaux,
       travaux_postes: project.travaux_postes,
       mobilier: project.mobilier,
-      valeur_bien_apres_travaux: project.valeur_bien_apres_travaux,
       honoraires_capsul: project.honoraires_capsul,
       honoraires_override: project.honoraires_override,
-      plan_3d: project.plan_3d,
       autres_frais: project.autres_frais,
       travaux_estime: project.travaux_estime,
       frais_notaire_estime: project.frais_notaire_estime,

@@ -8,7 +8,7 @@ import { euros, pct, pageNum } from '../helpers'
 const SCENARIO_LABELS: Record<string, string> = {
   lmnp_meuble:  'LMNP Meublé',
   colocation:   'Colocation',
-  courte_duree: 'Courte durée — Location saisonnière',
+  courte_duree: 'Location courte durée',
 }
 
 const s = StyleSheet.create({
@@ -28,9 +28,9 @@ const s = StyleSheet.create({
   },
   heroOver: {
     fontSize: 6,
-    fontWeight: 500,
+    fontWeight: 700,
     letterSpacing: 1.8,
-    color: '#5a7a9a',
+    color: '#b6cbe0',
     marginBottom: 5,
     textTransform: 'uppercase',
   },
@@ -58,9 +58,9 @@ const s = StyleSheet.create({
   },
   heroKpiLabel: {
     fontSize: 6,
-    fontWeight: 400,
+    fontWeight: 600,
     letterSpacing: 1.4,
-    color: '#5a7a9a',
+    color: '#b6cbe0',
     marginBottom: 6,
     textTransform: 'uppercase',
   },
@@ -228,12 +228,9 @@ export default function PageScenario({ data, pageNumber }: Props) {
   const mobilier = project.mobilier ?? 0
   const fraisNotaire = Math.round(project.prix_achat * (project.frais_notaire_pct / 100))
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
-  const hasEstimations = !!(
-    project.travaux_estime || project.frais_notaire_estime ||
-    project.charges_copro_estime || project.taxe_fonciere_estime
-  )
+  const estim = (flag: boolean | null | undefined) => (flag ? ' (estimation)' : '')
   const honoraires = project.honoraires_capsul ?? 0
-  const budgetTotal = project.prix_achat + travaux + mobilier + fraisNotaire + honoraires + (project.plan_3d ?? 0) + (project.autres_frais ?? 0)
+  const budgetTotal = project.prix_achat + travaux + mobilier + fraisNotaire + honoraires + (project.autres_frais ?? 0)
 
   return (
     <Page size="A4" style={s.page}>
@@ -293,8 +290,8 @@ export default function PageScenario({ data, pageNumber }: Props) {
               fraisGestionMois > 0
                 ? [`Frais de gestion locative (${fraisGestionPct} %)`, `− ${euros(fraisGestionMois)}`]
                 : null,
-              [`Charges de copropriété${project.charges_copro_estime ? '*' : ''}`, `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
-              [`Taxe foncière${project.taxe_fonciere_estime ? '*' : ''}`, `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
+              [`Charges de copropriété${estim(project.charges_copro_estime)}`, `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
+              [`Taxe foncière${estim(project.taxe_fonciere_estime)}`, `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
               ['Assurance PNO', `− ${euros(Math.round((project.assurance_pno ?? 0) / 12))}`],
               ['Frais de comptabilité', `− ${euros(Math.round((project.frais_comptabilite ?? 0) / 12))}`],
               ['CFE (exonérée 1ère année)', `− ${euros(cfeMois)}`],
@@ -360,9 +357,9 @@ export default function PageScenario({ data, pageNumber }: Props) {
               <Text style={s.tableTdVal}>{euros(project.prix_achat)}</Text>
             </View>
             {[
-              [`Travaux de rénovation${project.travaux_estime ? '*' : ''}`, euros(travaux)],
+              [`Travaux de rénovation${estim(project.travaux_estime)}`, euros(travaux)],
               ['Ameublement & équipement', euros(mobilier)],
-              [`Frais de notaire (${project.frais_notaire_pct} %)${project.frais_notaire_estime ? '*' : ''}`, euros(fraisNotaire)],
+              [`Frais de notaire (${project.frais_notaire_pct} %${project.frais_notaire_estime ? ', estimation' : ''})`, euros(fraisNotaire)],
               ['Honoraires Capsul', euros(Math.round(honoraires))],
             ].map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
@@ -377,11 +374,6 @@ export default function PageScenario({ data, pageNumber }: Props) {
             {negociationEnvisagee && (
               <Text style={{ fontSize: 6, color: colors.gold, fontWeight: 600, marginTop: 4 }}>
                 Négociation envisagée
-              </Text>
-            )}
-            {hasEstimations && (
-              <Text style={{ fontSize: 6, color: colors.muted, fontStyle: 'italic', marginTop: 4 }}>
-                * Estimation
               </Text>
             )}
           </View>

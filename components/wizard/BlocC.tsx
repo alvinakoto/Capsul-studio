@@ -278,13 +278,6 @@ export default function BlocC({ state, setField }: Props) {
             onChange={(v) => setField('mobilier', v)}
             hint="Pour LMNP meublé"
           />
-          <EuroInput
-            id="valeur_bien_apres_travaux"
-            label="Valeur du bien après travaux"
-            value={state.valeur_bien_apres_travaux}
-            onChange={(v) => setField('valeur_bien_apres_travaux', v)}
-            hint={`Optionnel — par défaut prix d'achat + travaux (${(prixAchat + (Number(state.travaux) || 0)).toLocaleString('fr-FR')} €)`}
-          />
           <PostesTravaux
             selected={state.travaux_postes}
             onChange={(next) => setField('travaux_postes', next)}
@@ -323,12 +316,6 @@ export default function BlocC({ state, setField }: Props) {
                 ? 'MAX(prix × 8,28%, 8 280€) + travaux × 5%'
                 : 'Montant saisi manuellement'
             }
-          />
-          <EuroInput
-            id="plan3d"
-            label="Honoraires décoration Capsul"
-            value={state.plan_3d}
-            onChange={(v) => setField('plan_3d', Number(v) || 0)}
           />
           <EuroInput
             id="autres_frais"

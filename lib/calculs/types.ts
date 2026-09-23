@@ -8,10 +8,8 @@ export interface DonneesProjet {
   fraisNotairePct: number       // ex: 7.5 pour 7,5%
   travaux: number
   mobilier: number
-  valeurBienApresTravaux?: number  // si absent → calculé auto (prixAchat + travaux), utilisé pour la projection patrimoniale
   honorairesCapsul?: number     // si null → calculé auto
   honorairesOverride: boolean
-  plan3d: number
   autresFrais: number
 }
 

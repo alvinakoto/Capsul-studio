@@ -50,40 +50,47 @@ const s = StyleSheet.create({
 
   // ─── Description ──────────────────────────────────────────────────────────
   descText: {
-    fontSize: 7.5,
-    fontWeight: 300,
-    color: '#5a5854',
-    lineHeight: 1.75,
-    marginBottom: 18,
-  },
-
-  // ─── Localisation ─────────────────────────────────────────────────────────
-  locaPhoto: {
-    width: '100%',
-    height: 130,
-    borderRadius: 4,
-    objectFit: 'cover',
+    fontSize: 9,
+    fontWeight: 400,
+    color: '#3f3d3a',
+    lineHeight: 1.7,
     marginBottom: 18,
   },
 
   // ─── Grille photos ────────────────────────────────────────────────────────
+  // 2 rangées de 3 (max 6 photos, imposé à l'upload). La localisation est
+  // passée en colonne droite pour laisser à cette grille toute la largeur et
+  // la hauteur de la colonne gauche (cf. incident débordement, sept. 2026 :
+  // les deux rangées + la carte ne tenaient plus ensemble dans la colonne).
   thumbGrid: {
     flexDirection: 'row',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 8,
     marginTop: 10,
-  },
-  thumbGridRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 6,
   },
   thumb: {
     flexGrow: 0,
     flexShrink: 0,
-    width: '32%',
+    width: '31.5%',
     aspectRatio: 1.33,
-    borderRadius: 2,
+    borderRadius: 3,
     backgroundColor: '#c4c0b8',
+    objectFit: 'cover',
+  },
+
+  // ─── Localisation (colonne droite) ───────────────────────────────────────
+  locaAdresse: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: colors.navy,
+    marginTop: 2,
+    marginBottom: 6,
+    lineHeight: 1.3,
+  },
+  locaPhoto: {
+    width: '100%',
+    height: 140,
+    borderRadius: 4,
     objectFit: 'cover',
   },
 
@@ -139,10 +146,7 @@ export default function PageBien({ data, pageNumber }: Props) {
   ]
 
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
-
-  // 6 photos max, réparties en 2 rangées de 3
-  const photosRow1 = secondaryPhotos.slice(0, 3)
-  const photosRow2 = secondaryPhotos.slice(3, 6)
+  const adresseComplete = [project.adresse, project.city].filter(Boolean).join(', ')
 
   return (
     <Page size="A4" style={s.page}>
@@ -182,33 +186,19 @@ export default function PageBien({ data, pageNumber }: Props) {
               `Bien situé ${project.city ? `à ${project.city}` : ''}, à proximité des commodités et des transports. Idéalement positionné pour un investissement locatif rentable dans le cadre d'une stratégie patrimoniale à long terme.`}
           </Text>
 
-          {localisationPhotoUrl && (
-            <>
-              <Text style={common.secLabel}>Localisation</Text>
-              <Image src={localisationPhotoUrl} style={s.locaPhoto} />
-            </>
-          )}
-
           {secondaryPhotos.length > 0 && (
             <>
               <Text style={common.secLabel}>Photos supplémentaires</Text>
               <View style={s.thumbGrid}>
-                {photosRow1.map((p, i) => (
-                  <Image key={`r1-${i}`} src={p.url} style={s.thumb} />
+                {secondaryPhotos.slice(0, 6).map((p, i) => (
+                  <Image key={i} src={p.url} style={s.thumb} />
                 ))}
               </View>
-              {photosRow2.length > 0 && (
-                <View style={s.thumbGridRow}>
-                  {photosRow2.map((p, i) => (
-                    <Image key={`r2-${i}`} src={p.url} style={s.thumb} />
-                  ))}
-                </View>
-              )}
             </>
           )}
         </View>
 
-        {/* Colonne droite — specs */}
+        {/* Colonne droite — specs + localisation */}
         <View style={s.colRight}>
           <Text style={common.secLabel}>Caractéristiques</Text>
           <View style={{ marginTop: 10 }}>
@@ -225,6 +215,14 @@ export default function PageBien({ data, pageNumber }: Props) {
               </View>
             ))}
           </View>
+
+          {localisationPhotoUrl && (
+            <View style={{ marginTop: 16 }}>
+              <Text style={common.secLabel}>Localisation</Text>
+              {adresseComplete ? <Text style={s.locaAdresse}>{adresseComplete}</Text> : null}
+              <Image src={localisationPhotoUrl} style={s.locaPhoto} />
+            </View>
+          )}
         </View>
 
       </View>

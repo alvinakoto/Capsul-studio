@@ -129,7 +129,7 @@ export default function BlocB({
         <CardHeader>
           <CardTitle className="text-base">Photo de localisation</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            Capture d'une carte (Google Maps, Plans…) avec un repère sur l'emplacement du bien — affichée page « Le bien » du dossier.
+            Capture d'une carte (Google Maps, Plans…) avec un repère sur l'emplacement du bien, affichée page « Le bien » du dossier.
           </p>
         </CardHeader>
         <CardContent>
@@ -272,7 +272,7 @@ function SinglePhotoSlot({
     >
       <p className="text-sm font-medium">{placeholder}</p>
       <p className="text-xs text-muted-foreground mt-1">
-        JPG, PNG, WEBP, HEIC — ou cliquez pour parcourir
+        JPG, PNG, WEBP, HEIC, ou cliquez pour parcourir
       </p>
       {convertError && (
         <p className="text-xs text-red-500 mt-2 max-w-xs">{convertError}</p>

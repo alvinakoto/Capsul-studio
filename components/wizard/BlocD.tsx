@@ -56,7 +56,7 @@ function calculerPrixProjetTotal(state: WizardState): number {
   const honoraires = state.honoraires_override && state.honoraires_capsul
     ? Number(state.honoraires_capsul) || 0
     : Math.max(Math.round(prixAchat * 0.0828), prixAchat > 0 ? 8280 : 0) + Math.round(travaux * 0.05)
-  return prixAchat + fraisNotaire + travaux + mobilier + honoraires + state.plan_3d + state.autres_frais
+  return prixAchat + fraisNotaire + travaux + mobilier + honoraires + state.autres_frais
 }
 
 export default function BlocD({ state, setField }: Props) {
@@ -191,7 +191,7 @@ export default function BlocD({ state, setField }: Props) {
             )}
             {state.is_comptant && (
               <p className="text-[11px] text-muted-foreground">
-                Financement 100 % fonds propres — calculé automatiquement, non modifiable
+                Financement 100 % fonds propres, calculé automatiquement et non modifiable
               </p>
             )}
           </div>
@@ -231,7 +231,7 @@ export default function BlocD({ state, setField }: Props) {
             Achat comptant sélectionné
           </p>
           <p className="mt-1" style={{ color: '#6E6E73' }}>
-            Aucun recours au crédit — les champs taux, durée et assurance
+            Aucun recours au crédit : les champs taux, durée et assurance
             ne s'appliquent pas. Le moteur de calcul et les PDF
             s'adapteront automatiquement.
           </p>
@@ -258,7 +258,7 @@ export default function BlocD({ state, setField }: Props) {
               onChange={(v) => setField('taux_assurance_pct', Number(v) || 0)}
               suffix="%"
               step={0.01}
-              hint="Optionnel — inclus dans la mensualité si renseigné"
+              hint="Optionnel : inclus dans la mensualité si renseigné"
             />
           </CardContent>
         </Card>

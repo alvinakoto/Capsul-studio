@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import React from 'react'
 import { registerFonts } from '@/lib/pdf/common/fonts'
 import { findVillePhotoPath } from '@/lib/pdf/common/villePhoto'
+import { nomFichierProjet, contentDisposition } from '@/lib/pdf/common/filename'
 import FicheCommerciale from '@/lib/pdf/FicheCommerciale'
 import { calculerScenario } from '@/lib/calculs/index'
 import { findVille, hasVilleInfos } from '@/lib/data/villes'
@@ -89,10 +90,8 @@ export async function GET(
           fraisNotairePct: project.frais_notaire_pct,
           travaux: project.travaux ?? 0,
           mobilier: project.mobilier ?? 0,
-          valeurBienApresTravaux: project.valeur_bien_apres_travaux ?? undefined,
           honorairesCapsul: project.honoraires_capsul ?? 0,
           honorairesOverride: project.honoraires_override ?? false,
-          plan3d: project.plan_3d ?? 0,
           autresFrais: project.autres_frais ?? 0,
         }
         const financementData = {
@@ -157,7 +156,6 @@ export async function GET(
         + (project.mobilier ?? 0)
         + fraisNotaire
         + (project.honoraires_capsul ?? 0)
-        + (project.plan_3d ?? 0)
         + (project.autres_frais ?? 0)
 
       const montantFinancable = project.prix_achat + (project.travaux ?? 0)
@@ -215,12 +213,10 @@ export async function GET(
       React.createElement(FicheCommerciale, { data: ficheData }) as any
     )
 
-    const filename = `${project.name.replace(/[^a-zA-Z0-9]/g, '-')}-fiche.pdf`
-
     return new NextResponse(buffer as any, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': contentDisposition(nomFichierProjet(project)),
         'Cache-Control': 'no-store',
       },
     })

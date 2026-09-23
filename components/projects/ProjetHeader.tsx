@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { updateProjectStatus, deleteProject, duplicateProject } from '@/lib/supabase/projects'
+import { updateProjectStatus, deleteProject, duplicateProject, updateProjectName, nomProjetAuto } from '@/lib/supabase/projects'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; dot: string }> = {
   draft:      { label: 'Brouillon',  bg: '#F0EDE7',               color: '#6E6E73', dot: '#6E6E73' },
@@ -31,7 +31,11 @@ export default function ProjetHeader({ project }: { project: any }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting]       = useState(false)
   const [duplicating, setDuplicating] = useState(false)
+  const [nom, setNom]                 = useState<string>(project.name ?? '')
+  const [renaming, setRenaming]       = useState(false)
+  const [nomDraft, setNomDraft]       = useState<string>(project.name ?? '')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const nomInputRef = useRef<HTMLInputElement>(null)
 
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft
 
@@ -57,6 +61,23 @@ export default function ProjetHeader({ project }: { project: any }) {
       console.error(err)
     } finally {
       setStatusSaving(false)
+    }
+  }
+
+  const commitRename = async () => {
+    setRenaming(false)
+    if (nomDraft.trim() === nom) return
+    const precedent = nom
+    try {
+      const name = await updateProjectName(project.id, nomDraft, {
+        adresse: project.adresse,
+        ville: project.ville ?? project.city,
+      })
+      setNom(name)
+      setNomDraft(name)
+    } catch (err) {
+      console.error(err)
+      setNomDraft(precedent)
     }
   }
 
@@ -96,7 +117,6 @@ export default function ProjetHeader({ project }: { project: any }) {
     (project.mobilier || 0) +
     Math.round(project.prix_achat * (project.frais_notaire_pct / 100)) +
     (project.honoraires_capsul || 0) +
-    (project.plan_3d || 0) +
     (project.autres_frais || 0)
 
   return (
@@ -126,9 +146,37 @@ export default function ProjetHeader({ project }: { project: any }) {
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-              <h1 className="text-xl font-bold" style={{ color: '#0E2240' }}>
-                {project.name}
-              </h1>
+              {renaming ? (
+                <input
+                  ref={nomInputRef}
+                  autoFocus
+                  value={nomDraft}
+                  onChange={(e) => setNomDraft(e.target.value)}
+                  onBlur={commitRename}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitRename()
+                    if (e.key === 'Escape') { setNomDraft(nom); setRenaming(false) }
+                  }}
+                  placeholder={nomProjetAuto(project.adresse, project.ville ?? project.city)}
+                  className="text-xl font-bold rounded-md px-2 py-0.5 outline-none"
+                  style={{ color: '#0E2240', border: '1px solid #C9943A', backgroundColor: '#fff', minWidth: 280 }}
+                />
+              ) : (
+                <button
+                  onClick={() => { setNomDraft(nom); setRenaming(true) }}
+                  title="Renommer le projet"
+                  className="group flex items-center gap-2 rounded-md px-2 py-0.5 -ml-2 transition-colors"
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#F7F5F1' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+                >
+                  <h1 className="text-xl font-bold text-left" style={{ color: '#0E2240' }}>
+                    {nom}
+                  </h1>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="opacity-0 group-hover:opacity-60 shrink-0">
+                    <path d="M9 2l2 2-7 7H2V9l7-7z" stroke="#0E2240" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
 
               {/* Status dropdown */}
               <div className="relative" ref={dropdownRef}>

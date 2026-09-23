@@ -191,7 +191,7 @@ export function PageMarche({ p }: { p: DiagnosticPayload }) {
         <View style={dS.noteBox}>
           <Text style={dS.noteText}>
             Sources : données issues des observations terrain de Capsul, complétées par
-            MeilleursAgents, SeLoger, Orpi et les statistiques DVF — mise à jour avril 2026.
+            MeilleursAgents, SeLoger, Orpi et les statistiques DVF (mise à jour avril 2026).
             Ces chiffres sont indicatifs et peuvent varier selon le quartier, l'état du bien
             et la période de transaction. Ils ne constituent pas un conseil d'investissement.
           </Text>

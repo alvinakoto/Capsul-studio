@@ -50,7 +50,9 @@ export function calculerScenario(
     scenario = calculerCourteDuree(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
   }
 
-  const valeurBienApresTravaux = projet.valeurBienApresTravaux ?? (projet.prixAchat + projet.travaux)
+  // Base patrimoniale : prix d'achat + travaux. Capsul ne s'engage pas sur une
+  // valeur de revente estimée (décision direction, septembre 2026).
+  const valeurBienApresTravaux = projet.prixAchat + projet.travaux
 
   const projectionConservateur = calculerProjection(
     valeurBienApresTravaux, financement.apport, capitalEmprunte,

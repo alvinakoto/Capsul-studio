@@ -11,7 +11,7 @@ registerFonts()
 export default function RapportAnalytique({ data }: { data: RapportData }) {
   return (
     <Document
-      title={`Rapport analytique — ${data.project.name}`}
+      title={`Rapport analytique · ${data.project.name}`}
       author="Capsul France"
     >
       <PageSynthese data={data} />

@@ -72,7 +72,7 @@ export function PageFinancement({ p }: { p: DiagnosticPayload }) {
             <Text style={sComptant.title}>Acquisition financée sans emprunt</Text>
             <Text style={sComptant.body}>
               L'apport couvre l'intégralité du prix du projet. Aucun recours au
-              crédit n'est nécessaire — il n'y a donc ni mensualité, ni intérêts,
+              crédit n'est nécessaire : il n'y a donc ni mensualité, ni intérêts,
               ni tableau d'amortissement à présenter.
             </Text>
             <Text style={[sComptant.body, { marginTop: 8 }]}>
@@ -132,7 +132,7 @@ export function PageFinancement({ p }: { p: DiagnosticPayload }) {
           </View>
         </View>
 
-        <SecLabel>Répartition visuelle — Année 1</SecLabel>
+        <SecLabel>Répartition visuelle (année 1)</SecLabel>
 
         <View>
           <View style={s.barWrap}>
@@ -159,7 +159,7 @@ export function PageFinancement({ p }: { p: DiagnosticPayload }) {
           </View>
         </View>
 
-        <SecLabel>Tableau d'amortissement — 5 premières années</SecLabel>
+        <SecLabel>Tableau d'amortissement (5 premières années)</SecLabel>
 
         <View>
           <View style={dS.tHead}>

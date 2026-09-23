@@ -12,29 +12,29 @@ const SCENARIO_LABELS: Record<string, string> = {
 
 const s = StyleSheet.create({
   page:      { ...common.page, paddingBottom: 40 },
-  body:      { paddingHorizontal: sizes.marginAccent, paddingTop: 16, flexDirection: 'row', gap: 20, flex: 1 },
+  body:      { paddingHorizontal: sizes.marginAccent, paddingTop: 22, flexDirection: 'row', gap: 28, flex: 1 },
   col:       { flex: 1 },
   divider:   { width: 0.5, backgroundColor: colors.rule },
 
   titleBar: {
     paddingHorizontal: sizes.marginAccent,
-    paddingVertical: 10,
+    paddingVertical: 15,
     borderBottom: `0.5pt solid ${colors.rule}`,
     backgroundColor: colors.paper,
   },
-  projectName: { fontSize: 13, fontWeight: 700, color: colors.navy, letterSpacing: -0.3 },
-  projectSub:  { fontSize: 7, color: colors.muted, marginTop: 2, fontWeight: 300 },
+  projectName: { fontSize: 16, fontWeight: 700, color: colors.navy, letterSpacing: -0.3 },
+  projectSub:  { fontSize: 8.5, color: colors.muted, marginTop: 3, fontWeight: 300 },
 
   secLabel: {
-    fontSize: 5.5,
+    fontSize: 7.5,
     fontWeight: 700,
     letterSpacing: 1.5,
     color: colors.navy,
     textTransform: 'uppercase',
-    paddingBottom: 5,
+    paddingBottom: 7,
     borderBottom: `1pt solid ${colors.navy}`,
-    marginBottom: 6,
-    marginTop: 14,
+    marginBottom: 10,
+    marginTop: 22,
   },
   secLabelFirst: { marginTop: 0 },
 
@@ -42,17 +42,17 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 3,
+    paddingVertical: 6.5,
     borderBottom: `0.5pt solid ${colors.rule}`,
   },
   rowBold: { backgroundColor: colors.paper },
-  rowLabel:      { fontSize: 7, color: colors.ink, fontWeight: 300, flex: 1 },
-  rowLabelBold:  { fontSize: 7, color: colors.ink, fontWeight: 600 },
-  rowLabelMuted: { fontSize: 7, color: colors.muted, fontWeight: 300, fontStyle: 'italic' },
-  rowValue:      { fontSize: 7, fontWeight: 600, color: colors.ink, textAlign: 'right' },
-  rowValueGreen: { fontSize: 7, fontWeight: 700, color: colors.posGreen, textAlign: 'right' },
-  rowValueRed:   { fontSize: 7, fontWeight: 700, color: colors.negRed,   textAlign: 'right' },
-  rowValueMuted: { fontSize: 7, fontWeight: 300, color: colors.muted,    textAlign: 'right', fontStyle: 'italic' },
+  rowLabel:      { fontSize: 8.5, color: colors.ink, fontWeight: 300, flex: 1 },
+  rowLabelBold:  { fontSize: 8.5, color: colors.ink, fontWeight: 600 },
+  rowLabelMuted: { fontSize: 8.5, color: colors.muted, fontWeight: 300, fontStyle: 'italic' },
+  rowValue:      { fontSize: 8.5, fontWeight: 600, color: colors.ink, textAlign: 'right' },
+  rowValueGreen: { fontSize: 9.5, fontWeight: 700, color: colors.posGreen, textAlign: 'right' },
+  rowValueRed:   { fontSize: 9.5, fontWeight: 700, color: colors.negRed,   textAlign: 'right' },
+  rowValueMuted: { fontSize: 8.5, fontWeight: 300, color: colors.muted,    textAlign: 'right', fontStyle: 'italic' },
 })
 
 interface RowProps {
@@ -103,8 +103,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
     ? scenarioResult.cashflowOptimiste
     : null
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
-  const hasEstimations = !!(project.travaux_estime || project.frais_notaire_estime)
-  const autresFrais = (project.plan_3d ?? 0) + (project.autres_frais ?? 0)
+  const autresFrais = project.autres_frais ?? 0
 
   return (
     <Page size="A4" style={s.page}>
@@ -139,11 +138,11 @@ export default function PageSynthese({ data }: { data: RapportData }) {
             value={euros(project.prix_achat)}
           />
           <Row
-            label={`Frais de notaire (${project.frais_notaire_pct} %)${project.frais_notaire_estime ? '*' : ''}`}
+            label={`Frais de notaire (${project.frais_notaire_pct} %${project.frais_notaire_estime ? ', estimation' : ''})`}
             value={euros(fraisNotaireEuros)}
           />
           {(project.travaux ?? 0) > 0 &&
-            <Row label={`Travaux${project.travaux_estime ? '*' : ''}`} value={euros(project.travaux)} />}
+            <Row label={`Travaux${project.travaux_estime ? ' (estimation)' : ''}`} value={euros(project.travaux)} />}
           {(project.mobilier ?? 0) > 0 && <Row label="Ameublement" value={euros(project.mobilier)} />}
           {honorairesCapsul > 0 && <Row label="Honoraires Capsul" value={euros(honorairesCapsul)} />}
           {autresFrais > 0 && <Row label="Autres frais" value={euros(autresFrais)} />}
@@ -151,11 +150,6 @@ export default function PageSynthese({ data }: { data: RapportData }) {
           {negociationEnvisagee && (
             <Text style={{ fontSize: 6, color: colors.gold, fontWeight: 600, marginTop: 4 }}>
               Négociation envisagée
-            </Text>
-          )}
-          {hasEstimations && (
-            <Text style={{ fontSize: 6, color: colors.muted, fontStyle: 'italic', marginTop: 4 }}>
-              * Estimation
             </Text>
           )}
 
@@ -182,7 +176,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
 
         {/* Colonne droite — Scénario + Fiscal */}
         <View style={s.col}>
-          <Text style={[s.secLabel, s.secLabelFirst]}>Scénario retenu — {scenarioLabel}</Text>
+          <Text style={[s.secLabel, s.secLabelFirst]}>Scénario retenu : {scenarioLabel}</Text>
 
           {scenarioResult ? (
             <>
@@ -219,7 +213,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
             </>
           ) : (
             <Text style={{ fontSize: 7, color: colors.muted, fontStyle: 'italic' }}>
-              Aucun scénario calculé — relancez une simulation depuis la page projet.
+              Aucun scénario calculé. Relancez une simulation depuis la page projet.
             </Text>
           )}
         </View>

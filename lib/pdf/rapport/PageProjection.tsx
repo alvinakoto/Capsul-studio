@@ -4,15 +4,15 @@ import { colors, sizes, common } from '../common/styles'
 import { euros } from '../helpers'
 import type { RapportData } from '../types'
 
-const ROW_H = 16
+const ROW_H = 19
 const MILESTONES = [5, 10, 15, 20]
 
 const s = StyleSheet.create({
   page: { ...common.page, paddingBottom: 40 },
-  body: { paddingHorizontal: sizes.marginAccent, paddingTop: 18 },
+  body: { paddingHorizontal: sizes.marginAccent, paddingTop: 22 },
 
-  intro: { marginBottom: 14 },
-  introText: { fontSize: 7, color: colors.muted, fontWeight: 300, lineHeight: 1.6 },
+  intro: { marginBottom: 18 },
+  introText: { fontSize: 8.5, color: colors.muted, fontWeight: 300, lineHeight: 1.6 },
   introStrong: { fontWeight: 600, color: colors.ink },
 
   tableHeader: {
@@ -20,42 +20,42 @@ const s = StyleSheet.create({
     backgroundColor: colors.navy,
     height: ROW_H,
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
   },
-  thAnnee: { width: 30, fontSize: 6, fontWeight: 700, color: colors.gold, textAlign: 'center' },
-  thCell:  { flex: 1, fontSize: 6, fontWeight: 700, color: colors.gold, textAlign: 'right', paddingRight: 4 },
+  thAnnee: { width: 32, fontSize: 7, fontWeight: 700, color: colors.gold, textAlign: 'center' },
+  thCell:  { flex: 1, fontSize: 7, fontWeight: 700, color: colors.gold, textAlign: 'right', paddingRight: 4 },
 
   row: {
     flexDirection: 'row',
     height: ROW_H,
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     borderBottom: `0.5pt solid ${colors.rule}`,
   },
   rowAlt:       { backgroundColor: colors.paper },
   rowMilestone: { backgroundColor: '#e8edf2', borderBottom: `0.5pt solid ${colors.navy}` },
 
-  tdAnnee:    { width: 30, fontSize: 6.5, fontWeight: 700, color: colors.navy, textAlign: 'center' },
-  tdVal:      { flex: 1, fontSize: 6.5, fontWeight: 300, color: colors.ink,  textAlign: 'right', paddingRight: 4 },
-  tdCons:     { flex: 1, fontSize: 6.5, fontWeight: 400, color: colors.muted, textAlign: 'right', paddingRight: 4 },
-  tdRealiste: { flex: 1, fontSize: 6.5, fontWeight: 700, color: colors.navy, textAlign: 'right', paddingRight: 4 },
+  tdAnnee:    { width: 32, fontSize: 7.5, fontWeight: 700, color: colors.navy, textAlign: 'center' },
+  tdVal:      { flex: 1, fontSize: 7.5, fontWeight: 300, color: colors.ink,  textAlign: 'right', paddingRight: 4 },
+  tdCons:     { flex: 1, fontSize: 7.5, fontWeight: 400, color: colors.muted, textAlign: 'right', paddingRight: 4 },
+  tdRealiste: { flex: 1, fontSize: 7.5, fontWeight: 700, color: colors.navy, textAlign: 'right', paddingRight: 4 },
 
   milestones: {
     flexDirection: 'row',
-    marginTop: 18,
+    marginTop: 24,
     borderTop: `0.5pt solid ${colors.rule}`,
   },
   msCell: {
     flex: 1,
-    paddingTop: 10,
-    paddingHorizontal: 12,
+    paddingTop: 14,
+    paddingHorizontal: 14,
     borderRight: `0.5pt solid ${colors.rule}`,
   },
-  msCellLast: { flex: 1, paddingTop: 10, paddingHorizontal: 12 },
-  msLabel: { fontSize: 5.5, fontWeight: 600, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  msCons:  { fontSize: 9,   fontWeight: 400, color: colors.muted, marginBottom: 1 },
-  msReal:  { fontSize: 14,  fontWeight: 900, color: colors.navy, letterSpacing: -0.5 },
-  msSub:   { fontSize: 6,   fontWeight: 300, color: colors.muted, marginTop: 2 },
+  msCellLast: { flex: 1, paddingTop: 14, paddingHorizontal: 14 },
+  msLabel: { fontSize: 6.5, fontWeight: 600, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 },
+  msCons:  { fontSize: 10,  fontWeight: 400, color: colors.muted, marginBottom: 2 },
+  msReal:  { fontSize: 18,  fontWeight: 900, color: colors.navy, letterSpacing: -0.5 },
+  msSub:   { fontSize: 7,   fontWeight: 300, color: colors.muted, marginTop: 3 },
 
   disclaimer: {
     fontSize: 6, fontWeight: 300, color: '#aaa8a2',
@@ -82,7 +82,7 @@ export default function PageProjection({ data }: { data: RapportData }) {
       <View style={common.header}>
         <Text style={common.headerLogo}>CAPSUL</Text>
         <View style={common.headerRight}>
-          <Text style={common.eyebrow}>Projection patrimoniale — 20 ans</Text>
+          <Text style={common.eyebrow}>Projection patrimoniale sur 20 ans</Text>
           <Text style={common.pageNum}>03</Text>
         </View>
       </View>
@@ -91,18 +91,18 @@ export default function PageProjection({ data }: { data: RapportData }) {
         <View style={s.intro}>
           <Text style={s.introText}>
             <Text style={s.introStrong}>Conservateur</Text>
-            {' — revalorisation 0 % /an (pas de plus-value latente) · '}
+            {' : revalorisation 0 % /an (pas de plus-value latente) · '}
             <Text style={s.introStrong}>Réaliste</Text>
-            {' — revalorisation +2 % /an. '}
+            {' : revalorisation +2 % /an. '}
             {isComptant
-              ? 'Achat comptant — bien possédé à 100 % dès le départ. Patrimoine net = valeur du bien + cash-flow cumulé.'
+              ? 'Achat comptant : bien possédé à 100 % dès le départ. Patrimoine net = valeur du bien + cash-flow cumulé.'
               : 'Patrimoine net = apport + capital remboursé + cash-flow cumulé + plus-value latente.'}
           </Text>
         </View>
 
         {!hasData ? (
           <Text style={{ fontSize: 8, color: colors.muted, fontStyle: 'italic', textAlign: 'center', marginTop: 20 }}>
-            Aucune projection disponible — relancez une simulation.
+            Aucune projection disponible. Relancez une simulation.
           </Text>
         ) : (
           <>

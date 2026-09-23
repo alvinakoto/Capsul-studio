@@ -40,7 +40,6 @@ const project: FicheData['project'] = {
   travaux_postes: ['cloisons', 'chambres', 'electricite', 'plomberie', 'salle_de_bain', 'cuisine', 'sols', 'peinture', 'ameublement'],
   mobilier: 11000,
   honoraires_capsul: 13455,
-  plan_3d: 0,
   autres_frais: 0,
   apport: 27000,
   duree_annees: 20,
@@ -71,7 +70,7 @@ const project: FicheData['project'] = {
 }
 
 const r = calculerScenario(
-  { prixAchat: 195000, fraisNotairePct: 8, travaux: 35000, mobilier: 11000, honorairesCapsul: 13455, honorairesOverride: true, plan3d: 0, autresFrais: 0 },
+  { prixAchat: 195000, fraisNotairePct: 8, travaux: 35000, mobilier: 11000, honorairesCapsul: 13455, honorairesOverride: true, autresFrais: 0 },
   { apport: 27000, dureeAnnees: 20, tauxInteretPct: 3.6, tauxAssurancePct: 0 },
   { taxeFonciere: 804, chargesCoproAnnuelles: 1500, assurancePno: 120, electriciteEau: 0, internet: 0, chauffage: 0, fraisComptabilite: 250, autresCharges: 0, cfe: 300 },
   { type: 'lmnp_meuble', params: { loyerMensuel: 1650, vacancePct: 5, fraisGestionPct: 7 } },
