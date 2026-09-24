@@ -49,15 +49,10 @@ export default function InscriptionPage() {
         return
       }
 
-      // Insérer dans la table users avec rôle chargé (indépendant de la confirmation email)
-      if (data.user) {
-        await supabase.from('users').upsert({
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          role: 'charge',
-        })
-      }
+      // La ligne public.users (avec full_name) est créée automatiquement par le
+      // trigger on_auth_user_created — on ne peut pas le faire ici côté client :
+      // tant que l'email n'est pas confirmé, signUp() ne renvoie aucune session,
+      // donc la RLS (id = auth.uid()) rejetterait silencieusement l'insertion.
 
       // Confirmation email requise : pas de session tant que le lien n'est pas cliqué
       if (!data.session) {
