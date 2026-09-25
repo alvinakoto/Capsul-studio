@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { calculerScenario } from '@/lib/calculs/index'
 import { updateProjectScenario } from '@/lib/supabase/projects'
@@ -39,7 +38,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const [nuitsOpti, setNuitsOpti]             = useState<number | ''>(project.nuits_optimiste ?? 22)
   const [fraisGestion, setFraisGestion]       = useState<number | ''>(project.frais_gestion_pct ?? 7)
   const [conciergerie, setConciergerie]       = useState<number | ''>(project.concierge_pct ?? 20)
-  const [commentaireTravaux, setCommentaireTravaux] = useState(project.commentaire_travaux ?? '')
   const [result, setResult]                   = useState<any>(null)
   const [error, setError]                     = useState<string | null>(null)
   const [saved, setSaved]                     = useState(false)
@@ -142,7 +140,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
         nuitsConservateur: Number(nuitsCons) || 0,
         nuitsOptimiste: Number(nuitsOpti) || 0,
         nbChambres: Number(nbChambres) || 1,
-        commentaireTravaux: commentaireTravaux.trim(),
       }).then(() => setSaved(true))
 
     } catch (err: any) {
@@ -283,20 +280,6 @@ export default function ScenarioPanel({ project }: { project: any }) {
 
         </div>
 
-        <div className="mt-6 space-y-1.5">
-          <Label htmlFor="commentaireTravaux">Commentaire travaux (optionnel)</Label>
-          <Textarea
-            id="commentaireTravaux"
-            minRows={3}
-            maxLength={400}
-            placeholder="Ex : Rénovation complète prévue au T2 2027, artisan déjà identifié…"
-            value={commentaireTravaux}
-            onChange={(e) => setCommentaireTravaux(e.target.value)}
-          />
-          <p className="text-[11px] text-muted-foreground">
-            Affiché en bas de la page Travaux de la fiche commerciale, si renseigné.
-          </p>
-        </div>
       </div>
 
       {/* Résultats */}

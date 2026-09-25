@@ -35,6 +35,7 @@ export interface WizardState {
   frais_notaire_pct: number
   travaux: number | ''
   travaux_postes: string[]             // identifiants du catalogue lib/data/travaux.ts
+  commentaire_travaux: string          // optionnel — bas de la page Travaux de la fiche
   mobilier: number | ''
   honoraires_capsul: number | ''
   honoraires_override: boolean
@@ -84,6 +85,7 @@ const initialState: WizardState = {
   frais_notaire_pct: 8.0,
   travaux: '',
   travaux_postes: [],
+  commentaire_travaux: '',
   mobilier: '',
   honoraires_capsul: '',
   honoraires_override: false,

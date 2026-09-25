@@ -27,6 +27,7 @@ function projectToWizardState(p: any): Partial<WizardState> {
     frais_notaire_pct:   p.frais_notaire_pct ?? 8.0,
     travaux:             p.travaux ?? '',
     travaux_postes:      p.travaux_postes ?? [],
+    commentaire_travaux: p.commentaire_travaux ?? '',
     mobilier:            p.mobilier ?? '',
     honoraires_capsul:   p.honoraires_capsul ?? '',
     honoraires_override: p.honoraires_override ?? false,

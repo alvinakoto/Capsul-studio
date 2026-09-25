@@ -61,6 +61,7 @@ export async function createProject(
       frais_notaire_pct: state.frais_notaire_pct,
       travaux: state.travaux || 0,
       travaux_postes: state.travaux_postes,
+      commentaire_travaux: state.commentaire_travaux.trim() || null,
       mobilier: state.mobilier || 0,
       honoraires_capsul: state.honoraires_capsul || null,
       honoraires_override: state.honoraires_override,
@@ -142,6 +143,7 @@ export async function updateProject(
       frais_notaire_pct: state.frais_notaire_pct,
       travaux: state.travaux || 0,
       travaux_postes: state.travaux_postes,
+      commentaire_travaux: state.commentaire_travaux.trim() || null,
       mobilier: state.mobilier || 0,
       honoraires_capsul: state.honoraires_capsul || null,
       honoraires_override: state.honoraires_override,
@@ -182,7 +184,6 @@ export async function updateProjectScenario(
   extras?: {
     fraisGestionPct?: number; conciergePct?: number; vacancePct?: number
     nuitsConservateur?: number; nuitsOptimiste?: number; nbChambres?: number
-    commentaireTravaux?: string
   }
 ): Promise<void> {
   const supabase = getClient()
@@ -198,7 +199,6 @@ export async function updateProjectScenario(
       ...(extras?.nuitsConservateur !== undefined && { nuits_conservateur: extras.nuitsConservateur }),
       ...(extras?.nuitsOptimiste !== undefined && { nuits_optimiste: extras.nuitsOptimiste }),
       ...(extras?.nbChambres !== undefined && { nb_chambres: extras.nbChambres }),
-      ...(extras?.commentaireTravaux !== undefined && { commentaire_travaux: extras.commentaireTravaux || null }),
     })
     .eq('id', projectId)
   if (error) throw error
@@ -293,6 +293,7 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       nuits_conservateur: project.nuits_conservateur,
       nuits_optimiste: project.nuits_optimiste,
       nb_chambres: project.nb_chambres,
+      commentaire_travaux: project.commentaire_travaux,
     })
     .select('id')
     .single()
