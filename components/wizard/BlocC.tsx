@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { IconNode } from '@/components/ui/IconNode'
 import { POSTES_TRAVAUX } from '@/lib/data/travaux'
 
@@ -283,6 +284,20 @@ export default function BlocC({ state, setField }: Props) {
             onChange={(next) => setField('travaux_postes', next)}
             travauxRenseignes={travaux > 0}
           />
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label htmlFor="commentaire_travaux">Commentaire travaux (optionnel)</Label>
+            <Textarea
+              id="commentaire_travaux"
+              minRows={3}
+              maxLength={400}
+              placeholder="Ex : Rénovation complète prévue au T2 2027, artisan déjà identifié…"
+              value={state.commentaire_travaux}
+              onChange={(e) => setField('commentaire_travaux', e.target.value)}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Affiché en bas de la page Travaux de la fiche commerciale, si renseigné.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
