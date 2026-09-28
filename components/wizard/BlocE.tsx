@@ -117,7 +117,7 @@ export default function BlocE({ state, setField }: Props) {
             label="CFE"
             value={state.cfe}
             onChange={(v) => setField('cfe', Number(v) || 0)}
-            hint="Cotisation Foncière des Entreprises — ~300 €/an, exonérée la 1ère année"
+            hint="Cotisation Foncière des Entreprises, environ 300 €/an, exonérée la première année"
             estimate={{
               checked: state.cfe_estime,
               onChange: (v) => setField('cfe_estime', v),

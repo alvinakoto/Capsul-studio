@@ -75,6 +75,7 @@ export async function GET(
     let prixProjetTotal = 0
     let capitalEmprunte = 0
     let mensualiteTotale = 0
+    let comparaison: { type: string; cashflowMensuel: number; rentabiliteBrutePct: number } | null = null
 
     const loyer = project.loyer_cible ?? 0
     const hasData = loyer > 0
@@ -143,6 +144,23 @@ export async function GET(
         capitalEmprunte     = r.capitalEmprunte
         mensualiteTotale    = r.mensualiteTotale
 
+        // ─── Scénario de comparaison (optionnel) ────────────────────────────
+        if (project.scenario_comparaison_type && project.scenario_comparaison_data) {
+          try {
+            const rc = calculerScenario(projetData, financementData, chargesData, {
+              type: project.scenario_comparaison_type,
+              params: project.scenario_comparaison_data,
+            } as any)
+            comparaison = {
+              type: project.scenario_comparaison_type,
+              cashflowMensuel: rc.scenario.cashflowMensuel,
+              rentabiliteBrutePct: rc.scenario.rentabiliteBrutePct,
+            }
+          } catch (compErr) {
+            console.error('Calcul scénario de comparaison échoué:', compErr)
+          }
+        }
+
       } catch (calcErr) {
         console.error('Calcul scénario échoué:', calcErr)
         // On continue sans les résultats du scénario
@@ -206,6 +224,7 @@ export async function GET(
       villeQuartiers: ville?.quartiers ?? [],
       villeProjetsAVenir: ville?.projetsAVenir ?? [],
       travauxPostes,
+      comparaison,
     }
 
     // ─── Génération du PDF ───────────────────────────────────────────────────

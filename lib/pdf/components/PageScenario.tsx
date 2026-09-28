@@ -120,7 +120,7 @@ const s = StyleSheet.create({
   tableTd: {
     fontSize: 8,
     fontWeight: 300,
-    color: '#5a5854',
+    color: colors.ink,
   },
   tableTdVal: {
     fontSize: 8,
@@ -406,6 +406,11 @@ export default function PageScenario({ data, pageNumber }: Props) {
                 {cashflowOptimiste !== null && (
                   <Text style={[s.cashNote, { marginTop: 4 }]}>
                     {`Scénario optimiste (${nuitsOptimiste} nuits/mois) : cash-flow de ${cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(cashflowOptimiste)))}/mois`}
+                  </Text>
+                )}
+                {data.comparaison && (
+                  <Text style={[s.cashNote, { marginTop: 4 }]}>
+                    {`À titre de comparaison, en ${SCENARIO_LABELS[data.comparaison.type] ?? data.comparaison.type} : cash-flow de ${data.comparaison.cashflowMensuel >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(data.comparaison.cashflowMensuel)))}/mois (${pct(data.comparaison.rentabiliteBrutePct, 1)} brut)`}
                   </Text>
                 )}
               </>

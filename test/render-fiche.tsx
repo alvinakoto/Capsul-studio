@@ -107,6 +107,7 @@ const base: FicheData = {
   villeQuartiers: findVille('Reims')?.quartiers ?? [],
   villeProjetsAVenir: findVille('Reims')?.projetsAVenir ?? [],
   travauxPostes: getPostesTravaux(project.travaux_postes),
+  comparaison: null,
 }
 
 const variants: Array<{ file: string; data: FicheData }> = [

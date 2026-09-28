@@ -116,4 +116,7 @@ export interface FicheData {
 
   // Page « Travaux » — postes résolus dans l'ordre du catalogue ; vide → page omise
   travauxPostes: PosteTravaux[]
+
+  // Scénario de comparaison optionnel (ScenarioPanel) — encart sur la page Scénario
+  comparaison: { type: string; cashflowMensuel: number; rentabiliteBrutePct: number } | null
 }

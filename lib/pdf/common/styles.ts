@@ -10,7 +10,7 @@ export const colors = {
   white:     '#ffffff',
   paper:     '#f6f4f1',
   ink:       '#1a1918',
-  muted:     '#7a7872',
+  muted:     '#5a5854',
   rule:      '#e4e0d8',
   posGreen:  '#246b3e',
   negRed:    '#b83232',

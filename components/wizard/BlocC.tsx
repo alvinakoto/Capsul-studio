@@ -375,7 +375,7 @@ export default function BlocC({ state, setField }: Props) {
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Facultatif — si connus, les honoraires se basent sur le prix net vendeur (prix − frais d'agence)
+              Facultatif : si vous les connaissez, les honoraires se calculent sur le prix net vendeur (prix moins frais d'agence)
             </p>
           </div>
           <EuroInput

@@ -198,6 +198,8 @@ export async function updateProjectScenario(
   extras?: {
     fraisGestionPct?: number; conciergePct?: number; vacancePct?: number
     nuitsConservateur?: number; nuitsOptimiste?: number; nbChambres?: number
+    scenarioComparaisonType?: 'lmnp_meuble' | 'colocation' | 'courte_duree' | null
+    scenarioComparaisonData?: Record<string, number> | null
   }
 ): Promise<void> {
   const supabase = getClient()
@@ -213,6 +215,8 @@ export async function updateProjectScenario(
       ...(extras?.nuitsConservateur !== undefined && { nuits_conservateur: extras.nuitsConservateur }),
       ...(extras?.nuitsOptimiste !== undefined && { nuits_optimiste: extras.nuitsOptimiste }),
       ...(extras?.nbChambres !== undefined && { nb_chambres: extras.nbChambres }),
+      ...(extras?.scenarioComparaisonType !== undefined && { scenario_comparaison_type: extras.scenarioComparaisonType }),
+      ...(extras?.scenarioComparaisonData !== undefined && { scenario_comparaison_data: extras.scenarioComparaisonData }),
     })
     .eq('id', projectId)
   if (error) throw error
@@ -315,6 +319,8 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       nuits_optimiste: project.nuits_optimiste,
       nb_chambres: project.nb_chambres,
       commentaire_travaux: project.commentaire_travaux,
+      scenario_comparaison_type: project.scenario_comparaison_type,
+      scenario_comparaison_data: project.scenario_comparaison_data,
     })
     .select('id')
     .single()
