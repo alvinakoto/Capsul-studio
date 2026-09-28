@@ -26,10 +26,10 @@ function FieldInput({
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor={id} className="whitespace-nowrap">{label}</Label>
         {estimate && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-[11px] text-muted-foreground">Estimation</span>
             <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
           </div>
@@ -137,11 +137,11 @@ export default function BlocD({ state, setField }: Props) {
             {state.is_comptant ? 'Apport' : 'Apport & durée'}
           </CardTitle>
         </CardHeader>
-        <CardContent className={`grid grid-cols-1 gap-4 ${!state.is_comptant ? 'sm:grid-cols-2' : ''}`}>
+        <CardContent className={`grid grid-cols-1 gap-4 ${!state.is_comptant ? 'md:grid-cols-2' : ''}`}>
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="apport">Apport personnel</Label>
-              <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="apport" className="whitespace-nowrap">Apport personnel</Label>
+              <div className="flex rounded-md overflow-hidden border text-xs shrink-0" style={{ borderColor: '#DDD9D0' }}>
                 <button
                   type="button"
                   disabled={state.is_comptant}
@@ -251,7 +251,7 @@ export default function BlocD({ state, setField }: Props) {
           <CardHeader>
             <CardTitle className="text-base">Taux</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FieldInput
               id="taux_interet"
               label="Taux d'intérêt"

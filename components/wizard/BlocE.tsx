@@ -23,10 +23,10 @@ function ChargeInput({
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor={id} className="whitespace-nowrap">{label}</Label>
         {estimate && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-[11px] text-muted-foreground">Estimation</span>
             <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
           </div>
@@ -70,7 +70,7 @@ export default function BlocE({ state, setField }: Props) {
         <CardHeader>
           <CardTitle className="text-base">Charges courantes</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <ChargeInput
             id="taxe_fonciere"
             label="Taxe foncière"
@@ -114,10 +114,10 @@ export default function BlocE({ state, setField }: Props) {
           />
           <ChargeInput
             id="cfe"
-            label="CFE (Cotisation Foncière)"
+            label="CFE"
             value={state.cfe}
             onChange={(v) => setField('cfe', Number(v) || 0)}
-            hint="~300 €/an, exonérée la 1ère année"
+            hint="Cotisation Foncière des Entreprises — ~300 €/an, exonérée la 1ère année"
             estimate={{
               checked: state.cfe_estime,
               onChange: (v) => setField('cfe_estime', v),
@@ -146,7 +146,7 @@ export default function BlocE({ state, setField }: Props) {
             Concerne uniquement la colocation à la chambre et la courte durée (charges incluses au locataire)
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <ChargeInput
             id="electricite_eau"
             label="Électricité & eau"

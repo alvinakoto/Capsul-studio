@@ -29,10 +29,10 @@ function EuroInput({
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor={id} className="whitespace-nowrap">{label}</Label>
         {estimate && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-[11px] text-muted-foreground">Estimation</span>
             <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
           </div>
@@ -68,7 +68,7 @@ function PostesTravaux({
     onChange(selected.includes(id) ? selected.filter((p) => p !== id) : [...selected, id])
 
   return (
-    <div className="sm:col-span-2 space-y-2 pt-2">
+    <div className="md:col-span-2 space-y-2 pt-2">
       <div className="flex items-center justify-between">
         <Label>Postes de travaux</Label>
         {selected.length > 0 && (
@@ -174,7 +174,7 @@ export default function BlocC({ state, setField }: Props) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {state.negociation_envisagee && (
             <EuroInput
               id="prix_affiche_origine"
@@ -191,9 +191,9 @@ export default function BlocC({ state, setField }: Props) {
             onChange={handlePrixAchatChange}
           />
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="frais_notaire">Frais de notaire</Label>
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="frais_notaire" className="whitespace-nowrap">Frais de notaire</Label>
+              <div className="flex items-center gap-3 shrink-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] text-muted-foreground">Estimation</span>
                   <Switch
@@ -265,7 +265,7 @@ export default function BlocC({ state, setField }: Props) {
         <CardHeader>
           <CardTitle className="text-base">Travaux & ameublement</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <EuroInput
             id="travaux"
             label="Budget travaux"
@@ -288,7 +288,7 @@ export default function BlocC({ state, setField }: Props) {
             onChange={(next) => setField('travaux_postes', next)}
             travauxRenseignes={travaux > 0}
           />
-          <div className="sm:col-span-2 space-y-1.5">
+          <div className="md:col-span-2 space-y-1.5">
             <Label htmlFor="commentaire_travaux">Commentaire travaux (optionnel)</Label>
             <Textarea
               id="commentaire_travaux"
@@ -319,11 +319,11 @@ export default function BlocC({ state, setField }: Props) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="frais_agence">Frais d'agence</Label>
-              <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="frais_agence" className="whitespace-nowrap">Frais d'agence</Label>
+              <div className="flex rounded-md overflow-hidden border text-xs shrink-0" style={{ borderColor: '#DDD9D0' }}>
                 <button
                   type="button"
                   onClick={() => setFraisAgenceMode('eur')}

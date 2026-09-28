@@ -159,6 +159,7 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 ### Wizard (WizardShell)
 - Stepper pills custom (plus les `<Tabs>` shadcn visibles) : pills numérotées sur fond `#EDE9E1`, active = fond blanc + border navy
 - CTA "Suivant" = navy, "Enregistrer" = or
+- **Alignement des champs à toggle (BlocC/D/E)** : tout champ dont le label peut être accompagné d'un contrôle (switch "Estimation", toggle €/%) doit avoir `whitespace-nowrap` sur le `<Label>` et `shrink-0` sur le conteneur du toggle — sinon le label wrap sur 2 lignes dès que la colonne devient un peu étroite, décalant l'input vers le bas par rapport à ses voisins de la même ligne de grille. Les grilles `CardContent` de ces 3 blocs utilisent `md:grid-cols-2` (pas `sm:`, trop étroit à 640-768px pour ces libellés+toggles) — **et tout enfant en pleine largeur à l'intérieur (`PostesTravaux`, commentaire travaux) doit utiliser le même seuil de breakpoint pour son `col-span-2`** : un `sm:col-span-2` sur un enfant d'une grille `md:grid-cols-2` force un track de colonne implicite entre 640 et 768px et casse l'alignement de **toute la grille**, pas seulement de cet enfant — bug non visible en lisant le JSX, seulement en testant le rendu réel à une largeur intermédiaire. **Leçon : toujours vérifier que le breakpoint d'un `col-span-N` correspond exactement à celui du `grid-cols-N` parent.**
 
 ## État d'avancement des sprints
 
