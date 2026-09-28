@@ -76,6 +76,8 @@ export async function createProject(
       duree_annees: state.duree_annees,
       taux_interet_pct: state.taux_interet_pct || null,
       taux_assurance_pct: state.taux_assurance_pct,
+      taux_interet_estime: state.taux_interet_estime,
+      taux_assurance_estime: state.taux_assurance_estime,
 
       // Charges
       taxe_fonciere: state.taxe_fonciere || null,
@@ -89,6 +91,10 @@ export async function createProject(
       autres_charges: state.autres_charges,
       charges_copro_estime: state.charges_copro_estime,
       taxe_fonciere_estime: state.taxe_fonciere_estime,
+      assurance_pno_estime: state.assurance_pno_estime,
+      frais_comptabilite_estime: state.frais_comptabilite_estime,
+      cfe_estime: state.cfe_estime,
+      autres_charges_estime: state.autres_charges_estime,
     })
     .select('id')
     .single()
@@ -156,6 +162,8 @@ export async function updateProject(
       duree_annees: state.duree_annees,
       taux_interet_pct: state.taux_interet_pct || null,
       taux_assurance_pct: state.taux_assurance_pct,
+      taux_interet_estime: state.taux_interet_estime,
+      taux_assurance_estime: state.taux_assurance_estime,
 
       taxe_fonciere: state.taxe_fonciere || null,
       charges_copro_annuelles: state.charges_copro_annuelles || null,
@@ -168,6 +176,10 @@ export async function updateProject(
       autres_charges: state.autres_charges,
       charges_copro_estime: state.charges_copro_estime,
       taxe_fonciere_estime: state.taxe_fonciere_estime,
+      assurance_pno_estime: state.assurance_pno_estime,
+      frais_comptabilite_estime: state.frais_comptabilite_estime,
+      cfe_estime: state.cfe_estime,
+      autres_charges_estime: state.autres_charges_estime,
     })
     .eq('id', projectId)
     .eq('charge_id', userId)
@@ -272,6 +284,8 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       duree_annees: project.duree_annees,
       taux_interet_pct: project.taux_interet_pct,
       taux_assurance_pct: project.taux_assurance_pct,
+      taux_interet_estime: project.taux_interet_estime,
+      taux_assurance_estime: project.taux_assurance_estime,
 
       taxe_fonciere: project.taxe_fonciere,
       charges_copro_annuelles: project.charges_copro_annuelles,
@@ -284,6 +298,10 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       autres_charges: project.autres_charges,
       charges_copro_estime: project.charges_copro_estime,
       taxe_fonciere_estime: project.taxe_fonciere_estime,
+      assurance_pno_estime: project.assurance_pno_estime,
+      frais_comptabilite_estime: project.frais_comptabilite_estime,
+      cfe_estime: project.cfe_estime,
+      autres_charges_estime: project.autres_charges_estime,
       frais_gestion_pct: project.frais_gestion_pct,
       concierge_pct: project.concierge_pct,
 

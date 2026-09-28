@@ -96,6 +96,10 @@ export default function BlocE({ state, setField }: Props) {
             label="Assurance PNO"
             value={state.assurance_pno}
             onChange={(v) => setField('assurance_pno', v)}
+            estimate={{
+              checked: state.assurance_pno_estime,
+              onChange: (v) => setField('assurance_pno_estime', v),
+            }}
           />
           <ChargeInput
             id="frais_comptabilite"
@@ -103,6 +107,10 @@ export default function BlocE({ state, setField }: Props) {
             value={state.frais_comptabilite}
             onChange={(v) => setField('frais_comptabilite', v)}
             hint="Recommandé en LMNP réel"
+            estimate={{
+              checked: state.frais_comptabilite_estime,
+              onChange: (v) => setField('frais_comptabilite_estime', v),
+            }}
           />
           <ChargeInput
             id="cfe"
@@ -110,12 +118,20 @@ export default function BlocE({ state, setField }: Props) {
             value={state.cfe}
             onChange={(v) => setField('cfe', Number(v) || 0)}
             hint="~300 €/an, exonérée la 1ère année"
+            estimate={{
+              checked: state.cfe_estime,
+              onChange: (v) => setField('cfe_estime', v),
+            }}
           />
           <ChargeInput
             id="autres_charges"
             label="Autres charges"
             value={state.autres_charges}
             onChange={(v) => setField('autres_charges', Number(v) || 0)}
+            estimate={{
+              checked: state.autres_charges_estime,
+              onChange: (v) => setField('autres_charges_estime', v),
+            }}
           />
         </CardContent>
       </Card>

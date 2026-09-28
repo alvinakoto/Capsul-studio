@@ -5,6 +5,7 @@ import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 
 interface Props {
   state: WizardState
@@ -12,7 +13,7 @@ interface Props {
 }
 
 function FieldInput({
-  id, label, value, onChange, suffix, step = 1, hint,
+  id, label, value, onChange, suffix, step = 1, hint, estimate,
 }: {
   id: string
   label: string
@@ -21,10 +22,19 @@ function FieldInput({
   suffix?: string
   step?: number
   hint?: string
+  estimate?: { checked: boolean; onChange: (v: boolean) => void }
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        {estimate && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground">Estimation</span>
+            <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
+          </div>
+        )}
+      </div>
       <div className="relative">
         <Input
           id={id}
@@ -250,6 +260,10 @@ export default function BlocD({ state, setField }: Props) {
               suffix="%"
               step={0.01}
               hint="Taux nominal annuel hors assurance"
+              estimate={{
+                checked: state.taux_interet_estime,
+                onChange: (v) => setField('taux_interet_estime', v),
+              }}
             />
             <FieldInput
               id="taux_assurance"
@@ -259,6 +273,10 @@ export default function BlocD({ state, setField }: Props) {
               suffix="%"
               step={0.01}
               hint="Optionnel : inclus dans la mensualité si renseigné"
+              estimate={{
+                checked: state.taux_assurance_estime,
+                onChange: (v) => setField('taux_assurance_estime', v),
+              }}
             />
           </CardContent>
         </Card>

@@ -73,6 +73,12 @@ export interface FicheData {
     frais_notaire_estime: boolean | null
     charges_copro_estime: boolean | null
     taxe_fonciere_estime: boolean | null
+    assurance_pno_estime: boolean | null
+    frais_comptabilite_estime: boolean | null
+    cfe_estime: boolean | null
+    autres_charges_estime: boolean | null
+    taux_interet_estime: boolean | null
+    taux_assurance_estime: boolean | null
     negociation_envisagee: boolean | null
     prix_affiche_origine: number | null
     concierge_pct: number | null

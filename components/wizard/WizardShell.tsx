@@ -50,6 +50,8 @@ export interface WizardState {
   duree_annees: number
   taux_interet_pct: number | ''
   taux_assurance_pct: number
+  taux_interet_estime: boolean
+  taux_assurance_estime: boolean
 
   // Bloc E
   taxe_fonciere: number | ''
@@ -63,6 +65,10 @@ export interface WizardState {
   autres_charges: number
   charges_copro_estime: boolean
   taxe_fonciere_estime: boolean
+  assurance_pno_estime: boolean
+  frais_comptabilite_estime: boolean
+  cfe_estime: boolean
+  autres_charges_estime: boolean
 }
 
 export type WizardAction =
@@ -98,6 +104,8 @@ const initialState: WizardState = {
   duree_annees: 20,
   taux_interet_pct: '',
   taux_assurance_pct: 0,
+  taux_interet_estime: true,
+  taux_assurance_estime: true,
 
   taxe_fonciere: '',
   charges_copro_annuelles: '',
@@ -110,6 +118,10 @@ const initialState: WizardState = {
   autres_charges: 0,
   charges_copro_estime: false,
   taxe_fonciere_estime: false,
+  assurance_pno_estime: true,
+  frais_comptabilite_estime: false,
+  cfe_estime: true,
+  autres_charges_estime: false,
 }
 
 function wizardReducer(state: WizardState, action: WizardAction): WizardState {

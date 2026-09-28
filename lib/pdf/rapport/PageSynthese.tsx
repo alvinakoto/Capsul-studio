@@ -161,9 +161,9 @@ export default function PageSynthese({ data }: { data: RapportData }) {
             <>
               <Row label="Capital emprunté" value={euros(capitalEmprunte)} />
               <Row label="Durée du crédit" value={`${project.duree_annees ?? 20} ans`} />
-              <Row label="Taux d'intérêt" value={pct(project.taux_interet_pct ?? 0)} />
+              <Row label={`Taux d'intérêt${project.taux_interet_estime ? ' (estimation)' : ''}`} value={pct(project.taux_interet_pct ?? 0)} />
               {(project.taux_assurance_pct ?? 0) > 0 &&
-                <Row label="Taux assurance" value={pct(project.taux_assurance_pct)} />}
+                <Row label={`Taux assurance${project.taux_assurance_estime ? ' (estimation)' : ''}`} value={pct(project.taux_assurance_pct)} />}
               <Row label="Mensualité crédit" value={euros(mensualiteCredit)} />
               {assuranceMensuelle > 0 && <Row label="Assurance mensuelle" value={euros(assuranceMensuelle)} />}
               <Row label="Mensualité totale" value={euros(mensualiteTotale)} bold />
@@ -193,7 +193,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
               <Row label="Charges annuelles" value={euros(scenarioResult.chargesAnnuelles)} />
               {fraisGestionAnnuel > 0 &&
                 <Row label={`dont frais de gestion (${fraisGestionPct} %)`} value={euros(fraisGestionAnnuel) + ' /an'} muted />}
-              <Row label="dont CFE (exonérée 1ère année)" value={euros(cfeAnnuel) + ' /an'} muted />
+              <Row label={`dont CFE (exonérée 1ère année)${project.cfe_estime ? ', estimation' : ''}`} value={euros(cfeAnnuel) + ' /an'} muted />
               <Row label="Mensualité totale" value={euros(mensualiteTotale)} />
               <Row
                 label="Cash-flow mensuel (avant impôt)"

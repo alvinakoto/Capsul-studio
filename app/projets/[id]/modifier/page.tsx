@@ -41,6 +41,8 @@ function projectToWizardState(p: any): Partial<WizardState> {
     duree_annees:        p.duree_annees ?? 20,
     taux_interet_pct:    p.taux_interet_pct ?? '',
     taux_assurance_pct:  p.taux_assurance_pct ?? 0,
+    taux_interet_estime: p.taux_interet_estime ?? false,
+    taux_assurance_estime: p.taux_assurance_estime ?? false,
 
     taxe_fonciere:            p.taxe_fonciere ?? '',
     charges_copro_annuelles:  p.charges_copro_annuelles ?? '',
@@ -53,6 +55,10 @@ function projectToWizardState(p: any): Partial<WizardState> {
     autres_charges:           p.autres_charges ?? 0,
     charges_copro_estime:     p.charges_copro_estime ?? false,
     taxe_fonciere_estime:     p.taxe_fonciere_estime ?? false,
+    assurance_pno_estime:     p.assurance_pno_estime ?? false,
+    frais_comptabilite_estime: p.frais_comptabilite_estime ?? false,
+    cfe_estime:               p.cfe_estime ?? false,
+    autres_charges_estime:    p.autres_charges_estime ?? false,
   }
 }
 

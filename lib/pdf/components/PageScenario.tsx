@@ -292,14 +292,14 @@ export default function PageScenario({ data, pageNumber }: Props) {
                 : null,
               [`Charges de copropriété${estim(project.charges_copro_estime)}`, `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
               [`Taxe foncière${estim(project.taxe_fonciere_estime)}`, `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
-              ['Assurance PNO', `− ${euros(Math.round((project.assurance_pno ?? 0) / 12))}`],
-              ['Frais de comptabilité', `− ${euros(Math.round((project.frais_comptabilite ?? 0) / 12))}`],
-              ['CFE (exonérée 1ère année)', `− ${euros(cfeMois)}`],
+              [`Assurance PNO${estim(project.assurance_pno_estime)}`, `− ${euros(Math.round((project.assurance_pno ?? 0) / 12))}`],
+              [`Frais de comptabilité${estim(project.frais_comptabilite_estime)}`, `− ${euros(Math.round((project.frais_comptabilite ?? 0) / 12))}`],
+              [`CFE (exonérée 1ère année)${estim(project.cfe_estime)}`, `− ${euros(cfeMois)}`],
               fluidesMois > 0
                 ? ['Charges locatives (élec/eau/internet/chauffage)', `− ${euros(fluidesMois)}`]
                 : null,
               autresChargesMois > 0
-                ? ['Autres charges', `− ${euros(autresChargesMois)}`]
+                ? [`Autres charges${estim(project.autres_charges_estime)}`, `− ${euros(autresChargesMois)}`]
                 : null,
               ['Mensualité crédit', `− ${euros(mensualite)}`],
             ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
@@ -322,7 +322,7 @@ export default function PageScenario({ data, pageNumber }: Props) {
             {[
               ['Apport personnel', euros(project.apport ?? 0)],
               ['Capital emprunté', euros(Math.round(data.capitalEmprunte))],
-              ["Taux d'intérêt", `${(project.taux_interet_pct ?? 0).toString().replace('.', ',')} %`],
+              [`Taux d'intérêt${estim(project.taux_interet_estime)}`, `${(project.taux_interet_pct ?? 0).toString().replace('.', ',')} %`],
               ['Durée', `${project.duree_annees ?? 20} ans`],
             ].map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
