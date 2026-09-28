@@ -317,7 +317,7 @@ export default function PageScenario({ data, pageNumber }: Props) {
           </View>
           {scenarioType === 'courte_duree' && (
             <Text style={[s.cashNote, { marginTop: 6 }]}>
-              Prix par nuit encaissé par la conciergerie, avant déduction de sa commission de gestion (ligne « Conciergerie » ci-dessus).
+              Le prix par nuit correspond au tarif brut, hors commission ; celle-ci est bien déduite dans le calcul ci-dessus.
             </Text>
           )}
 
