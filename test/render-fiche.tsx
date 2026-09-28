@@ -40,6 +40,7 @@ const project: FicheData['project'] = {
   travaux_postes: ['cloisons', 'chambres', 'electricite', 'plomberie', 'salle_de_bain', 'cuisine', 'sols', 'peinture', 'ameublement'],
   mobilier: 11000,
   honoraires_capsul: 13455,
+  honoraires_override: true,
   autres_frais: 0,
   apport: 27000,
   duree_annees: 20,

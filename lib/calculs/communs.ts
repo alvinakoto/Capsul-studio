@@ -9,15 +9,29 @@ import { DonneesProjet, DonneesFinancement, AnneeProjection } from './types'
 // `base` = prix net vendeur (prixAchat - fraisAgence) si fraisAgence renseigné,
 // sinon prixAchat — le pourcentage ne doit pas baisser mécaniquement parce que
 // la négociation ou les frais d'agence ont fait baisser le prix FAI.
+export function calculerDetailHonorairesCapsul(
+  prixAchat: number,
+  travaux: number,
+  fraisAgence?: number
+): { achat: number; travaux: number; total: number; planchAchatActif: boolean } {
+  const base = fraisAgence ? Math.max(prixAchat - fraisAgence, 0) : prixAchat
+  const pctAchat = base * 0.0828
+  const achat = Math.round(Math.max(pctAchat, 8280))
+  const travauxPart = Math.round(travaux * 0.05)
+  return {
+    achat,
+    travaux: travauxPart,
+    total: achat + travauxPart,
+    planchAchatActif: pctAchat < 8280,
+  }
+}
+
 export function calculerHonorairesCapsul(
   prixAchat: number,
   travaux: number,
   fraisAgence?: number
 ): number {
-  const base = fraisAgence ? Math.max(prixAchat - fraisAgence, 0) : prixAchat
-  const honorairesAchat = Math.max(base * 0.0828, 8280)
-  const honorairesTravaux = travaux * 0.05
-  return Math.round(honorairesAchat + honorairesTravaux)
+  return calculerDetailHonorairesCapsul(prixAchat, travaux, fraisAgence).total
 }
 
 // ── Prix du projet total ─────────────────────────────────────

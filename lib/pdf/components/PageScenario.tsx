@@ -4,6 +4,7 @@ import { colors, sizes, common } from '../common/styles'
 import { PdfBackground } from '../common/background'
 import { FicheData } from '../types'
 import { euros, pct, pageNum } from '../helpers'
+import { calculerDetailHonorairesCapsul } from '@/lib/calculs/communs'
 
 const SCENARIO_LABELS: Record<string, string> = {
   lmnp_meuble:  'LMNP Meublé',
@@ -229,7 +230,9 @@ export default function PageScenario({ data, pageNumber }: Props) {
   const fraisNotaire = Math.round(project.prix_achat * (project.frais_notaire_pct / 100))
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
   const estim = (flag: boolean | null | undefined) => (flag ? ' (estimation)' : '')
-  const honoraires = project.honoraires_capsul ?? 0
+  const honorairesOverride = !!project.honoraires_override
+  const detailHonoraires = calculerDetailHonorairesCapsul(project.prix_achat, travaux, project.frais_agence ?? undefined)
+  const honoraires = honorairesOverride ? (project.honoraires_capsul ?? 0) : detailHonoraires.total
   const budgetTotal = project.prix_achat + travaux + mobilier + fraisNotaire + honoraires + (project.autres_frais ?? 0)
 
   return (
@@ -361,12 +364,17 @@ export default function PageScenario({ data, pageNumber }: Props) {
               </Text>
               <Text style={s.tableTdVal}>{euros(project.prix_achat)}</Text>
             </View>
-            {[
+            {([
               [`Travaux de rénovation${estim(project.travaux_estime)}`, euros(travaux)],
               ['Ameublement & équipement', euros(mobilier)],
               [`Frais de notaire (${project.frais_notaire_pct} %${project.frais_notaire_estime ? ', estimation' : ''})`, euros(fraisNotaire)],
-              ['Honoraires Capsul', euros(Math.round(honoraires))],
-            ].map(([k, v], i) => (
+              honorairesOverride
+                ? ['Honoraires Capsul', euros(Math.round(honoraires))]
+                : [`Honoraires sur acquisition (${detailHonoraires.planchAchatActif ? 'min. 8 280 €' : '8,28 %'})`, euros(detailHonoraires.achat)],
+              !honorairesOverride && travaux > 0
+                ? ['Honoraires sur travaux (5 %)', euros(detailHonoraires.travaux)]
+                : null,
+            ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
                 <Text style={s.tableTd}>{k}</Text>
                 <Text style={s.tableTdVal}>{v}</Text>

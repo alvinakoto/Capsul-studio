@@ -3,6 +3,7 @@ import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
 import { euros, pct } from '../helpers'
 import type { RapportData } from '../types'
+import { calculerDetailHonorairesCapsul } from '@/lib/calculs/communs'
 
 const SCENARIO_LABELS: Record<string, string> = {
   lmnp_meuble:  'LMNP Meublé',
@@ -104,6 +105,8 @@ export default function PageSynthese({ data }: { data: RapportData }) {
     : null
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
   const autresFrais = project.autres_frais ?? 0
+  const honorairesOverride = !!project.honoraires_override
+  const detailHonoraires = calculerDetailHonorairesCapsul(project.prix_achat, project.travaux ?? 0, project.frais_agence ?? undefined)
 
   return (
     <Page size="A4" style={s.page}>
@@ -144,7 +147,17 @@ export default function PageSynthese({ data }: { data: RapportData }) {
           {(project.travaux ?? 0) > 0 &&
             <Row label={`Travaux${project.travaux_estime ? ' (estimation)' : ''}`} value={euros(project.travaux)} />}
           {(project.mobilier ?? 0) > 0 && <Row label="Ameublement" value={euros(project.mobilier)} />}
-          {honorairesCapsul > 0 && <Row label="Honoraires Capsul" value={euros(honorairesCapsul)} />}
+          {honorairesOverride
+            ? honorairesCapsul > 0 && <Row label="Honoraires Capsul" value={euros(honorairesCapsul)} />
+            : <>
+                <Row
+                  label={`Honoraires sur acquisition (${detailHonoraires.planchAchatActif ? 'min. 8 280 €' : '8,28 %'})`}
+                  value={euros(detailHonoraires.achat)}
+                />
+                {detailHonoraires.travaux > 0 &&
+                  <Row label="Honoraires sur travaux (5 %)" value={euros(detailHonoraires.travaux)} />}
+              </>
+          }
           {autresFrais > 0 && <Row label="Autres frais" value={euros(autresFrais)} />}
           <Row label="Prix projet total" value={euros(prixProjetTotal)} bold />
           {negociationEnvisagee && (

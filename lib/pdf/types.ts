@@ -52,6 +52,7 @@ export interface FicheData {
     travaux_postes: string[] | null
     mobilier: number | null
     honoraires_capsul: number | null
+    honoraires_override: boolean | null
     autres_frais: number | null
     apport: number | null
     duree_annees: number | null
