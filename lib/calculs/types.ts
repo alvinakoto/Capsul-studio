@@ -11,6 +11,7 @@ export interface DonneesProjet {
   honorairesCapsul?: number     // si null → calculé auto
   honorairesOverride: boolean
   autresFrais: number
+  fraisAgence?: number          // optionnel — si renseigné, honoraires calculés sur (prixAchat - fraisAgence) = prix net vendeur
 }
 
 // Financement (Bloc D)

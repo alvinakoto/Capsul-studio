@@ -70,6 +70,7 @@ export async function createProject(
       frais_notaire_estime: state.frais_notaire_estime,
       negociation_envisagee: state.negociation_envisagee,
       prix_affiche_origine: state.prix_affiche_origine === '' ? null : state.prix_affiche_origine,
+      frais_agence: state.frais_agence === '' ? null : state.frais_agence,
 
       // Financement
       is_comptant: state.is_comptant,
@@ -158,6 +159,7 @@ export async function updateProject(
       frais_notaire_estime: state.frais_notaire_estime,
       negociation_envisagee: state.negociation_envisagee,
       prix_affiche_origine: state.prix_affiche_origine === '' ? null : state.prix_affiche_origine,
+      frais_agence: state.frais_agence === '' ? null : state.frais_agence,
 
       is_comptant: state.is_comptant,
       apport: state.apport === '' ? null : state.apport,
@@ -278,6 +280,7 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       frais_notaire_estime: project.frais_notaire_estime,
       negociation_envisagee: project.negociation_envisagee,
       prix_affiche_origine: project.prix_affiche_origine,
+      frais_agence: project.frais_agence,
 
       is_comptant: project.is_comptant,
       apport: project.apport,

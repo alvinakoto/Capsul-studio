@@ -58,6 +58,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
     honorairesCapsul:   project.honoraires_capsul || 0,
     honorairesOverride: project.honoraires_override,
     autresFrais:        project.autres_frais || 0,
+    fraisAgence:        project.frais_agence || undefined,
   }
 
   const financementData = {

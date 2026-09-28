@@ -69,6 +69,7 @@ const project: FicheData['project'] = {
   taux_assurance_estime: true,
   negociation_envisagee: false,
   prix_affiche_origine: null,
+  frais_agence: null,
   concierge_pct: 20,
   nuits_conservateur: 16,
   nuits_optimiste: 22,

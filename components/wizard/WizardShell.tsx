@@ -44,6 +44,7 @@ export interface WizardState {
   frais_notaire_estime: boolean
   negociation_envisagee: boolean
   prix_affiche_origine: number | ''
+  frais_agence: number | ''            // optionnel — permet de baser les honoraires Capsul sur le prix net vendeur
 
   // Bloc D
   is_comptant: boolean
@@ -100,6 +101,7 @@ const initialState: WizardState = {
   frais_notaire_estime: true,
   negociation_envisagee: true,
   prix_affiche_origine: '',
+  frais_agence: '',
 
   is_comptant: false,
   apport: '',

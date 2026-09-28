@@ -93,6 +93,7 @@ export async function GET(
           honorairesCapsul: project.honoraires_capsul ?? 0,
           honorairesOverride: project.honoraires_override ?? false,
           autresFrais: project.autres_frais ?? 0,
+          fraisAgence: project.frais_agence ?? undefined,
         }
         const financementData = {
           apport: project.apport ?? 0,

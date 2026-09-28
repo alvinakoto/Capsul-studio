@@ -36,6 +36,7 @@ function projectToWizardState(p: any): Partial<WizardState> {
     frais_notaire_estime: p.frais_notaire_estime ?? false,
     negociation_envisagee: p.negociation_envisagee ?? false,
     prix_affiche_origine: p.prix_affiche_origine ?? '',
+    frais_agence:        p.frais_agence ?? '',
 
     is_comptant:         p.is_comptant ?? false,
     apport:              p.apport ?? '',

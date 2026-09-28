@@ -81,6 +81,7 @@ export interface FicheData {
     taux_assurance_estime: boolean | null
     negociation_envisagee: boolean | null
     prix_affiche_origine: number | null
+    frais_agence: number | null
     concierge_pct: number | null
     nuits_conservateur: number | null
     nuits_optimiste: number | null

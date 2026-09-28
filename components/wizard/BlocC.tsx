@@ -9,16 +9,11 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { IconNode } from '@/components/ui/IconNode'
 import { POSTES_TRAVAUX } from '@/lib/data/travaux'
+import { calculerHonorairesCapsul } from '@/lib/calculs/communs'
 
 interface Props {
   state: WizardState
   setField: <K extends keyof WizardState>(field: K, value: WizardState[K]) => void
-}
-
-function calculerHonorairesAuto(prixAchat: number, travaux: number): number {
-  const base = Math.max(Math.round(prixAchat * 0.0828), 8280)
-  const surTravaux = travaux > 0 ? Math.round(travaux * 0.05) : 0
-  return base + surTravaux
 }
 
 function EuroInput({
@@ -123,33 +118,42 @@ function PostesTravaux({
 
 export default function BlocC({ state, setField }: Props) {
   const [fraisNotaireMode, setFraisNotaireMode] = useState<'pct' | 'eur'>('pct')
+  const [fraisAgenceMode, setFraisAgenceMode] = useState<'pct' | 'eur'>('eur')
 
   const prixAchat = Number(state.prix_achat) || 0
   const travaux = Number(state.travaux) || 0
-  const honorairesAuto = prixAchat > 0 ? calculerHonorairesAuto(prixAchat, travaux) : 0
+  const fraisAgence = Number(state.frais_agence) || undefined
+  const honorairesAuto = prixAchat > 0 ? calculerHonorairesCapsul(prixAchat, travaux, fraisAgence) : 0
   const fraisNotaireEuros = prixAchat > 0
     ? Math.round(prixAchat * state.frais_notaire_pct / 100)
     : 0
 
-  // Quand prixAchat ou travaux changent, recalculer les honoraires si pas d'override
+  // Quand prixAchat, travaux ou frais d'agence changent, recalculer les honoraires si pas d'override
   const handlePrixAchatChange = (v: number | '') => {
     setField('prix_achat', v)
     if (!state.honoraires_override && v !== '') {
-      setField('honoraires_capsul', calculerHonorairesAuto(Number(v), travaux))
+      setField('honoraires_capsul', calculerHonorairesCapsul(Number(v), travaux, fraisAgence))
     }
   }
 
   const handleTravauxChange = (v: number | '') => {
     setField('travaux', v)
     if (!state.honoraires_override && prixAchat > 0) {
-      setField('honoraires_capsul', calculerHonorairesAuto(prixAchat, Number(v) || 0))
+      setField('honoraires_capsul', calculerHonorairesCapsul(prixAchat, Number(v) || 0, fraisAgence))
+    }
+  }
+
+  const handleFraisAgenceChange = (v: number | '') => {
+    setField('frais_agence', v)
+    if (!state.honoraires_override && prixAchat > 0) {
+      setField('honoraires_capsul', calculerHonorairesCapsul(prixAchat, travaux, Number(v) || undefined))
     }
   }
 
   const handleOverrideToggle = (checked: boolean) => {
     setField('honoraires_override', checked)
     if (!checked && prixAchat > 0) {
-      setField('honoraires_capsul', calculerHonorairesAuto(prixAchat, travaux))
+      setField('honoraires_capsul', calculerHonorairesCapsul(prixAchat, travaux, fraisAgence))
     }
   }
 
@@ -316,6 +320,64 @@ export default function BlocC({ state, setField }: Props) {
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="frais_agence">Frais d'agence</Label>
+              <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: '#DDD9D0' }}>
+                <button
+                  type="button"
+                  onClick={() => setFraisAgenceMode('eur')}
+                  className="px-2 py-1 transition"
+                  style={{
+                    backgroundColor: fraisAgenceMode === 'eur' ? '#0E2240' : '#F7F5F1',
+                    color: fraisAgenceMode === 'eur' ? '#fff' : '#6E6E73',
+                  }}
+                >€</button>
+                <button
+                  type="button"
+                  onClick={() => prixAchat > 0 && setFraisAgenceMode('pct')}
+                  className="px-2 py-1 transition"
+                  style={{
+                    backgroundColor: fraisAgenceMode === 'pct' ? '#0E2240' : '#F7F5F1',
+                    color: fraisAgenceMode === 'pct' ? '#fff' : prixAchat > 0 ? '#6E6E73' : '#C0BDB7',
+                    borderLeft: '1px solid #DDD9D0',
+                    cursor: prixAchat > 0 ? 'pointer' : 'not-allowed',
+                  }}
+                >%</button>
+              </div>
+            </div>
+            <div className="relative">
+              <Input
+                id="frais_agence"
+                type="number"
+                min={0}
+                value={
+                  fraisAgenceMode === 'eur'
+                    ? state.frais_agence
+                    : (prixAchat > 0 && state.frais_agence !== ''
+                        ? Math.round((Number(state.frais_agence) / prixAchat) * 1000) / 10
+                        : '')
+                }
+                onChange={(e) => {
+                  if (e.target.value === '') { handleFraisAgenceChange(''); return }
+                  const v = Number(e.target.value)
+                  if (fraisAgenceMode === 'eur') {
+                    handleFraisAgenceChange(v)
+                  } else if (prixAchat > 0) {
+                    handleFraisAgenceChange(Math.round((v / 100) * prixAchat))
+                  }
+                }}
+                placeholder="Facultatif"
+                className="pr-8"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                {fraisAgenceMode === 'eur' ? '€' : '%'}
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Facultatif — si connus, les honoraires se basent sur le prix net vendeur (prix − frais d'agence)
+            </p>
+          </div>
           <EuroInput
             id="honoraires"
             label="Honoraires"
@@ -328,7 +390,9 @@ export default function BlocC({ state, setField }: Props) {
             readOnly={!state.honoraires_override}
             hint={
               !state.honoraires_override
-                ? 'MAX(prix × 8,28%, 8 280€) + travaux × 5%'
+                ? fraisAgence
+                  ? 'MAX((prix − frais d\'agence) × 8,28%, 8 280€) + travaux × 5%'
+                  : 'MAX(prix × 8,28%, 8 280€) + travaux × 5%'
                 : 'Montant saisi manuellement'
             }
           />

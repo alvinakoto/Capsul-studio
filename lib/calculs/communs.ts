@@ -5,12 +5,17 @@
 import { DonneesProjet, DonneesFinancement, AnneeProjection } from './types'
 
 // ── Honoraires Capsul ────────────────────────────────────────
-// Formule : MAX(prixAchat × 8,28%, 8 280€) + travaux × 5%
+// Formule : MAX(base × 8,28%, 8 280€) + travaux × 5%
+// `base` = prix net vendeur (prixAchat - fraisAgence) si fraisAgence renseigné,
+// sinon prixAchat — le pourcentage ne doit pas baisser mécaniquement parce que
+// la négociation ou les frais d'agence ont fait baisser le prix FAI.
 export function calculerHonorairesCapsul(
   prixAchat: number,
-  travaux: number
+  travaux: number,
+  fraisAgence?: number
 ): number {
-  const honorairesAchat = Math.max(prixAchat * 0.0828, 8280)
+  const base = fraisAgence ? Math.max(prixAchat - fraisAgence, 0) : prixAchat
+  const honorairesAchat = Math.max(base * 0.0828, 8280)
   const honorairesTravaux = travaux * 0.05
   return Math.round(honorairesAchat + honorairesTravaux)
 }
@@ -27,7 +32,7 @@ export function calculerPrixProjet(projet: DonneesProjet): {
 
   const honorairesCapsul = projet.honorairesOverride && projet.honorairesCapsul
     ? projet.honorairesCapsul
-    : calculerHonorairesCapsul(projet.prixAchat, projet.travaux)
+    : calculerHonorairesCapsul(projet.prixAchat, projet.travaux, projet.fraisAgence)
 
   const prixProjetTotal =
     projet.prixAchat +
