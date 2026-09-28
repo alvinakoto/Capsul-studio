@@ -315,6 +315,11 @@ export default function PageScenario({ data, pageNumber }: Props) {
               </Text>
             </View>
           </View>
+          {scenarioType === 'courte_duree' && (
+            <Text style={[s.cashNote, { marginTop: 6 }]}>
+              Prix par nuit encaissé par la conciergerie, avant déduction de sa commission de gestion (ligne « Conciergerie » ci-dessus).
+            </Text>
+          )}
 
           <View style={s.financementGroup}>
           <Text style={common.secLabel}>Plan de financement</Text>

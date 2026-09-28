@@ -189,6 +189,11 @@ export default function PageSynthese({ data }: { data: RapportData }) {
               <Row label="Revenus annuels bruts" value={euros(scenarioResult.revenusAnnuelsBruts)} />
               {conciergerieAnnuel > 0 &&
                 <Row label={`dont conciergerie (${conciergeriePct} %)`} value={euros(conciergerieAnnuel) + ' /an'} muted />}
+              {scenarioType === 'courte_duree' && (
+                <Text style={{ fontSize: 6, color: colors.muted, fontStyle: 'italic', marginTop: -2, marginBottom: 4 }}>
+                  Prix par nuit encaissé par la conciergerie, avant déduction de sa commission ci-dessus.
+                </Text>
+              )}
               <Row label="Revenus nets perçus" value={euros(scenarioResult.revenusAnnuelsNets)} />
               <Row label="Charges annuelles" value={euros(scenarioResult.chargesAnnuelles)} />
               {fraisGestionAnnuel > 0 &&
