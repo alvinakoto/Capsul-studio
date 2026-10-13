@@ -5,7 +5,7 @@
 import { DonneesProjet, DonneesFinancement, AnneeProjection } from './types'
 
 // ── Honoraires Capsul ────────────────────────────────────────
-// Formule : MAX(base × 8,28%, 8 280€) + travaux × 5%
+// Formule : MAX(base × 8,28%, 8 280€) + travaux × 6% TTC (suivi de chantier, 5% HT — octobre 2026, était 5% TTC)
 // `base` = prix net vendeur (prixAchat - fraisAgence) si fraisAgence renseigné,
 // sinon prixAchat — le pourcentage ne doit pas baisser mécaniquement parce que
 // la négociation ou les frais d'agence ont fait baisser le prix FAI.
@@ -17,7 +17,7 @@ export function calculerDetailHonorairesCapsul(
   const base = fraisAgence ? Math.max(prixAchat - fraisAgence, 0) : prixAchat
   const pctAchat = base * 0.0828
   const achat = Math.round(Math.max(pctAchat, 8280))
-  const travauxPart = Math.round(travaux * 0.05)
+  const travauxPart = Math.round(travaux * 0.06)
   return {
     achat,
     travaux: travauxPart,

@@ -421,7 +421,7 @@ export default function PageScenario({ data, pageNumber }: Props) {
                 ? ['Honoraires Capsul', euros(Math.round(honoraires))]
                 : [`Honoraires sur acquisition (${detailHonoraires.planchAchatActif ? 'min. 8 280 €' : '8,28 %'})`, euros(detailHonoraires.achat)],
               !honorairesOverride && travaux > 0
-                ? ['Honoraires sur travaux (5 %)', euros(detailHonoraires.travaux)]
+                ? ['Honoraires sur travaux (6 %)', euros(detailHonoraires.travaux)]
                 : null,
             ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
               <View key={i} style={s.tableRow}>

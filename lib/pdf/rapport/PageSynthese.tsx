@@ -155,7 +155,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
                   value={euros(detailHonoraires.achat)}
                 />
                 {detailHonoraires.travaux > 0 &&
-                  <Row label="Honoraires sur travaux (5 %)" value={euros(detailHonoraires.travaux)} />}
+                  <Row label="Honoraires sur travaux (6 %)" value={euros(detailHonoraires.travaux)} />}
               </>
           }
           {autresFrais > 0 && <Row label="Autres frais" value={euros(autresFrais)} />}
