@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { calculerMensualite } from '@/lib/calculs/communs'
 
 type Project = {
   id: string
@@ -24,13 +25,6 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; 
   simulation: { label: 'Simulation', bg: 'rgba(201,148,58,0.12)', color: '#A67828', dot: '#C9943A' },
   validated:  { label: 'Validé',     bg: 'rgba(14,34,64,0.08)', color: '#0E2240', dot: '#0E2240' },
   archived:   { label: 'Archivé',    bg: '#F0EDE7', color: '#9E9E9E', dot: '#9E9E9E' },
-}
-
-function calculerMensualite(capital: number, tauxPct: number, duree: number): number {
-  const t = tauxPct / 100 / 12
-  const n = duree * 12
-  if (t === 0) return Math.round(capital / n)
-  return Math.round(capital * t / (1 - Math.pow(1 + t, -n)))
 }
 
 function euros(n: number) {

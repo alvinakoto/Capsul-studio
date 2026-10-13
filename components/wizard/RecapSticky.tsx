@@ -1,15 +1,9 @@
 'use client'
 
 import { WizardState } from './WizardShell'
+import { calculerHonorairesCapsul, calculerMensualite } from '@/lib/calculs/communs'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function calculerMensualite(capital: number, tauxPct: number, duree: number): number {
-  const t = tauxPct / 100 / 12
-  const n = duree * 12
-  if (t === 0) return Math.round(capital / n)
-  return Math.round(capital * t / (1 - Math.pow(1 + t, -n)))
-}
 
 // Ce que la banque accepte de financer : prix achat + travaux
 function calculerMontantFinancable(s: WizardState): number {
@@ -25,8 +19,7 @@ function calculerPrixProjet(s: WizardState): number {
   const mobilier = Number(s.mobilier) || 0
   let honoraires = Number(s.honoraires_capsul) || 0
   if (!s.honoraires_override) {
-    honoraires = Math.max(Math.round(prixAchat * 0.0828), 8280)
-    if (travaux > 0) honoraires += Math.round(travaux * 0.05)
+    honoraires = calculerHonorairesCapsul(prixAchat, travaux, Number(s.frais_agence) || undefined)
   }
   return (
     prixAchat + fraisNotaire + travaux + mobilier + honoraires +

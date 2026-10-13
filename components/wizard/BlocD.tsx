@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { WizardState } from './WizardShell'
+import { calculerHonorairesCapsul } from '@/lib/calculs/communs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -65,7 +66,9 @@ function calculerPrixProjetTotal(state: WizardState): number {
   const fraisNotaire = Math.round(prixAchat * state.frais_notaire_pct / 100)
   const honoraires = state.honoraires_override && state.honoraires_capsul
     ? Number(state.honoraires_capsul) || 0
-    : Math.max(Math.round(prixAchat * 0.0828), prixAchat > 0 ? 8280 : 0) + Math.round(travaux * 0.05)
+    : prixAchat > 0
+      ? calculerHonorairesCapsul(prixAchat, travaux, Number(state.frais_agence) || undefined)
+      : 0
   return prixAchat + fraisNotaire + travaux + mobilier + honoraires + state.autres_frais
 }
 

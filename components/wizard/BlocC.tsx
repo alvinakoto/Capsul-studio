@@ -391,8 +391,8 @@ export default function BlocC({ state, setField }: Props) {
             hint={
               !state.honoraires_override
                 ? fraisAgence
-                  ? 'MAX((prix − frais d\'agence) × 8,28%, 8 280€) + travaux × 5%'
-                  : 'MAX(prix × 8,28%, 8 280€) + travaux × 5%'
+                  ? 'MAX((prix − frais d\'agence) × 8,28%, 8 280€) + travaux × 6%'
+                  : 'MAX(prix × 8,28%, 8 280€) + travaux × 6%'
                 : 'Montant saisi manuellement'
             }
           />

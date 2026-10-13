@@ -9,6 +9,7 @@ import { fetchChargeContact } from '@/lib/supabase/charge'
 import { nomFichierProjet, contentDisposition } from '@/lib/pdf/common/filename'
 import FicheCommerciale from '@/lib/pdf/FicheCommerciale'
 import { calculerScenario } from '@/lib/calculs/index'
+import { calculerMensualite } from '@/lib/calculs/communs'
 import { findVille, hasVilleInfos } from '@/lib/data/villes'
 import { getPostesTravaux } from '@/lib/data/travaux'
 import type { FicheData } from '@/lib/pdf/types'
@@ -179,9 +180,7 @@ export async function GET(
         : Math.max(0, montantFinancable - (project.apport ?? 0))
 
       if (!project.is_comptant && project.taux_interet_pct && capitalEmprunte > 0) {
-        const t = project.taux_interet_pct / 100 / 12
-        const n = (project.duree_annees ?? 20) * 12
-        mensualiteTotale = Math.round(capitalEmprunte * t / (1 - Math.pow(1 + t, -n)))
+        mensualiteTotale = calculerMensualite(capitalEmprunte, project.taux_interet_pct, project.duree_annees ?? 20)
         if (project.taux_assurance_pct) {
           mensualiteTotale += Math.round(capitalEmprunte * project.taux_assurance_pct / 100 / 12)
         }
