@@ -8,6 +8,9 @@ import { FicheData } from '../types'
 import { nombre, pct, pageNum } from '../helpers'
 
 const HERO_H = 290
+// Le bandeau est resserré quand une carte est présente, pour lui laisser assez
+// de hauteur pour s'afficher entière (sans rognage) dans l'encart dédié.
+const HERO_H_AVEC_CARTE = 125
 
 const s = StyleSheet.create({
   page: {
@@ -18,12 +21,10 @@ const s = StyleSheet.create({
   // ─── Bandeau ville ────────────────────────────────────────────────────────
   hero: {
     position: 'relative',
-    height: HERO_H,
     backgroundColor: colors.navy,
   },
   heroPhoto: {
     width: '100%',
-    height: HERO_H,
     objectFit: 'cover',
   },
   heroCaption: {
@@ -111,6 +112,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     marginTop: 28,
+    // stretch (comportement par défaut) : les deux encarts s'alignent sur la
+    // hauteur du plus grand des deux, fond compris — voulu pour la carte, qui
+    // comble ainsi l'espace plutôt que de laisser un vide à côté de l'encart
+    // voisin plus haut.
   },
   investirBox: {
     flex: 1,
@@ -158,6 +163,22 @@ const s = StyleSheet.create({
     fontWeight: 400,
     color: colors.navy,
     lineHeight: 1.32,
+  },
+
+  // ─── Carte des quartiers (dans l'encart, à la place des chips de noms) ────
+  // Largeur pilotée (pleine largeur de l'encart), hauteur déduite du ratio
+  // réel de l'image : jamais de rognage, et le bandeau ville est resserré
+  // (HERO_H_AVEC_CARTE) pour lui laisser la place de s'afficher en entier.
+  // `overflow: hidden` reste un filet de sécurité (cf. leçon « débordement
+  // silencieux » du CLAUDE.md : sans lui, un dépassement de hauteur ne clippe
+  // pas visuellement, il se retrouve sur une page suivante quasi vide).
+  carteFrame: {
+    marginTop: 8,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  carteImage: {
+    width: '100%',
   },
 
   // ─── Tuiles chiffres clés ─────────────────────────────────────────────────
@@ -288,7 +309,7 @@ interface Tile {
 
 export default function PageVille({ data, pageNumber }: Props) {
   const {
-    project, villeNom, villeInfos, villePhotoPath, chargeNom,
+    project, villeNom, villeInfos, villePhotoPath, villeCartePath, chargeNom,
     villeAireAttraction, villeCroissanceDemographiquePct, villeQuartiers, villeProjetsAVenir,
   } = data
   const infos = villeInfos ?? {}
@@ -316,7 +337,9 @@ export default function PageVille({ data, pageNumber }: Props) {
     villeCroissanceDemographiquePct !== null ? `Croissance démo. : ${croissanceLabel(villeCroissanceDemographiquePct)}` : null,
   ].filter((p): p is string => p !== null)
 
-  const hasInvestir = villeQuartiers.length > 0 || villeProjetsAVenir.length > 0
+  const heroH = villeCartePath ? HERO_H_AVEC_CARTE : HERO_H
+  const hasQuartiers = villeQuartiers.length > 0 || !!villeCartePath
+  const hasInvestir = hasQuartiers || villeProjetsAVenir.length > 0
 
   const hasPrix = infos.prixM2Min !== undefined || infos.prixM2Max !== undefined
   const prixLabel =
@@ -349,10 +372,10 @@ export default function PageVille({ data, pageNumber }: Props) {
       </View>
 
       {/* Bandeau : photo + légende, ou composition typographique */}
-      <View style={s.hero}>
+      <View style={[s.hero, { height: heroH }]}>
         {villePhotoPath ? (
           <>
-            <Image src={villePhotoPath} style={s.heroPhoto} />
+            <Image src={villePhotoPath} style={[s.heroPhoto, { height: heroH }]} />
             <View style={s.heroCaption}>{caption}</View>
           </>
         ) : (
@@ -427,14 +450,22 @@ export default function PageVille({ data, pageNumber }: Props) {
         {/* Où investir : quartiers à cibler / projets à venir */}
         {hasInvestir && (
           <View style={s.investirRow}>
-            {villeQuartiers.length > 0 && (
+            {hasQuartiers && (
               <View style={s.investirBox}>
-                <Text style={common.secLabel}>Quelques quartiers de {villeNom}</Text>
-                <View style={s.quartiersWrap}>
-                  {villeQuartiers.map((q) => (
-                    <Text key={q} style={s.quartierChip}>{q}</Text>
-                  ))}
-                </View>
+                <Text style={common.secLabel}>
+                  {villeCartePath ? `Les quartiers de ${villeNom}` : `Quelques quartiers de ${villeNom}`}
+                </Text>
+                {villeCartePath ? (
+                  <View style={s.carteFrame} wrap={false}>
+                    <Image src={villeCartePath} style={s.carteImage} />
+                  </View>
+                ) : (
+                  <View style={s.quartiersWrap}>
+                    {villeQuartiers.map((q) => (
+                      <Text key={q} style={s.quartierChip}>{q}</Text>
+                    ))}
+                  </View>
+                )}
               </View>
             )}
 

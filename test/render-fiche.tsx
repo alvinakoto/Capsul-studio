@@ -87,6 +87,8 @@ const r = calculerScenario(
 const base: FicheData = {
   project,
   chargeNom: 'Alvin Akoto',
+  chargeEmail: 'a.akoto@capsul-france.com',
+  chargeTelephone: '06 12 34 56 78',
   coverPhotoUrl: null,
   mainPhotoUrl: null,
   mainPhotoLegende: null,
@@ -102,6 +104,7 @@ const base: FicheData = {
   villeNom: 'Reims',
   villeInfos: findVille('Reims')?.infos ?? null,
   villePhotoPath: null,
+  villeCartePath: null,
   villeAireAttraction: findVille('Reims')?.aireAttraction ?? null,
   villeCroissanceDemographiquePct: findVille('Reims')?.croissanceDemographiquePct ?? null,
   villeQuartiers: findVille('Reims')?.quartiers ?? [],

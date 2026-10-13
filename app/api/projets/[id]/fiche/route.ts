@@ -4,7 +4,8 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import React from 'react'
 import { registerFonts } from '@/lib/pdf/common/fonts'
-import { findVillePhotoPath } from '@/lib/pdf/common/villePhoto'
+import { findVillePhotoPath, findVilleCartePath } from '@/lib/pdf/common/villePhoto'
+import { fetchChargeContact } from '@/lib/supabase/charge'
 import { nomFichierProjet, contentDisposition } from '@/lib/pdf/common/filename'
 import FicheCommerciale from '@/lib/pdf/FicheCommerciale'
 import { calculerScenario } from '@/lib/calculs/index'
@@ -46,13 +47,8 @@ export async function GET(
     }
 
     // ─── Fetch chargé ────────────────────────────────────────────────────────
-    const { data: charge } = await supabase
-      .from('users')
-      .select('full_name')
-      .eq('id', project.charge_id)
-      .single()
-
-    const chargeNom = charge?.full_name ?? 'Capsul'
+    const charge = await fetchChargeContact(supabase, project.charge_id)
+    const chargeNom = charge.nom
 
     // ─── Fetch photos ────────────────────────────────────────────────────────
     const { data: photos } = await supabase
@@ -198,12 +194,15 @@ export async function GET(
     const villeInfosRaw = project.ville_infos ?? ville?.infos ?? null
     const villeInfos = hasVilleInfos(villeInfosRaw) ? villeInfosRaw : null
     const villePhotoPath = findVillePhotoPath(ville?.slug)
+    const villeCartePath = findVilleCartePath(ville?.slug)
     const travauxPostes = getPostesTravaux(project.travaux_postes)
 
     // ─── Assemblage des données ──────────────────────────────────────────────
     const ficheData: FicheData = {
       project,
       chargeNom,
+      chargeEmail: charge.email,
+      chargeTelephone: charge.telephone,
       coverPhotoUrl,
       mainPhotoUrl: mainPhoto?.public_url ?? null,
       mainPhotoLegende: mainPhoto?.legende ?? null,
@@ -219,6 +218,7 @@ export async function GET(
       villeNom,
       villeInfos,
       villePhotoPath,
+      villeCartePath,
       villeAireAttraction: ville?.aireAttraction ?? null,
       villeCroissanceDemographiquePct: ville?.croissanceDemographiquePct ?? null,
       villeQuartiers: ville?.quartiers ?? [],

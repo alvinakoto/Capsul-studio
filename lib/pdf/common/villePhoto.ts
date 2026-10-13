@@ -18,3 +18,17 @@ export function findVillePhotoPath(slug: string | null | undefined): string | nu
   }
   return null
 }
+
+/**
+ * Carte des quartiers de la ville : public/villes/cartes/<slug>.(jpg|jpeg|png).
+ * Null si aucune carte n'est déposée : la page « La ville » reste alors inchangée.
+ */
+export function findVilleCartePath(slug: string | null | undefined): string | null {
+  if (!slug) return null
+  const dir = path.join(process.cwd(), 'public', 'villes', 'cartes')
+  for (const ext of EXTENSIONS) {
+    const candidate = path.join(dir, `${slug}.${ext}`)
+    if (fs.existsSync(candidate)) return candidate
+  }
+  return null
+}

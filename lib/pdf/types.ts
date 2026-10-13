@@ -89,6 +89,8 @@ export interface FicheData {
     commentaire_travaux: string | null
   }
   chargeNom: string
+  chargeEmail: string | null
+  chargeTelephone: string | null
   coverPhotoUrl: string | null
   mainPhotoUrl: string | null
   mainPhotoLegende: string | null
@@ -106,6 +108,7 @@ export interface FicheData {
   villeNom: string                   // nom canonique du dataset si reconnu, sinon project.city
   villeInfos: VilleInfos | null
   villePhotoPath: string | null      // chemin fs public/villes/<slug>.jpg si le fichier existe
+  villeCartePath: string | null      // carte des quartiers : public/villes/cartes/<slug>.(jpg|png) si le fichier existe
 
   // Page « La ville » — champs dataset uniquement (lib/data/villes.ts), jamais
   // éditables par projet ; null/vide si non renseigné pour la ville

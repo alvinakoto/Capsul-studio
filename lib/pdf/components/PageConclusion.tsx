@@ -76,6 +76,40 @@ const s = StyleSheet.create({
     textDecoration: 'none',
   },
 
+  // ─── Contact du chargé ────────────────────────────────────────────────────
+  contact: {
+    marginTop: 34,
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingLeft: 16,
+    paddingRight: 16,
+    maxWidth: 300,
+    borderLeftWidth: 2.5,
+    borderLeftColor: colors.gold,
+    borderLeftStyle: 'solid',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  contactLabel: {
+    fontSize: 6.5,
+    fontWeight: 700,
+    letterSpacing: 1.8,
+    color: '#b6cbe0',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  contactName: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: colors.white,
+    marginBottom: 6,
+  },
+  contactLine: {
+    fontSize: 9,
+    fontWeight: 400,
+    color: '#b6cbe0',
+    lineHeight: 1.7,
+  },
+
   // ─── Footer ───────────────────────────────────────────────────────────────
   footer: {
     paddingTop: 10,
@@ -120,7 +154,7 @@ interface Props {
 }
 
 export default function PageConclusion({ data }: Props) {
-  const { chargeNom } = data
+  const { chargeNom, chargeEmail, chargeTelephone } = data
   const annee = new Date().getFullYear()
 
   return (
@@ -141,6 +175,13 @@ export default function PageConclusion({ data }: Props) {
 
         <Text style={s.linkLabel}>Découvrez nos réalisations</Text>
         <Link src={SITE_URL} style={s.link}>capsul-france.com</Link>
+
+        <View style={s.contact}>
+          <Text style={s.contactLabel}>Votre interlocuteur</Text>
+          <Text style={s.contactName}>{chargeNom}</Text>
+          {chargeEmail ? <Text style={s.contactLine}>{chargeEmail}</Text> : null}
+          {chargeTelephone ? <Text style={s.contactLine}>{chargeTelephone}</Text> : null}
+        </View>
       </View>
 
       <View style={s.footer}>

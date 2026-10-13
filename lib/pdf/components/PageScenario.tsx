@@ -158,18 +158,22 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 6,
   },
+  // 16pt (et non 22pt comme les KPI du bandeau) : à cette taille, « Effort de
+  // X €/mois » tient sur une seule ligne dans la largeur de l'encart pour les
+  // montants réalistes (jusqu'à 4 chiffres) — à 22pt le texte retombait à la
+  // ligne, cf. retour Alvin.
   cashValuePos: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: 900,
     color: '#246b3e',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
     marginBottom: 5,
   },
   cashValueNeg: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: 900,
     color: colors.negRed,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
     marginBottom: 5,
   },
   cashNote: {
@@ -177,6 +181,51 @@ const s = StyleSheet.create({
     fontWeight: 300,
     color: colors.muted,
     lineHeight: 1.6,
+  },
+  compareBox: {
+    marginTop: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: 14,
+    paddingBottom: 14,
+    borderWidth: 1.2,
+    borderColor: colors.navy,
+    borderStyle: 'solid',
+    borderRadius: 4,
+  },
+  compareLabel: {
+    fontSize: 5.5,
+    fontWeight: 700,
+    letterSpacing: 1.5,
+    color: colors.goldDeep,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  compareTitle: {
+    fontSize: 11,
+    fontWeight: 900,
+    color: colors.navy,
+    marginBottom: 10,
+  },
+  compareRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingTop: 5,
+    paddingBottom: 5,
+    borderTopWidth: 0.5,
+    borderTopColor: colors.rule,
+    borderTopStyle: 'solid',
+  },
+  compareKey: {
+    fontSize: 8,
+    fontWeight: 300,
+    color: colors.ink,
+  },
+  compareVal: {
+    fontSize: 11,
+    fontWeight: 900,
+    color: colors.navy,
   },
   financementGroup: {
     marginTop: 16,
@@ -408,16 +457,31 @@ export default function PageScenario({ data, pageNumber }: Props) {
                     {`Scénario optimiste (${nuitsOptimiste} nuits/mois) : cash-flow de ${cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(cashflowOptimiste)))}/mois`}
                   </Text>
                 )}
-                {data.comparaison && (
-                  <Text style={[s.cashNote, { marginTop: 4 }]}>
-                    {`À titre de comparaison, en ${SCENARIO_LABELS[data.comparaison.type] ?? data.comparaison.type} : cash-flow de ${data.comparaison.cashflowMensuel >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(data.comparaison.cashflowMensuel)))}/mois (${pct(data.comparaison.rentabiliteBrutePct, 1)} brut)`}
-                  </Text>
-                )}
               </>
             ) : (
               <Text style={s.cashNote}>Renseignez un scénario pour calculer le cash-flow.</Text>
             )}
           </View>
+
+          {/* Second scénario : encart dédié */}
+          {data.comparaison && (
+            <View style={s.compareBox}>
+              <Text style={s.compareLabel}>Second scénario, à titre de comparaison</Text>
+              <Text style={s.compareTitle}>
+                {SCENARIO_LABELS[data.comparaison.type] ?? data.comparaison.type}
+              </Text>
+              <View style={s.compareRow}>
+                <Text style={s.compareKey}>Cash-flow mensuel</Text>
+                <Text style={s.compareVal}>
+                  {(data.comparaison.cashflowMensuel >= 0 ? '+ ' : '− ') + euros(Math.abs(Math.round(data.comparaison.cashflowMensuel)))}
+                </Text>
+              </View>
+              <View style={s.compareRow}>
+                <Text style={s.compareKey}>Rentabilité brute</Text>
+                <Text style={s.compareVal}>{pct(data.comparaison.rentabiliteBrutePct, 1)}</Text>
+              </View>
+            </View>
+          )}
         </View>
 
       </View>
