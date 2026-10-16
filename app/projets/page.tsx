@@ -1,20 +1,15 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { Skeleton } from '@/components/ui/skeleton'
 import ProjectCard from '@/components/projects/ProjectCard'
+import { STATUS_ORDER, statusConfig } from '@/components/projects/status'
 import { getProjects } from '@/lib/supabase/projects'
 
 const PAGE_SIZE = 6
-
-const STATUS_OPTIONS = [
-  { value: 'draft',      label: 'Brouillon',  dot: '#6E6E73' },
-  { value: 'simulation', label: 'Simulation',  dot: '#C9943A' },
-  { value: 'validated',  label: 'Validé',      dot: '#0E2240' },
-  { value: 'archived',   label: 'Archivé',     dot: '#9E9E9E' },
-]
 
 export default function ProjetsPage() {
   const [projects, setProjects]     = useState<any[]>([])
@@ -82,270 +77,179 @@ export default function ProjetsPage() {
   const handleStatus = (v: string) => { setFilterStatus(prev => prev === v ? null : v); setShowCount(PAGE_SIZE) }
   const handleType   = (v: string) => { setFilterType(prev => prev === v ? null : v); setShowCount(PAGE_SIZE) }
 
-  return (
-    <div className="max-w-5xl mx-auto px-8 py-10">
+  // Nombre de projets par statut (affiché dans les filtres)
+  const countByStatus = useMemo(() => {
+    const m: Record<string, number> = {}
+    projects.forEach(p => { m[p.status] = (m[p.status] ?? 0) + 1 })
+    return m
+  }, [projects])
 
-      {/* Header */}
-      <div className="flex items-end justify-between mb-8">
+  const NouveauProjet = (
+    <Link href="/projets/nouveau" className="cs-btn cs-btn-primary h-10 px-4">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Nouveau projet
+    </Link>
+  )
+
+  return (
+    <div className="max-w-[1180px] mx-auto px-4 md:px-10 py-8">
+      {/* En-tête */}
+      <div className="flex items-end justify-between gap-5 flex-wrap">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] mb-1" style={{ color: '#C9943A' }}>
-            Capsul Studio
-          </p>
-          <h1 className="text-[26px] font-bold tracking-tight" style={{ color: '#0E2240' }}>
-            Mes projets
-          </h1>
+          <p className="cs-eyebrow">Capsul Studio</p>
+          <h1 className="cs-h1 mt-1.5">Mes projets</h1>
           {!loading && (
-            <p className="text-sm mt-1" style={{ color: '#6E6E73' }}>
+            <p className="text-[13.5px] mt-1" style={{ color: 'var(--cs-mist)' }}>
               {projects.length === 0
                 ? 'Aucun projet pour le moment'
                 : `${projects.length} projet${projects.length > 1 ? 's' : ''} en portefeuille`}
             </p>
           )}
         </div>
-        <button
-          onClick={() => router.push('/projets/nouveau')}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
-          style={{ backgroundColor: '#0E2240', color: '#fff' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#162F56' }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0E2240' }}
-        >
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-          Nouveau projet
-        </button>
+        {NouveauProjet}
       </div>
 
-      {/* Barre de recherche + filtres */}
+      {/* Recherche + filtres */}
       {!loading && projects.length > 0 && (
-        <div className="mb-6 space-y-3">
-
-          {/* Recherche */}
-          <div className="relative">
-            <svg
-              width="15" height="15" viewBox="0 0 15 15" fill="none"
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-              style={{ color: '#6E6E73' }}
-            >
-              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4"/>
-              <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Rechercher par nom, ville, adresse…"
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm outline-none transition-all"
-              style={{
-                backgroundColor: '#fff',
-                border: '1px solid #DDD9D0',
-                color: '#1C1C1E',
-              }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14,34,64,0.07)' }}
-              onBlur={(e)  => { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.boxShadow = 'none' }}
-            />
-            {search && (
-              <button
-                onClick={() => handleSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 transition-colors"
-                style={{ color: '#9E9E9E' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#1C1C1E' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#9E9E9E' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {/* Filtres pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.08em] mr-1" style={{ color: '#9E9E9E' }}>
-              Statut
-            </span>
-            {STATUS_OPTIONS.map(opt => {
-              const active = filterStatus === opt.value
-              return (
+        <div className="mt-7 space-y-3">
+          <div className="flex gap-3 flex-wrap items-center">
+            <div className="relative flex-[1_1_280px]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--cs-mist)' }} aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Rechercher par nom, ville, adresse…"
+                aria-label="Rechercher un projet"
+                className="cs-input pl-10 pr-10 font-medium text-[13.5px]"
+                style={{ color: 'var(--cs-ink)', borderRadius: 11 }}
+              />
+              {search && (
                 <button
-                  key={opt.value}
-                  onClick={() => handleStatus(opt.value)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all"
-                  style={{
-                    backgroundColor: active ? '#0E2240' : '#fff',
-                    color: active ? '#fff' : '#6E6E73',
-                    border: `1px solid ${active ? '#0E2240' : '#DDD9D0'}`,
-                  }}
-                  onMouseEnter={(e) => { if (!active) { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.color = '#0E2240' } }}
-                  onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.color = '#6E6E73' } }}
+                  onClick={() => handleSearch('')}
+                  aria-label="Effacer la recherche"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-[var(--cs-ivory)]"
+                  style={{ color: 'var(--cs-mist)' }}
                 >
-                  <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: active ? '#fff' : opt.dot }}
-                  />
-                  {opt.label}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
-              )
-            })}
+              )}
+            </div>
 
-            {typeOptions.length > 0 && (
-              <>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] ml-2 mr-1" style={{ color: '#9E9E9E' }}>
-                  Type
-                </span>
-                {typeOptions.map(type => {
-                  const active = filterType === type
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => handleType(type)}
-                      className="px-3 py-1 rounded-full text-[12px] font-medium transition-all"
-                      style={{
-                        backgroundColor: active ? '#0E2240' : '#fff',
-                        color: active ? '#fff' : '#6E6E73',
-                        border: `1px solid ${active ? '#0E2240' : '#DDD9D0'}`,
-                      }}
-                      onMouseEnter={(e) => { if (!active) { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.color = '#0E2240' } }}
-                      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.color = '#6E6E73' } }}
-                    >
-                      {type}
-                    </button>
-                  )
-                })}
-              </>
-            )}
-
-            {hasFilters && (
-              <button
-                onClick={clearFilters}
-                className="ml-auto text-[11px] font-medium flex items-center gap-1 transition-colors"
-                style={{ color: '#9E9E9E' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#1C1C1E' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#9E9E9E' }}
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                </svg>
-                Effacer les filtres
-              </button>
-            )}
+            <div className="flex flex-wrap gap-0.5 p-1 rounded-[11px] bg-white" style={{ border: '1px solid var(--cs-line)' }} role="group" aria-label="Filtrer par statut">
+              <FilterButton active={!filterStatus} onClick={() => { setFilterStatus(null); setShowCount(PAGE_SIZE) }} label="Tous" count={projects.length} />
+              {STATUS_ORDER.filter(s => countByStatus[s]).map(s => (
+                <FilterButton key={s} active={filterStatus === s} onClick={() => handleStatus(s)} label={statusConfig(s).label} count={countByStatus[s]} />
+              ))}
+            </div>
           </div>
 
-          {/* Résumé des résultats quand filtré */}
-          {hasFilters && (
-            <p className="text-[12px]" style={{ color: '#6E6E73' }}>
-              {filtered.length === 0
-                ? 'Aucun résultat'
-                : `${filtered.length} résultat${filtered.length > 1 ? 's' : ''}`}
-            </p>
+          {(typeOptions.length > 1 || hasFilters) && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {typeOptions.length > 1 && (
+                <>
+                  <span className="cs-label mr-1">Type</span>
+                  {typeOptions.map(type => {
+                    const active = filterType === type
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => handleType(type)}
+                        aria-pressed={active}
+                        className="rounded-full px-3 py-[5px] text-[12px] font-semibold transition-colors"
+                        style={{
+                          border: `1px solid ${active ? 'var(--cs-navy)' : 'var(--cs-line)'}`,
+                          backgroundColor: active ? '#EEF1F5' : '#fff',
+                          color: active ? 'var(--cs-navy)' : 'var(--cs-mist)',
+                        }}
+                      >
+                        {type}
+                      </button>
+                    )
+                  })}
+                </>
+              )}
+              {hasFilters && (
+                <span className="ml-auto flex items-center gap-3 text-[12px]" style={{ color: 'var(--cs-mist)' }}>
+                  {filtered.length === 0 ? 'Aucun résultat' : `${filtered.length} résultat${filtered.length > 1 ? 's' : ''}`}
+                  <button onClick={clearFilters} className="cs-link text-[12px]">Effacer les filtres</button>
+                </span>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      {/* Skeletons */}
+      {/* Squelettes */}
       {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-52 rounded-xl" style={{ backgroundColor: '#EDE9E1' }} />
+            <Skeleton key={i} className="h-[300px] rounded-[14px]" style={{ backgroundColor: 'var(--cs-stone)' }} />
           ))}
         </div>
       )}
 
-      {/* Empty state — aucun projet */}
+      {/* Aucun projet */}
       {!loading && projects.length === 0 && (
-        <div
-          className="rounded-xl border-2 border-dashed py-20 text-center"
-          style={{ borderColor: '#DDD9D0' }}
-        >
-          <div
-            className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ backgroundColor: '#EDE9E1' }}
-          >
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <rect x="2" y="2" width="8" height="8" rx="2" stroke="#0E2240" strokeWidth="1.6"/>
-              <rect x="12" y="2" width="8" height="8" rx="2" stroke="#0E2240" strokeWidth="1.6"/>
-              <rect x="2" y="12" width="8" height="8" rx="2" stroke="#0E2240" strokeWidth="1.6"/>
-              <rect x="12" y="12" width="8" height="8" rx="2" stroke="#0E2240" strokeWidth="1.6"/>
-            </svg>
+        <div className="mt-8 rounded-[14px] border-2 border-dashed py-20 px-6 text-center" style={{ borderColor: 'var(--cs-line)' }}>
+          <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: 'var(--cs-stone)' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cs-navy)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg>
           </div>
-          <p className="font-semibold mb-1" style={{ color: '#1C1C1E' }}>Aucun projet pour l'instant</p>
-          <p className="text-sm mb-6" style={{ color: '#6E6E73' }}>Créez votre première analyse pour commencer.</p>
-          <button
-            onClick={() => router.push('/projets/nouveau')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
-            style={{ backgroundColor: '#0E2240', color: '#fff' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#162F56' }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0E2240' }}
-          >
-            + Nouveau projet
-          </button>
+          <p className="cs-h3">Aucun projet pour l’instant</p>
+          <p className="cs-sub mt-1 mb-6">Créez votre première analyse pour commencer.</p>
+          {NouveauProjet}
         </div>
       )}
 
-      {/* Empty state — aucun résultat de filtre */}
+      {/* Aucun résultat de filtre */}
       {!loading && projects.length > 0 && filtered.length === 0 && (
         <div className="py-16 text-center">
-          <div
-            className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center"
-            style={{ backgroundColor: '#EDE9E1' }}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <circle cx="8" cy="8" r="6" stroke="#6E6E73" strokeWidth="1.5"/>
-              <path d="M13 13l3.5 3.5" stroke="#6E6E73" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M6 8h4M8 6v4" stroke="#6E6E73" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <p className="font-medium text-sm mb-1" style={{ color: '#1C1C1E' }}>Aucun projet ne correspond</p>
-          <p className="text-sm mb-4" style={{ color: '#6E6E73' }}>Essayez d'autres termes ou effacez les filtres.</p>
-          <button
-            onClick={clearFilters}
-            className="text-sm font-medium transition-colors"
-            style={{ color: '#C9943A' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#A67828' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#C9943A' }}
-          >
-            Effacer les filtres
-          </button>
+          <p className="cs-h3">Aucun projet ne correspond</p>
+          <p className="cs-sub mt-1 mb-4">Essayez d’autres termes ou effacez les filtres.</p>
+          <button onClick={clearFilters} className="cs-btn">Effacer les filtres</button>
         </div>
       )}
 
       {/* Grille */}
       {!loading && visible.length > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {visible.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
 
-          {/* Afficher plus */}
           {remaining > 0 && (
             <div className="mt-8 flex items-center gap-4">
-              <div className="flex-1 h-px" style={{ backgroundColor: '#EDE9E1' }} />
-              <button
-                onClick={() => setShowCount(c => c + PAGE_SIZE)}
-                className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
-                style={{ border: '1px solid #DDD9D0', color: '#1C1C1E', backgroundColor: '#fff' }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.backgroundColor = '#F7F5F1' }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.backgroundColor = '#fff' }}
-              >
+              <div className="flex-1 h-px" style={{ backgroundColor: 'var(--cs-line)' }} />
+              <button onClick={() => setShowCount(c => c + PAGE_SIZE)} className="cs-btn">
                 Afficher {Math.min(remaining, PAGE_SIZE)} de plus
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 2v10M2 7l5 5 5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
               </button>
-              <div className="flex-1 h-px" style={{ backgroundColor: '#EDE9E1' }} />
+              <div className="flex-1 h-px" style={{ backgroundColor: 'var(--cs-line)' }} />
             </div>
           )}
 
-          {/* Compteur discret quand tout est affiché */}
           {remaining <= 0 && filtered.length > PAGE_SIZE && (
-            <p className="mt-6 text-center text-[12px]" style={{ color: '#9E9E9E' }}>
+            <p className="mt-6 text-center text-[12px]" style={{ color: 'var(--cs-mist)' }}>
               {filtered.length} projets affichés
             </p>
           )}
         </>
       )}
     </div>
+  )
+}
+
+function FilterButton({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={`inline-flex items-center gap-1.5 rounded-lg px-[11px] py-1.5 text-[12.5px] font-semibold transition-colors ${active ? '' : 'hover:text-[var(--cs-navy)]'}`}
+      style={{ backgroundColor: active ? 'var(--cs-navy)' : 'transparent', color: active ? '#fff' : 'var(--cs-mist)' }}
+    >
+      {label}
+      <span className="text-[11px] font-bold opacity-60 tabular-nums">{count}</span>
+    </button>
   )
 }

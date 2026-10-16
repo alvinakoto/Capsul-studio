@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { translateAuthError } from '@/lib/supabase/authErrors'
 import { PasswordInput } from '@/components/ui/password-input'
+import AuthLayout, { AUTH_INPUT } from '@/components/layout/AuthLayout'
 import { useRouter } from 'next/navigation'
 
 const ALLOWED_DOMAIN = 'capsul-france.com'
@@ -87,200 +88,85 @@ export default function InscriptionPage() {
 
   if (awaitingConfirm) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0E2240' }}>
-        <div className="w-full max-w-md mx-4">
-          <div
-            className="rounded-2xl p-10 text-center"
-            style={{ backgroundColor: '#fff', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}
-          >
-            <div
-              className="mx-auto mb-5 rounded-full flex items-center justify-center"
-              style={{ width: 56, height: 56, backgroundColor: 'rgba(201,148,58,0.12)' }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M3 6l9 7 9-7M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"
-                  stroke="#C9943A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <h1 className="text-[17px] font-bold mb-2" style={{ color: '#0E2240' }}>
-              Vérifiez votre boîte mail
-            </h1>
-            <p className="text-sm mb-1" style={{ color: '#6E6E73' }}>
-              Un email de confirmation a été envoyé à
-            </p>
-            <p className="text-sm font-semibold mb-6" style={{ color: '#1C1C1E' }}>
-              {email}
-            </p>
-            <p className="text-[12px] mb-6" style={{ color: '#6E6E73' }}>
-              Cliquez sur le lien reçu pour activer votre compte, puis connectez-vous.
-            </p>
-
-            {error && (
-              <div
-                className="text-sm px-4 py-3 rounded-lg mb-4 text-left"
-                style={{ backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}
-              >
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={handleResend}
-              disabled={loading}
-              className="text-sm font-semibold transition-colors disabled:opacity-50"
-              style={{ color: '#0E2240' }}
-            >
-              {loading ? 'Envoi…' : 'Renvoyer l\'email de confirmation'}
-            </button>
-
-            <p className="text-[12px] mt-4" style={{ color: '#9E9E9E' }}>
-              Adresse incorrecte ?{' '}
-              <button
-                onClick={() => { setAwaitingConfirm(false); setError('') }}
-                className="font-semibold underline"
-              >
-                Corriger et recommencer
-              </button>
-            </p>
-          </div>
+      <AuthLayout>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ backgroundColor: 'var(--cs-gold-wash)' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cs-gold-ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         </div>
-      </div>
+        <h1 className="cs-h1">Vérifiez votre boîte mail</h1>
+        <p className="text-[13.5px] mt-2" style={{ color: 'var(--cs-mist)' }}>
+          Un email de confirmation a été envoyé à <b style={{ color: 'var(--cs-ink)' }}>{email}</b>.
+          Cliquez sur le lien reçu pour activer votre compte, puis connectez-vous.
+        </p>
+
+        {error && (
+          <div className="text-[13px] px-4 py-3 rounded-[10px] mt-5" style={{ color: 'var(--cs-neg)', backgroundColor: 'var(--cs-neg-wash)' }} role="alert">
+            {error}
+          </div>
+        )}
+
+        <button onClick={handleResend} disabled={loading} className="cs-btn cs-btn-lg w-full mt-6">
+          {loading ? 'Envoi…' : "Renvoyer l'email de confirmation"}
+        </button>
+
+        <p className="text-[12.5px] mt-4 text-center" style={{ color: 'var(--cs-mist)' }}>
+          Adresse incorrecte ?{' '}
+          <button onClick={() => { setAwaitingConfirm(false); setError('') }} className="cs-link">
+            Corriger et recommencer
+          </button>
+        </p>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0E2240' }}>
-      <div className="w-full max-w-md mx-4">
-        <div
-          className="rounded-2xl p-10"
-          style={{ backgroundColor: '#fff', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}
-        >
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <img
-              src="/logo-capsul.jpg"
-              alt="Capsul"
-              className="rounded-lg shrink-0"
-              style={{ width: 40, height: 40, objectFit: 'cover' }}
-            />
-            <div>
-              <div className="font-bold text-[14px] tracking-wide" style={{ color: '#0E2240' }}>
-                CAPSUL STUDIO
-              </div>
-              <div className="text-[11px]" style={{ color: '#6E6E73' }}>
-                Créer votre compte
-              </div>
-            </div>
+    <AuthLayout>
+      <p className="cs-eyebrow">Espace chargés de projets</p>
+      <h1 className="cs-h1 mt-1.5 mb-7">Créer votre compte</h1>
+
+      <form className="grid gap-[18px]" onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <AuthField id="fullName" label="Nom complet">
+          <input id="fullName" type="text" autoComplete="name" value={fullName} onChange={(e) => setFullName(e.target.value)}
+            placeholder="Prénom Nom" className={AUTH_INPUT} style={{ color: 'var(--cs-ink)' }} />
+        </AuthField>
+
+        <AuthField id="email" label="Email professionnel">
+          <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            placeholder={`prenom@${ALLOWED_DOMAIN}`} className={AUTH_INPUT} style={{ color: 'var(--cs-ink)' }} />
+        </AuthField>
+
+        <AuthField id="password" label="Mot de passe">
+          <PasswordInput id="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)}
+            placeholder="8 caractères minimum" className={AUTH_INPUT} style={{ color: 'var(--cs-ink)' }} />
+        </AuthField>
+
+        <AuthField id="confirm" label="Confirmer le mot de passe">
+          <PasswordInput id="confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
+            placeholder="••••••••" className={AUTH_INPUT} style={{ color: 'var(--cs-ink)' }} />
+        </AuthField>
+
+        {error && (
+          <div className="text-[13px] px-4 py-3 rounded-[10px]" style={{ color: 'var(--cs-neg)', backgroundColor: 'var(--cs-neg-wash)' }} role="alert">
+            {error}
           </div>
+        )}
 
-          <div className="space-y-4">
-            {/* Nom complet */}
-            <div>
-              <label className="block text-[12px] font-semibold mb-1.5" style={{ color: '#1C1C1E' }}>
-                Nom complet
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Prénom Nom"
-                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all"
-                style={{ border: '1px solid #DDD9D0', color: '#1C1C1E' }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14,34,64,0.07)' }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.boxShadow = 'none' }}
-              />
-            </div>
+        <button type="submit" disabled={loading} className="cs-btn cs-btn-primary cs-btn-lg w-full">
+          {loading ? 'Création du compte…' : 'Créer mon compte'}
+        </button>
+      </form>
 
-            {/* Email */}
-            <div>
-              <label className="block text-[12px] font-semibold mb-1.5" style={{ color: '#1C1C1E' }}>
-                Email professionnel
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={`prenom@${ALLOWED_DOMAIN}`}
-                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all"
-                style={{ border: '1px solid #DDD9D0', color: '#1C1C1E' }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14,34,64,0.07)' }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.boxShadow = 'none' }}
-              />
-            </div>
+      <p className="mt-6 text-center text-[13px]" style={{ color: 'var(--cs-mist)' }}>
+        Déjà un compte ? <a href="/login" className="cs-link">Se connecter</a>
+      </p>
+    </AuthLayout>
+  )
+}
 
-            {/* Mot de passe */}
-            <div>
-              <label className="block text-[12px] font-semibold mb-1.5" style={{ color: '#1C1C1E' }}>
-                Mot de passe
-              </label>
-              <PasswordInput
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="8 caractères minimum"
-                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all"
-                style={{ border: '1px solid #DDD9D0', color: '#1C1C1E' }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14,34,64,0.07)' }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.boxShadow = 'none' }}
-              />
-            </div>
-
-            {/* Confirmation */}
-            <div>
-              <label className="block text-[12px] font-semibold mb-1.5" style={{ color: '#1C1C1E' }}>
-                Confirmer le mot de passe
-              </label>
-              <PasswordInput
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all"
-                style={{ border: '1px solid #DDD9D0', color: '#1C1C1E' }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = '#0E2240'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14,34,64,0.07)' }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = '#DDD9D0'; e.currentTarget.style.boxShadow = 'none' }}
-                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              />
-            </div>
-
-            {/* Erreur */}
-            {error && (
-              <div
-                className="text-sm px-4 py-3 rounded-lg"
-                style={{ backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}
-              >
-                {error}
-              </div>
-            )}
-
-            {/* Bouton */}
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full rounded-lg px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50 mt-2"
-              style={{ backgroundColor: '#0E2240', color: '#fff' }}
-              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#162F56' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0E2240' }}
-            >
-              {loading ? 'Création du compte…' : 'Créer mon compte'}
-            </button>
-          </div>
-
-          {/* Lien connexion */}
-          <div className="mt-6 pt-5" style={{ borderTop: '1px solid #EDE9E1' }}>
-            <p className="text-center text-sm" style={{ color: '#6E6E73' }}>
-              Déjà un compte ?{' '}
-              <a
-                href="/login"
-                className="font-semibold transition-colors"
-                style={{ color: '#0E2240' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#C9943A' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#0E2240' }}
-              >
-                Se connecter
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
+function AuthField({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-1.5">
+      <label htmlFor={id} className="cs-field-label text-[12.5px]">{label}</label>
+      {children}
     </div>
   )
 }

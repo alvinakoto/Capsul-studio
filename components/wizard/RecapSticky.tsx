@@ -1,172 +1,81 @@
 'use client'
 
 import { WizardState } from './WizardShell'
-import { calculerHonorairesCapsul, calculerMensualite } from '@/lib/calculs/communs'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-// Ce que la banque accepte de financer : prix achat + travaux
-function calculerMontantFinancable(s: WizardState): number {
-  return (Number(s.prix_achat) || 0) + (Number(s.travaux) || 0)
-}
-
-// Prix projet total (tout compris)
-function calculerPrixProjet(s: WizardState): number {
-  const prixAchat = Number(s.prix_achat) || 0
-  if (prixAchat === 0) return 0
-  const fraisNotaire = Math.round(prixAchat * s.frais_notaire_pct / 100)
-  const travaux = Number(s.travaux) || 0
-  const mobilier = Number(s.mobilier) || 0
-  let honoraires = Number(s.honoraires_capsul) || 0
-  if (!s.honoraires_override) {
-    honoraires = calculerHonorairesCapsul(prixAchat, travaux, Number(s.frais_agence) || undefined)
-  }
-  return (
-    prixAchat + fraisNotaire + travaux + mobilier + honoraires +
-    Number(s.autres_frais || 0)
-  )
-}
-
-function euros(n: number) {
-  return n.toLocaleString('fr-FR') + ' €'
-}
+import { euros } from '@/lib/utils/format'
+import { prixProjetDepuisSaisie, financementDepuisSaisie } from './calculsSaisie'
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 export default function RecapSticky({ state }: { state: WizardState }) {
   const prixAchat = Number(state.prix_achat) || 0
-  const prixProjet = calculerPrixProjet(state)
-  const montantFinancable = calculerMontantFinancable(state)
-  const fraisAnnexes = prixProjet - montantFinancable
+  const { prixProjetTotal: prixProjet, fraisNotaireEuros, honorairesCapsul } = prixProjetDepuisSaisie(state)
 
-  // apport '' = non renseigné | 0 = sans apport (valide)
-  const apportSaisi = state.apport !== ''
-  const apport = apportSaisi ? Number(state.apport) : null
-  const capital = apport !== null ? Math.max(0, montantFinancable - apport) : null
+  // Même plan de financement que le simulateur : capital = prix projet total − apport
+  const financement = financementDepuisSaisie(state)
+  const apport = financement ? Number(state.apport) || 0 : null
+  const tauxSaisi = (Number(state.taux_interet_pct) || 0) > 0
+  const mensualiteTotale = financement && !financement.isComptant && tauxSaisi ? financement.mensualiteTotale : null
+  const assuranceMensuelle = financement?.assuranceMensuelle ?? 0
 
-  const taux = Number(state.taux_interet_pct) || 0
-
-  const mensualiteCredit =
-    capital !== null && capital > 0 && taux > 0
-      ? calculerMensualite(capital, taux, state.duree_annees)
-      : null
-
-  const assuranceMensuelle =
-    capital !== null && capital > 0 && state.taux_assurance_pct > 0
-      ? Math.round((capital * state.taux_assurance_pct) / 100 / 12)
-      : 0
-
-  const mensualiteTotale = mensualiteCredit
-    ? mensualiteCredit + assuranceMensuelle
-    : null
+  const comptant = state.is_comptant || !!financement?.isComptant
+  const titre = state.nom_projet?.trim() || [state.adresse, state.ville].filter(Boolean).join(', ')
 
   return (
-    <div
-      className="rounded-xl p-4 text-sm space-y-4"
-      style={{ backgroundColor: '#fff', border: '1px solid #DDD9D0' }}
+    <aside
+      className="rounded-[14px] p-5 text-white tabular-nums"
+      style={{ backgroundColor: 'var(--cs-navy)', boxShadow: '0 18px 40px -22px rgba(14,34,64,.6)' }}
+      aria-label="Récapitulatif du projet"
     >
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-3 rounded-full" style={{ backgroundColor: '#C9943A' }} />
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#6E6E73' }}>
-          Récap en temps réel
-        </p>
-      </div>
+      <p className="cs-label" style={{ color: 'var(--cs-sky)' }}>Récapitulatif</p>
+      <p className="mt-0.5 mb-3.5 text-[14px] font-bold leading-snug">{titre || 'Nouveau projet'}</p>
 
       {prixAchat === 0 ? (
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Renseignez le prix d'achat dans le bloc C pour voir les estimations.
+        <p className="text-[12.5px] leading-relaxed" style={{ color: 'var(--cs-sky)' }}>
+          Renseignez le prix d’achat à l’étape Finances pour voir les estimations.
         </p>
       ) : (
         <>
-          {/* Prix projet */}
-          <div className="space-y-1.5">
-            <Line label="Prix achat" value={euros(prixAchat)} />
-            {Number(state.travaux) > 0 && (
-              <Line label="Travaux" value={euros(Number(state.travaux))} />
-            )}
-            {Number(state.mobilier) > 0 && (
-              <Line label="Ameublement" value={euros(Number(state.mobilier))} />
-            )}
-            {Number(state.autres_frais) > 0 && (
-              <Line label="Autres frais" value={euros(Number(state.autres_frais))} />
-            )}
+          <Line label="Prix d'achat" value={euros(prixAchat)} />
+          {Number(state.travaux) > 0 && <Line label="Travaux" value={euros(Number(state.travaux))} />}
+          {Number(state.mobilier) > 0 && <Line label="Ameublement" value={euros(Number(state.mobilier))} />}
+          <Line label="Frais de notaire" value={euros(fraisNotaireEuros)} />
+          <Line label="Honoraires Capsul" value={euros(honorairesCapsul)} />
+          {Number(state.autres_frais) > 0 && <Line label="Autres frais" value={euros(Number(state.autres_frais))} />}
 
-            <div className="border-t pt-2 mt-1 space-y-1.5">
-              <Line label="Montant finançable" value={euros(montantFinancable)} bold />
-              <Line
-                label="Frais annexes ¹"
-                value={euros(fraisAnnexes)}
-              />
-              <Line label="Prix projet total" value={euros(prixProjet)} bold />
-            </div>
+          {financement && (
+            <>
+              <div className="h-px my-2" style={{ backgroundColor: 'rgba(255,255,255,.1)' }} />
+              <Line label="Apport" value={euros(apport!)} />
+              {!comptant && <Line label="Capital emprunté" value={euros(financement.capitalEmprunte)} strong />}
+            </>
+          )}
 
-            <p className="text-[10px] text-muted-foreground pt-1">
-              ¹ Notaire + honoraires + mobilier | fonds propres
+          <div className="mt-3 rounded-[11px] p-3.5" style={{ backgroundColor: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.08)' }}>
+            <p className="cs-label" style={{ color: 'var(--cs-sky)' }}>Prix projet total</p>
+            <p className="mt-0.5 text-[26px] font-extrabold tracking-[-0.01em]" style={{ color: 'var(--cs-gold)' }}>
+              {euros(prixProjet)}
             </p>
+            {comptant ? (
+              <p className="text-[11.5px]" style={{ color: 'var(--cs-sky)' }}>Achat comptant, aucun crédit</p>
+            ) : mensualiteTotale ? (
+              <p className="text-[11.5px]" style={{ color: 'var(--cs-sky)' }}>
+                Mensualité : <b className="text-white">{euros(mensualiteTotale)}</b> / mois sur {state.duree_annees} ans
+                {assuranceMensuelle > 0 && ` (dont ${euros(assuranceMensuelle)} d'assurance)`}
+              </p>
+            ) : null}
           </div>
 
-          {/* Financement */}
-          {apportSaisi && (
-            <div className="border-t pt-3 space-y-1.5">
-              <Line label="Apport" value={euros(apport!)} />
-              <Line label="Capital emprunté" value={euros(capital ?? 0)} bold />
-            </div>
-          )}
-
-          {/* Mensualité ou badge comptant */}
-          {(state.is_comptant || (apportSaisi && capital === 0)) && (
-            <div className="border-t pt-3">
-              <span
-                className="inline-block px-2 py-1 rounded-md text-[11px] font-semibold"
-                style={{ backgroundColor: '#EDE9E1', color: '#0E2240' }}
-              >
-                Achat comptant
-              </span>
-            </div>
-          )}
-          {mensualiteTotale && (
-            <div className="border-t pt-3 space-y-1.5">
-              {assuranceMensuelle > 0 && (
-                <>
-                  <Line label="Crédit seul" value={euros(mensualiteCredit!)} />
-                  <Line label="Assurance" value={euros(assuranceMensuelle)} />
-                </>
-              )}
-              <div
-                className="flex justify-between items-baseline pt-2 mt-1"
-                style={{ borderTop: '1px solid #EDE9E1' }}
-              >
-                <span style={{ color: '#6E6E73' }}>Mensualité totale</span>
-                <span className="text-lg font-bold tabular-nums" style={{ color: '#C9943A' }}>
-                  {euros(mensualiteTotale)}
-                </span>
-              </div>
-            </div>
-          )}
         </>
       )}
-    </div>
+    </aside>
   )
 }
 
-function Line({
-  label,
-  value,
-  bold = false,
-}: {
-  label: string
-  value: string
-  bold?: boolean
-}) {
+function Line({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex justify-between gap-2">
-      <span className="truncate" style={{ color: '#6E6E73' }}>{label}</span>
-      <span
-        className="tabular-nums"
-        style={{ fontWeight: bold ? 600 : 400, color: bold ? '#0E2240' : '#1C1C1E' }}
-      >
-        {value}
-      </span>
+    <div className="flex justify-between gap-2.5 py-1.5 text-[12.5px]" style={{ color: strong ? '#fff' : '#D7E2EE' }}>
+      <span className="truncate" style={{ fontWeight: strong ? 600 : 400 }}>{label}</span>
+      <b style={{ fontWeight: strong ? 700 : 600, color: '#fff' }}>{value}</b>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { translateAuthError } from '@/lib/supabase/authErrors'
 import { PasswordInput } from '@/components/ui/password-input'
+import AuthLayout, { AUTH_INPUT } from '@/components/layout/AuthLayout'
 
 export default function ReinitialiserMotDePassePage() {
   const [status, setStatus] = useState<'checking' | 'ready' | 'invalid'>('checking')
@@ -62,97 +63,54 @@ export default function ReinitialiserMotDePassePage() {
 
   if (status === 'checking') {
     return (
-      <div className="min-h-screen bg-[#16314E] flex items-center justify-center">
-        <p className="text-white text-sm">Vérification du lien…</p>
-      </div>
+      <AuthLayout>
+        <p className="text-[13.5px]" style={{ color: 'var(--cs-mist)' }} aria-live="polite">Vérification du lien…</p>
+      </AuthLayout>
     )
   }
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen bg-[#16314E] flex items-center justify-center">
-        <div className="bg-white rounded-2xl p-10 w-full max-w-md shadow-2xl text-center">
-          <h1 className="text-[17px] font-bold mb-2" style={{ color: '#0E2240' }}>
-            Lien invalide ou expiré
-          </h1>
-          <p className="text-sm mb-6" style={{ color: '#6E6E73' }}>
-            Ce lien de réinitialisation n'est plus valide. Demandez-en un nouveau.
-          </p>
-          <a
-            href="/mot-de-passe-oublie"
-            className="inline-block w-full rounded-lg px-4 py-3 text-sm font-semibold text-white"
-            style={{ backgroundColor: '#0E2240' }}
-          >
-            Demander un nouveau lien
-          </a>
-        </div>
-      </div>
+      <AuthLayout>
+        <h1 className="cs-h1">Lien invalide ou expiré</h1>
+        <p className="text-[13.5px] mt-2" style={{ color: 'var(--cs-mist)' }}>
+          Ce lien de réinitialisation n’est plus valide. Demandez-en un nouveau.
+        </p>
+        <a href="/mot-de-passe-oublie" className="cs-btn cs-btn-primary cs-btn-lg w-full mt-6">
+          Demander un nouveau lien
+        </a>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#16314E] flex items-center justify-center">
-      <div className="bg-white rounded-2xl p-10 w-full max-w-md shadow-2xl">
+    <AuthLayout>
+      <p className="cs-eyebrow">Espace chargés de projets</p>
+      <h1 className="cs-h1 mt-1.5 mb-7">Nouveau mot de passe</h1>
 
-        <div className="flex items-center gap-3 mb-8">
-          <img
-            src="/logo-capsul.jpg"
-            alt="Capsul"
-            className="rounded-lg shrink-0"
-            style={{ width: 40, height: 40, objectFit: 'cover' }}
-          />
-          <div>
-            <div className="font-bold text-[14px] tracking-wide" style={{ color: '#0E2240' }}>
-              CAPSUL STUDIO
-            </div>
-            <div className="text-[11px]" style={{ color: '#6E6E73' }}>
-              Nouveau mot de passe
-            </div>
-          </div>
+      <form className="grid gap-[18px]" onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <div className="grid gap-1.5">
+          <label htmlFor="password" className="cs-field-label text-[12.5px]">Nouveau mot de passe</label>
+          <PasswordInput id="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)}
+            placeholder="8 caractères minimum" className={AUTH_INPUT} style={{ color: 'var(--cs-ink)' }} />
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nouveau mot de passe
-            </label>
-            <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="8 caractères minimum"
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#16314E]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirmer le mot de passe
-            </label>
-            <PasswordInput
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              placeholder="••••••••"
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#16314E]"
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            />
-          </div>
-
-          {error && (
-            <div className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-[#16314E] text-white rounded-lg px-4 py-3 text-sm font-semibold hover:bg-[#1B3A6B] transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
-          </button>
+        <div className="grid gap-1.5">
+          <label htmlFor="confirm" className="cs-field-label text-[12.5px]">Confirmer le mot de passe</label>
+          <PasswordInput id="confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
+            placeholder="••••••••" className={AUTH_INPUT} style={{ color: 'var(--cs-ink)' }} />
         </div>
 
-      </div>
-    </div>
+        {error && (
+          <div className="text-[13px] px-4 py-3 rounded-[10px]" style={{ color: 'var(--cs-neg)', backgroundColor: 'var(--cs-neg-wash)' }} role="alert">
+            {error}
+          </div>
+        )}
+
+        <button type="submit" disabled={loading} className="cs-btn cs-btn-primary cs-btn-lg w-full">
+          {loading ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 
-const NO_SIDEBAR_PATHS = ['/login', '/inscription']
+const NO_SIDEBAR_PATHS = ['/login', '/inscription', '/mot-de-passe-oublie', '/reinitialiser-mot-de-passe']
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

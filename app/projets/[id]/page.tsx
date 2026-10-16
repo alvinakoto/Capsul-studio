@@ -41,7 +41,7 @@ export default function ProjetDetailPage() {
   }
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto px-8 py-10 space-y-4">
+    <div className="max-w-[1180px] mx-auto px-4 md:px-10 py-8 space-y-4">
       {[80, 320].map((h) => (
         <div
           key={h}
@@ -55,7 +55,7 @@ export default function ProjetDetailPage() {
   if (!project) return null
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-10 space-y-6">
+    <div className="max-w-[1180px] mx-auto px-4 md:px-10 py-8 space-y-10">
       <ProjetHeader project={project} />
       <ScenarioPanel project={project} />
     </div>

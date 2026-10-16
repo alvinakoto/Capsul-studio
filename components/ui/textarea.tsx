@@ -37,9 +37,9 @@ function Textarea({ className, minRows = 3, value, onInput, ...props }: Textarea
         onInput?.(e)
       }}
       className={cn(
-        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+        "flex w-full rounded-[9px] border border-[var(--cs-line)] bg-white px-3 py-2.5 text-[13.5px] leading-relaxed text-[var(--cs-ink)] transition-[border-color,box-shadow] hover:border-[#D3CDC1]",
         "ring-offset-background placeholder:text-muted-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "focus-visible:outline-none focus-visible:border-[var(--cs-navy)] focus-visible:shadow-[0_0_0_3px_rgba(14,34,64,.08)]",
         "resize-none overflow-hidden",
         className
       )}

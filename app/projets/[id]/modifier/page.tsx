@@ -92,7 +92,7 @@ export default function ModifierProjetPage() {
   }, [id])
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto px-8 py-10 space-y-4">
+    <div className="max-w-[1180px] mx-auto px-4 md:px-10 py-8 space-y-4">
       {[48, 320].map((h) => (
         <div key={h} className="rounded-xl animate-pulse" style={{ height: h, backgroundColor: '#EDE9E1' }} />
       ))}
@@ -102,27 +102,15 @@ export default function ModifierProjetPage() {
   if (!initialData) return null
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-10">
+    <div className="max-w-[1180px] mx-auto px-4 md:px-10 py-8">
       <div className="mb-8">
-        <button
-          onClick={() => router.push(`/projets/${id}`)}
-          className="flex items-center gap-1.5 text-[11px] font-medium mb-4 transition-colors"
-          style={{ color: '#6E6E73' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#0E2240' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = '#6E6E73' }}
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <button onClick={() => router.push(`/projets/${id}`)} className="cs-crumb mb-4">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
           Retour au projet
         </button>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] mb-1" style={{ color: '#C9943A' }}>
-          Édition
-        </p>
-        <h1 className="text-[26px] font-bold tracking-tight" style={{ color: '#0E2240' }}>
-          Modifier le projet
-        </h1>
-        <p className="text-sm mt-1" style={{ color: '#6E6E73' }}>
+        <p className="cs-eyebrow">Édition</p>
+        <h1 className="cs-h1 mt-1.5">Modifier le projet</h1>
+        <p className="text-[13.5px] mt-1" style={{ color: 'var(--cs-mist)' }}>
           Les photos existantes sont conservées.
         </p>
       </div>

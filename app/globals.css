@@ -110,3 +110,90 @@
     @apply font-sans;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Refonte UI (octobre 2026) : composants partagés `cs-*`
+   Classes CSS plutôt que styles inline + onMouseEnter : survol,
+   focus et états actifs restent déclaratifs et identiques partout.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --cs-navy: #0E2240;
+  --cs-navy-2: #1B3358;
+  --cs-gold: #C9943A;
+  --cs-gold-ink: #946A22;
+  --cs-gold-wash: #F6EEDF;
+  --cs-ivory: #F7F5F1;
+  --cs-stone: #EDE9E1;
+  --cs-line: #E4DFD5;
+  --cs-line-soft: #EFEBE4;
+  --cs-mist: #6E6E73;
+  --cs-ink: #1C2433;
+  --cs-sky: #B6CBE0;
+  --cs-pos: #1F7A4D;
+  --cs-pos-wash: #E7F2EC;
+  --cs-neg: #B23A2E;
+  --cs-neg-wash: #F8EAE7;
+  --cs-shadow: 0 1px 2px rgba(14,34,64,.04), 0 6px 20px -12px rgba(14,34,64,.14);
+}
+
+@layer components {
+  .cs-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--cs-mist); }
+  .cs-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--cs-mist); }
+  .cs-h1 { font-size: 26px; line-height: 1.2; font-weight: 700; color: var(--cs-navy); letter-spacing: -.01em; text-wrap: balance; }
+  .cs-h2 { font-size: 17px; font-weight: 700; color: var(--cs-navy); }
+  .cs-h3 { font-size: 14px; font-weight: 700; color: var(--cs-navy); }
+  .cs-sub { font-size: 12.5px; color: var(--cs-mist); }
+  .cs-hint { font-size: 11.5px; color: var(--cs-mist); }
+
+  .cs-card { background: #fff; border: 1px solid var(--cs-line); border-radius: 14px; box-shadow: var(--cs-shadow); }
+  .cs-divider { border-color: var(--cs-line-soft); }
+
+  .cs-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    height: 38px; padding: 0 14px; border-radius: 9px; white-space: nowrap;
+    font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+    border: 1px solid var(--cs-line); background: #fff; color: var(--cs-navy);
+    transition: background-color .18s, border-color .18s, color .18s, opacity .18s;
+  }
+  .cs-btn:hover:not(:disabled) { background: var(--cs-ivory); border-color: #D3CDC1; }
+  .cs-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .cs-btn-primary { background: var(--cs-navy); border-color: var(--cs-navy); color: #fff; }
+  .cs-btn-primary:hover:not(:disabled) { background: var(--cs-navy-2); border-color: var(--cs-navy-2); }
+  .cs-btn-gold { background: var(--cs-gold); border-color: var(--cs-gold); color: var(--cs-navy); font-weight: 700; }
+  .cs-btn-gold:hover:not(:disabled) { background: #D4A24B; border-color: #D4A24B; }
+  .cs-btn-danger:hover:not(:disabled) { background: var(--cs-neg-wash); border-color: #EBC3BC; color: var(--cs-neg); }
+  .cs-btn-icon { width: 38px; padding: 0; }
+  .cs-btn-lg { height: 46px; border-radius: 11px; font-size: 14px; font-weight: 700; }
+
+  .cs-link { color: var(--cs-navy); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--cs-line); transition: border-color .18s; }
+  .cs-link:hover { border-color: var(--cs-gold); }
+  .cs-crumb { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--cs-mist); transition: color .18s; }
+  .cs-crumb:hover { color: var(--cs-navy); }
+
+  /* Champs */
+  .cs-field-label { font-size: 12px; font-weight: 600; color: var(--cs-ink); white-space: nowrap; }
+  .cs-input {
+    width: 100%; height: 42px; border: 1px solid var(--cs-line); border-radius: 9px; background: #fff;
+    padding: 0 12px; font-size: 14px; font-weight: 600; color: var(--cs-navy); font-variant-numeric: tabular-nums;
+    transition: border-color .18s, box-shadow .18s, background-color .18s;
+  }
+  .cs-input::placeholder { color: #A9A49A; font-weight: 500; }
+  .cs-input:hover { border-color: #D3CDC1; }
+  .cs-input:focus { outline: none; border-color: var(--cs-navy); box-shadow: 0 0 0 3px rgba(14,34,64,.08); }
+  .cs-input-lg { height: 50px; font-size: 18px; }
+  .cs-input-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--cs-mist); pointer-events: none; }
+
+  /* Sélecteur segmenté */
+  .cs-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--cs-ivory); border: 1px solid var(--cs-line-soft); border-radius: 11px; }
+  .cs-seg > button { border: 0; background: transparent; border-radius: 8px; padding: 8px 6px; font-size: 12.5px; font-weight: 600; color: var(--cs-mist); cursor: pointer; transition: background-color .18s, color .18s, box-shadow .18s; }
+  .cs-seg > button:hover { color: var(--cs-navy); }
+  .cs-seg > button[aria-pressed="true"] { background: #fff; color: var(--cs-navy); box-shadow: 0 1px 2px rgba(14,34,64,.08), 0 0 0 1px var(--cs-line); }
+
+  /* Pastilles de statut */
+  .cs-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .cs-pill > i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Lignes de détail (décomposition, récap) */
+  .cs-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 9px 0; font-size: 13.5px; border-bottom: 1px dashed var(--cs-line); font-variant-numeric: tabular-nums; }
+  .cs-row:last-child { border-bottom: 0; }
+}

@@ -39,7 +39,7 @@ export default function BlocF({ state, onScenarioChange }: Props) {
   const hasPrixAchat = Number(state.prix_achat) > 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
       {/* Alertes réglementaires */}
       {alertes.length > 0 && (
@@ -52,19 +52,17 @@ export default function BlocF({ state, onScenarioChange }: Props) {
 
       {/* Suggestions */}
       {!hasPrixAchat ? (
-        <div className="rounded-xl border bg-card p-6 text-center text-muted-foreground text-sm">
-          Renseignez le prix d'achat dans le bloc C pour obtenir des suggestions.
+        <div className="cs-card p-6 text-center text-[13px]" style={{ color: 'var(--cs-mist)', boxShadow: 'none', borderStyle: 'dashed' }}>
+          Renseignez le prix d’achat à l’étape Finances pour obtenir des suggestions.
         </div>
       ) : (
-        <div className="rounded-xl border bg-card p-6 space-y-4">
-          <div>
-            <h2 className="font-semibold">Scénario recommandé</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Basé sur le type de bien, la surface et la ville
-            </p>
-          </div>
+        <div className="cs-card p-[22px]">
+          <h2 className="text-[15px] font-bold" style={{ color: 'var(--cs-navy)' }}>Scénario recommandé</h2>
+          <p className="cs-sub mt-0.5">
+            Basé sur le type de bien, la surface et la ville. Le scénario choisi s’ouvre par défaut dans le simulateur.
+          </p>
 
-          <div className="space-y-3">
+          <div className="mt-4 grid gap-2.5" role="radiogroup" aria-label="Scénario">
             {suggestions.map((s, i) => (
               <SuggestionCard
                 key={s.type}
@@ -91,54 +89,63 @@ function SuggestionCard({ suggestion, isTop, isSelected, onSelect }: {
   onSelect: () => void
 }) {
   return (
-    <div
+    <button
+      type="button"
+      role="radio"
+      aria-checked={isSelected}
       onClick={onSelect}
-      className={`rounded-lg border p-4 cursor-pointer transition-all ${
-        isSelected
-          ? 'border-foreground bg-foreground/5'
-          : 'hover:border-foreground/40 hover:bg-muted/30'
-      }`}
+      className={`w-full text-left rounded-[11px] px-4 py-3.5 transition-[border-color,background-color] ${isSelected ? '' : 'hover:border-[#CFC9BD] hover:bg-[var(--cs-ivory)]'}`}
+      style={{
+        border: `1px solid ${isSelected ? 'var(--cs-navy)' : 'var(--cs-line)'}`,
+        backgroundColor: isSelected ? '#F3F5F8' : '#fff',
+        boxShadow: isSelected ? '0 0 0 1px var(--cs-navy)' : 'none',
+      }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className={`w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center ${
-            isSelected ? 'border-foreground bg-foreground' : 'border-muted-foreground'
-          }`}>
-            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-background" />}
+      <div className="flex items-start gap-3">
+        <span
+          className="w-[18px] h-[18px] rounded-full shrink-0 mt-px flex items-center justify-center"
+          style={{ border: `2px solid ${isSelected ? 'var(--cs-navy)' : '#C7C1B4'}`, backgroundColor: isSelected ? 'var(--cs-navy)' : '#fff' }}
+          aria-hidden="true"
+        >
+          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+        </span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[13.5px] font-semibold" style={{ color: 'var(--cs-navy)' }}>{suggestion.label}</span>
+            {isTop && (
+              <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#E8F0F8', color: '#2C5A86' }}>
+                Recommandé
+              </span>
+            )}
+            {isSelected && (
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--cs-navy)', color: '#fff' }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--cs-gold)" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/></svg>
+                Choisi
+              </span>
+            )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-sm">{suggestion.label}</span>
-              {isTop && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground text-background font-medium">
-                  Recommandé
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">{suggestion.raison}</p>
-          </div>
+          <p className="cs-sub mt-0.5">{suggestion.raison}</p>
         </div>
       </div>
-    </div>
+    </button>
   )
 }
 
 function AlerteCard({ alerte }: { alerte: AlerteReglementaire }) {
   const isError = alerte.niveau === 'error'
+  const c = isError
+    ? { bg: 'var(--cs-neg-wash)', border: '#EBC3BC', ink: 'var(--cs-neg)' }
+    : { bg: '#FBF3E2', border: '#EBD7AE', ink: '#8A5A12' }
   return (
-    <div className={`rounded-lg border p-4 ${
-      isError
-        ? 'border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900'
-        : 'border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-900'
-    }`}>
-      <div className="flex items-start gap-3">
-        <span className="text-lg shrink-0">{isError ? '🚫' : '⚠️'}</span>
-        <div>
-          <p className={`font-medium text-sm ${isError ? 'text-red-700 dark:text-red-400' : 'text-yellow-700 dark:text-yellow-400'}`}>
-            {alerte.titre}
-          </p>
-          <p className="text-xs mt-0.5 text-muted-foreground">{alerte.message}</p>
-        </div>
+    <div className="rounded-[11px] px-4 py-3.5 flex items-start gap-3" style={{ backgroundColor: c.bg, border: `1px solid ${c.border}` }} role={isError ? 'alert' : 'status'}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px" aria-hidden="true">
+        {isError
+          ? <><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></>
+          : <><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></>}
+      </svg>
+      <div>
+        <p className="text-[13px] font-semibold" style={{ color: c.ink }}>{alerte.titre}</p>
+        <p className="cs-sub mt-0.5">{alerte.message}</p>
       </div>
     </div>
   )

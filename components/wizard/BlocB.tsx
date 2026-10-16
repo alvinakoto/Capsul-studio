@@ -49,7 +49,7 @@ export default function BlocB({
       {/* Photo de couverture */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Photo de couverture</CardTitle>
+          <CardTitle>Photo de couverture</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Image d'ambiance affichée en page 1 du dossier client.
           </p>
@@ -68,7 +68,7 @@ export default function BlocB({
       {/* Photo principale intérieure */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Photo principale intérieure</CardTitle>
+          <CardTitle>Photo principale intérieure</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Grande photo affichée en haut de la page 2 du dossier.
           </p>
@@ -103,7 +103,7 @@ export default function BlocB({
       <Card>
         <CardHeader>
           <div className="flex items-baseline justify-between">
-            <CardTitle className="text-base">Photos supplémentaires</CardTitle>
+            <CardTitle>Photos supplémentaires</CardTitle>
             <span className="text-xs text-muted-foreground tabular-nums">
               {usedSecondarySlots} / {MAX_SECONDARY}
             </span>
@@ -127,7 +127,7 @@ export default function BlocB({
       {/* Photo de localisation */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Photo de localisation</CardTitle>
+          <CardTitle>Photo de localisation</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Capture d'une carte (Google Maps, Plans…) avec un repère sur l'emplacement du bien, affichée page « Le bien » du dossier.
           </p>

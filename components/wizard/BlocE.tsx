@@ -27,7 +27,7 @@ function ChargeInput({
         <Label htmlFor={id} className="whitespace-nowrap">{label}</Label>
         {estimate && (
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] text-muted-foreground">Estimation</span>
+            <span className="text-[11px] font-semibold" style={{ color: estimate.checked ? 'var(--cs-gold-ink)' : 'var(--cs-mist)' }}>Estimation</span>
             <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
           </div>
         )}
@@ -39,7 +39,7 @@ function ChargeInput({
           min={0}
           value={value}
           onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
-          className="pr-16"
+          className={'pr-16' + (estimate?.checked ? ' bg-[#FCF8F0] border-[#E9D9BC]' : '')}
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
           €/an
@@ -68,7 +68,7 @@ export default function BlocE({ state, setField }: Props) {
       {/* Charges obligatoires */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Charges courantes</CardTitle>
+          <CardTitle>Charges courantes</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <ChargeInput
@@ -139,7 +139,7 @@ export default function BlocE({ state, setField }: Props) {
       {/* Charges locataire (courte durée / coloc) */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
+          <CardTitle>
             Charges locataire
           </CardTitle>
           <CardDescription>

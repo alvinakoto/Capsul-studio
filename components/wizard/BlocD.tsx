@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { WizardState } from './WizardShell'
-import { calculerHonorairesCapsul } from '@/lib/calculs/communs'
+import { prixProjetDepuisSaisie } from './calculsSaisie'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,7 +31,7 @@ function FieldInput({
         <Label htmlFor={id} className="whitespace-nowrap">{label}</Label>
         {estimate && (
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] text-muted-foreground">Estimation</span>
+            <span className="text-[11px] font-semibold" style={{ color: estimate.checked ? 'var(--cs-gold-ink)' : 'var(--cs-mist)' }}>Estimation</span>
             <Switch checked={estimate.checked} onCheckedChange={estimate.onChange} />
           </div>
         )}
@@ -44,7 +44,7 @@ function FieldInput({
           step={step}
           value={value}
           onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
-          className={suffix ? 'pr-8' : ''}
+          className={(suffix ? 'pr-8' : '') + (estimate?.checked ? ' bg-[#FCF8F0] border-[#E9D9BC]' : '')}
         />
         {suffix && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -59,24 +59,11 @@ function FieldInput({
 
 const DUREES = [10, 15, 20, 25]
 
-function calculerPrixProjetTotal(state: WizardState): number {
-  const prixAchat = Number(state.prix_achat) || 0
-  const travaux = Number(state.travaux) || 0
-  const mobilier = Number(state.mobilier) || 0
-  const fraisNotaire = Math.round(prixAchat * state.frais_notaire_pct / 100)
-  const honoraires = state.honoraires_override && state.honoraires_capsul
-    ? Number(state.honoraires_capsul) || 0
-    : prixAchat > 0
-      ? calculerHonorairesCapsul(prixAchat, travaux, Number(state.frais_agence) || undefined)
-      : 0
-  return prixAchat + fraisNotaire + travaux + mobilier + honoraires + state.autres_frais
-}
-
 export default function BlocD({ state, setField }: Props) {
   const [apportMode, setApportMode] = useState<'eur' | 'pct'>('eur')
   const apportAvantComptant = useRef<number | ''>('')
 
-  const prixProjetTotal = calculerPrixProjetTotal(state)
+  const { prixProjetTotal } = prixProjetDepuisSaisie(state)
   const apportEuros = Number(state.apport) || 0
   const apportPct = prixProjetTotal > 0 ? Math.round((apportEuros / prixProjetTotal) * 1000) / 10 : 0
 
@@ -98,7 +85,7 @@ export default function BlocD({ state, setField }: Props) {
         <Label className="mb-2 block text-sm font-medium">Mode de financement</Label>
         <div
           className="flex rounded-lg overflow-hidden"
-          style={{ border: '1px solid #DDD9D0' }}
+          style={{ border: '1px solid var(--cs-line)' }}
         >
           <button
             type="button"
@@ -125,7 +112,7 @@ export default function BlocD({ state, setField }: Props) {
             style={{
               backgroundColor: state.is_comptant ? '#0E2240' : '#F7F5F1',
               color: state.is_comptant ? '#fff' : '#6E6E73',
-              borderLeft: '1px solid #DDD9D0',
+              borderLeft: '1px solid var(--cs-line)',
             }}
           >
             Achat comptant
@@ -136,7 +123,7 @@ export default function BlocD({ state, setField }: Props) {
       {/* Apport — toujours visible */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
+          <CardTitle>
             {state.is_comptant ? 'Apport' : 'Apport & durée'}
           </CardTitle>
         </CardHeader>
@@ -144,7 +131,7 @@ export default function BlocD({ state, setField }: Props) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="apport" className="whitespace-nowrap">Apport personnel</Label>
-              <div className="flex rounded-md overflow-hidden border text-xs shrink-0" style={{ borderColor: '#DDD9D0' }}>
+              <div className="flex rounded-md overflow-hidden border text-xs shrink-0" style={{ borderColor: 'var(--cs-line)' }}>
                 <button
                   type="button"
                   disabled={state.is_comptant}
@@ -164,7 +151,7 @@ export default function BlocD({ state, setField }: Props) {
                   style={{
                     backgroundColor: apportMode === 'pct' ? '#0E2240' : '#F7F5F1',
                     color: apportMode === 'pct' ? '#fff' : prixProjetTotal > 0 ? '#6E6E73' : '#C0BDB7',
-                    borderLeft: '1px solid #DDD9D0',
+                    borderLeft: '1px solid var(--cs-line)',
                     cursor: state.is_comptant || prixProjetTotal === 0 ? 'not-allowed' : 'pointer',
                   }}
                 >%</button>
@@ -222,7 +209,7 @@ export default function BlocD({ state, setField }: Props) {
                     style={
                       state.duree_annees === d
                         ? { backgroundColor: '#0E2240', color: '#fff', borderColor: '#0E2240', fontWeight: 600 }
-                        : { backgroundColor: '#fff', color: '#0E2240', borderColor: '#DDD9D0' }
+                        : { backgroundColor: '#fff', color: '#0E2240', borderColor: 'var(--cs-line)' }
                     }
                   >
                     {d} ans
@@ -238,7 +225,7 @@ export default function BlocD({ state, setField }: Props) {
       {state.is_comptant ? (
         <div
           className="rounded-xl px-5 py-4 text-sm"
-          style={{ backgroundColor: '#EDE9E1', border: '1px solid #DDD9D0' }}
+          style={{ backgroundColor: '#EDE9E1', border: '1px solid var(--cs-line)' }}
         >
           <p className="font-semibold" style={{ color: '#0E2240' }}>
             Achat comptant sélectionné
@@ -252,7 +239,7 @@ export default function BlocD({ state, setField }: Props) {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Taux</CardTitle>
+            <CardTitle>Taux</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FieldInput

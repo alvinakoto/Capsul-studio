@@ -112,14 +112,30 @@ export async function getProjects(userId: string) {
     .from('projects')
     .select(`
       id, name, city, adresse, type_bien, surface_m2,
-      prix_achat, apport, taux_interet_pct, taux_assurance_pct,
-      duree_annees, travaux, status, created_at
+      prix_achat, frais_notaire_pct, travaux, mobilier, autres_frais, frais_agence,
+      honoraires_capsul, honoraires_override,
+      apport, taux_interet_pct, taux_assurance_pct, duree_annees, is_comptant,
+      status, created_at
     `)
     .eq('charge_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  if (!data || data.length === 0) return []
+
+  // Photo de couverture de chaque carte (repli sur la photo principale)
+  const { data: photos } = await supabase
+    .from('project_images')
+    .select('project_id, type, public_url')
+    .in('project_id', data.map((p) => p.id))
+    .in('type', ['cover', 'main'])
+
+  const couverture = new Map<string, string>()
+  for (const ph of photos ?? []) {
+    if (ph.type === 'cover' || !couverture.has(ph.project_id)) couverture.set(ph.project_id, ph.public_url)
+  }
+
+  return data.map((p) => ({ ...p, cover_url: couverture.get(p.id) ?? null }))
 }
 
 export async function updateProject(
@@ -331,11 +347,27 @@ export async function duplicateProject(projectId: string, userId: string): Promi
 
 export async function deleteProject(projectId: string): Promise<void> {
   const supabase = getClient()
+
+  // Photos du projet (toutes rangées sous `<projectId>/`, cf. uploadPhoto). Listées avant
+  // la suppression : la cascade efface les lignes project_images mais pas les fichiers.
+  const { data: files } = await supabase.storage
+    .from('project-images')
+    .list(projectId, { limit: 1000 })
+
   const { error } = await supabase
     .from('projects')
     .delete()
     .eq('id', projectId)
   if (error) throw error
+
+  // Le projet est supprimé : un échec ici laisse seulement des fichiers orphelins,
+  // on ne bloque pas l'utilisateur pour autant.
+  if (files && files.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from('project-images')
+      .remove(files.map((f) => `${projectId}/${f.name}`))
+    if (storageError) console.error('Photos du projet non supprimées du stockage', storageError)
+  }
 }
 
 export async function getProjectById(projectId: string, userId: string) {

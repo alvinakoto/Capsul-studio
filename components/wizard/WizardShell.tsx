@@ -344,39 +344,32 @@ export default function WizardShell({
   const currentIndex = blocs.findIndex((b) => b.id === activeBloc)
 
   return (
-    <div className="flex gap-8 items-start">
-
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
       {/* Zone principale */}
-      <div className="flex-1 min-w-0">
-        {/* Step tabs */}
-        <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ backgroundColor: '#EDE9E1' }}>
+      <div className="min-w-0">
+        {/* Étapes */}
+        <nav className="grid grid-cols-3 md:grid-cols-6 gap-x-1.5 gap-y-3.5 mb-7" aria-label="Étapes">
           {blocs.map((bloc, i) => {
             const active = activeBloc === bloc.id
             return (
               <button
                 key={bloc.id}
                 onClick={() => setActiveBloc(bloc.id)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all"
+                aria-current={active ? 'step' : undefined}
+                className="grid gap-1 pb-2.5 text-left transition-colors hover:text-[var(--cs-navy)]"
                 style={{
-                  backgroundColor: active ? '#fff' : 'transparent',
-                  color: active ? '#0E2240' : '#6E6E73',
-                  boxShadow: active ? '0 1px 4px rgba(14,34,64,0.10)' : 'none',
+                  borderBottom: `2px solid ${active ? 'var(--cs-navy)' : 'var(--cs-line)'}`,
+                  color: active ? 'var(--cs-navy)' : 'var(--cs-mist)',
                 }}
               >
-                <span
-                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
-                  style={{
-                    backgroundColor: active ? '#0E2240' : '#DDD9D0',
-                    color: active ? '#fff' : '#6E6E73',
-                  }}
-                >
-                  {i + 1}
+                <span className="text-[11px] font-bold tracking-[0.08em]" style={{ color: active ? 'var(--cs-gold-ink)' : undefined }}>
+                  ÉTAPE {i + 1}
                 </span>
-                <span className="hidden sm:inline">{bloc.label}</span>
+                <span className="text-[13px] font-semibold">{bloc.label}</span>
               </button>
             )
           })}
-        </div>
+        </nav>
 
         <Tabs value={activeBloc} onValueChange={setActiveBloc}>
           <TabsContent value="A"><BlocA state={state} setField={setField} /></TabsContent>
@@ -411,62 +404,37 @@ export default function WizardShell({
         </Tabs>
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-4" style={{ borderTop: '1px solid #EDE9E1' }}>
+        <div className="cs-card flex items-center justify-between gap-3 mt-5 px-4 py-3.5">
           <button
             onClick={() => setActiveBloc(blocs[currentIndex - 1].id)}
             disabled={currentIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{ border: '1px solid #DDD9D0', color: '#1C1C1E', backgroundColor: 'transparent' }}
-            onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#F7F5F1' }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+            className="cs-btn"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M9 2L5 7l4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
             Précédent
           </button>
-
+          <span className="hidden sm:inline text-[12.5px]" style={{ color: 'var(--cs-mist)' }}>
+            Étape <b style={{ color: 'var(--cs-navy)' }}>{currentIndex + 1}</b> sur {blocs.length}
+          </span>
           {editProjectId ? (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
-              style={{ backgroundColor: '#C9943A', color: '#fff' }}
-              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#B8841F' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#C9943A' }}
-            >
-              {saving ? 'Enregistrement...' : 'Sauvegarder les modifications'}
+            <button onClick={handleSave} disabled={saving} className="cs-btn cs-btn-gold">
+              {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
             </button>
           ) : currentIndex < blocs.length - 1 ? (
-            <button
-              onClick={() => setActiveBloc(blocs[currentIndex + 1].id)}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
-              style={{ backgroundColor: '#0E2240', color: '#fff' }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#162F56' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0E2240' }}
-            >
-              Suivant
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 2l4 5-4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+            <button onClick={() => setActiveBloc(blocs[currentIndex + 1].id)} className="cs-btn cs-btn-primary">
+              Suivant : {blocs[currentIndex + 1].label}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </button>
           ) : (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
-              style={{ backgroundColor: '#C9943A', color: '#fff' }}
-              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#B8841F' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#C9943A' }}
-            >
-              {saving ? 'Enregistrement...' : 'Enregistrer le projet'}
+            <button onClick={handleSave} disabled={saving} className="cs-btn cs-btn-gold">
+              {saving ? 'Enregistrement…' : 'Enregistrer le projet'}
             </button>
           )}
         </div>
       </div>
 
       {/* Récap sticky */}
-      <div className="w-64 shrink-0 sticky top-6">
+      <div className="xl:sticky xl:top-6">
         <RecapSticky state={state} />
       </div>
 

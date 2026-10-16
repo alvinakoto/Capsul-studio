@@ -141,7 +141,7 @@ function VilleInfosCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle className="text-base">Infos ville</CardTitle>
+            <CardTitle>Infos ville</CardTitle>
             <p className="text-[11px] text-muted-foreground mt-1">
               Page 2 de la fiche commerciale, modifiable pour ce projet.
             </p>
@@ -150,7 +150,7 @@ function VilleInfosCard({
             <span
               className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
               style={dataset
-                ? { backgroundColor: 'rgba(201,148,58,0.12)', color: '#A67828' }
+                ? { backgroundColor: 'rgba(201,148,58,0.12)', color: 'var(--cs-gold-ink)' }
                 : { backgroundColor: '#F0EDE7', color: '#6E6E73' }}
             >
               {dataset ? 'Données Capsul' : 'Aucune donnée à compléter'}
@@ -212,7 +212,7 @@ export default function BlocA({ state, setField }: Props) {
       {/* Localisation */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Localisation</CardTitle>
+          <CardTitle>Localisation</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
@@ -271,7 +271,7 @@ export default function BlocA({ state, setField }: Props) {
       {/* Caractéristiques */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Caractéristiques</CardTitle>
+          <CardTitle>Caractéristiques</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
@@ -326,7 +326,7 @@ export default function BlocA({ state, setField }: Props) {
       {/* Description */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Description du bien</CardTitle>
+          <CardTitle>Description du bien</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-1.5">
