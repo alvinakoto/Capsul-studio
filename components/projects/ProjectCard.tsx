@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { syntheseProjet } from '@/lib/calculs/depuisProjet'
 import { euros } from '@/lib/utils/format'
 import { statusConfig } from './status'
@@ -44,11 +45,12 @@ export default function ProjectCard({ project }: { project: Project }) {
       {/* Photo de couverture */}
       <div className="relative aspect-[16/9] overflow-hidden" style={{ backgroundColor: 'var(--cs-stone)' }}>
         {project.cover_url ? (
-          <img
+          <Image
             src={project.cover_url}
             alt=""
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            fill
+            sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
