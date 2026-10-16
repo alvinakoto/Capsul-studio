@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { calculerScenario } from '@/lib/calculs/index'
-import { donneesProjet, donneesFinancement, donneesCharges } from '@/lib/calculs/depuisProjet'
+import { donneesProjet, donneesFinancement, donneesCharges, alerteApport } from '@/lib/calculs/depuisProjet'
+import AlerteApport from './AlerteApport'
 import { updateProjectScenario } from '@/lib/supabase/projects'
 import { euros, eurosSigne, pct } from '@/lib/utils/format'
 import ProjectionChart from './ProjectionChart'
@@ -289,6 +290,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
 
         {/* ── Résultats ── */}
         <div className="space-y-5 min-w-0">
+          <AlerteApport alerte={alerteApport(project)} />
           {result ? (
             <>
               <ResultCard

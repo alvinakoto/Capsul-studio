@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { WizardState } from './WizardShell'
-import { prixProjetDepuisSaisie } from './calculsSaisie'
+import { prixProjetDepuisSaisie, alerteApportDepuisSaisie } from './calculsSaisie'
+import AlerteApport from '@/components/projects/AlerteApport'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -195,6 +196,8 @@ export default function BlocD({ state, setField }: Props) {
               </p>
             )}
           </div>
+
+          <AlerteApport alerte={alerteApportDepuisSaisie(state)} className="md:col-span-2 md:order-last" />
 
           {!state.is_comptant && (
             <div className="space-y-1.5">

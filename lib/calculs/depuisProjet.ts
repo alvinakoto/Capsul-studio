@@ -6,7 +6,7 @@
 // par ici puis par le moteur, au lieu de recalculer à sa façon.
 
 import { DonneesProjet, DonneesFinancement, DonneesCharges } from './types'
-import { calculerPrixProjet, calculerFinancement } from './communs'
+import { calculerPrixProjet, calculerFinancement, calculerApportMinimum } from './communs'
 
 export function donneesProjet(project: any): DonneesProjet {
   return {
@@ -50,4 +50,15 @@ export function syntheseProjet(project: any) {
   const prix = calculerPrixProjet(donneesProjet(project))
   const financement = calculerFinancement(prix.prixProjetTotal, donneesFinancement(project))
   return { ...prix, ...financement }
+}
+
+/**
+ * Apport inférieur aux frais que la banque ne finance pas (notaire, honoraires,
+ * ameublement…) : renvoie le minimum et le manque, sinon `null`.
+ */
+export function alerteApport(project: any): { minimum: number; manque: number } | null {
+  if (project.apport === null || project.apport === undefined || project.is_comptant) return null
+  const minimum = calculerApportMinimum(donneesProjet(project))
+  const manque = minimum - (Number(project.apport) || 0)
+  return manque > 0 ? { minimum, manque } : null
 }

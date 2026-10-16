@@ -2,7 +2,8 @@
 
 import { WizardState } from './WizardShell'
 import { euros } from '@/lib/utils/format'
-import { prixProjetDepuisSaisie, financementDepuisSaisie } from './calculsSaisie'
+import { prixProjetDepuisSaisie, financementDepuisSaisie, alerteApportDepuisSaisie } from './calculsSaisie'
+import AlerteApport from '@/components/projects/AlerteApport'
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 
@@ -64,6 +65,8 @@ export default function RecapSticky({ state }: { state: WizardState }) {
               </p>
             ) : null}
           </div>
+
+          <AlerteApport alerte={alerteApportDepuisSaisie(state)} sombre className="mt-3" />
 
         </>
       )}

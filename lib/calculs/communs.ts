@@ -59,6 +59,16 @@ export function calculerPrixProjet(projet: DonneesProjet): {
   return { fraisNotaireEuros, honorairesCapsul, prixProjetTotal }
 }
 
+// ── Apport minimum ───────────────────────────────────────────
+// La banque ne finance que le prix d'achat et les travaux : frais de notaire,
+// honoraires Capsul, ameublement et autres frais sont payés par l'apport.
+// Sous ce montant, le capital emprunté dépasse ce qu'une banque accepte de financer.
+// Sert uniquement à prévenir le chargé, le calcul du crédit n'est pas modifié.
+export function calculerApportMinimum(projet: DonneesProjet): number {
+  const { prixProjetTotal } = calculerPrixProjet(projet)
+  return Math.max(prixProjetTotal - projet.prixAchat - projet.travaux, 0)
+}
+
 // ── Mensualité de crédit (formule des annuités) ──────────────
 export function calculerMensualite(
   capital: number,
