@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { calculerScenario } from '@/lib/calculs/index'
 import { donneesProjet, donneesFinancement, donneesCharges, alerteApport } from '@/lib/calculs/depuisProjet'
 import AlerteApport from './AlerteApport'
@@ -87,42 +87,101 @@ function buildScenarioInput(type: TypeScenario, f: ScenarioFields, chargesData: 
   } } }
 }
 
+interface Resultats {
+  r: any | null
+  /** Champ requis encore vide : état normal pendant la saisie, pas une erreur. */
+  manquant: string | null
+  erreur: string | null
+  r2: any | null
+  manquantComparaison: string | null
+  erreurComparaison: string | null
+  comparaisonParams: Record<string, number> | null
+}
+
 /**
- * Calcule le scénario principal (et la comparaison si active) sans rien enregistrer.
- * Utilisé au clic sur « Calculer et enregistrer » et au chargement de la page, pour
- * réafficher le dernier résultat enregistré sans avoir à recliquer.
+ * Calcule le scénario principal et la comparaison indépendamment, sans rien enregistrer :
+ * une comparaison incomplète ne doit pas empêcher d'afficher ni d'enregistrer le principal.
  */
 function calculerResultats(
   project: any,
   scenarioType: TypeScenario, fields: ScenarioFields,
   comparaison: { type: TypeScenario; fields: ScenarioFields } | null,
-): { error: string } | { r: any; r2: any; comparaisonParams: Record<string, number> | null } {
+): Resultats {
   const projetData = donneesProjet(project)
   const financementData = donneesFinancement(project)
   const chargesData = donneesCharges(project)
+  const out: Resultats = {
+    r: null, manquant: null, erreur: null,
+    r2: null, manquantComparaison: null, erreurComparaison: null, comparaisonParams: null,
+  }
 
   const primary = buildScenarioInput(scenarioType, fields, chargesData)
-  if ('error' in primary) return { error: primary.error }
-
-  let r2: any = null
-  let comparaisonParams: Record<string, number> | null = null
-  if (comparaison) {
-    const comp = buildScenarioInput(comparaison.type, comparaison.fields, chargesData)
-    if ('error' in comp) return { error: `Pour la comparaison : ${comp.error.charAt(0).toLowerCase()}${comp.error.slice(1)}` }
-    comparaisonParams = comp.input.params
+  if ('error' in primary) {
+    out.manquant = primary.error
+  } else {
     try {
-      r2 = calculerScenario(projetData, financementData, chargesData, comp.input as any)
+      out.r = calculerScenario(projetData, financementData, chargesData, primary.input as any)
     } catch (err: any) {
-      return { error: err?.message ?? 'Erreur de calcul (comparaison).' }
+      console.error(err)
+      out.erreur = err?.message ?? 'Erreur de calcul.'
     }
   }
 
-  try {
-    const r = calculerScenario(projetData, financementData, chargesData, primary.input as any)
-    return { r, r2, comparaisonParams }
-  } catch (err: any) {
-    console.error(err)
-    return { error: err?.message ?? 'Erreur de calcul.' }
+  if (comparaison) {
+    const comp = buildScenarioInput(comparaison.type, comparaison.fields, chargesData)
+    if ('error' in comp) {
+      out.manquantComparaison = comp.error
+    } else {
+      try {
+        out.r2 = calculerScenario(projetData, financementData, chargesData, comp.input as any)
+        out.comparaisonParams = comp.input.params
+      } catch (err: any) {
+        out.erreurComparaison = err?.message ?? 'Erreur de calcul (comparaison).'
+      }
+    }
+  }
+
+  return out
+}
+
+type StatutEnregistrement = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
+
+const DELAI_ENREGISTREMENT_MS = 800
+
+interface PayloadScenario {
+  loyerCible: number
+  scenarioType: TypeScenario
+  extras: Parameters<typeof updateProjectScenario>[3]
+}
+
+/**
+ * Ce qui part en base pour l'état courant du simulateur, ou null si le scénario principal
+ * n'est pas calculable. Comparaison active mais incomplète : `undefined` laisse les colonnes
+ * de comparaison intactes en base, plutôt que d'effacer l'encart pendant la saisie.
+ */
+function construirePayload(
+  res: Resultats, scenarioType: TypeScenario, fields: ScenarioFields,
+  comparaisonActive: boolean, comparaisonType: TypeScenario | null,
+): PayloadScenario | null {
+  if (!res.r) return null
+  const loyerCible =
+    scenarioType === 'lmnp_meuble' ? Number(fields.loyerMensuel) :
+    scenarioType === 'colocation'  ? Number(fields.loyerParChambre) :
+                                     Number(fields.prixNuitee)
+  const comparaisonPrete = comparaisonActive && !!res.r2
+  return {
+    loyerCible,
+    scenarioType,
+    extras: {
+      fraisGestionPct: Number(fields.fraisGestionPct) || 0,
+      conciergePct: Number(fields.conciergeriePct) || 0,
+      vacancePct: Number(fields.vacancePct) || 0,
+      nuitsConservateur: Number(fields.nuitsConservateur) || 0,
+      nuitsOptimiste: Number(fields.nuitsOptimiste) || 0,
+      nbChambres: Number(fields.nbChambres) || 1,
+      scenarioComparaisonType: !comparaisonActive ? null : comparaisonPrete ? comparaisonType : undefined,
+      scenarioComparaisonData: !comparaisonActive ? null : comparaisonPrete ? res.comparaisonParams : undefined,
+    },
   }
 }
 
@@ -147,29 +206,82 @@ export default function ScenarioPanel({ project }: { project: any }) {
       : defaultFields(comparaisonType ?? 'colocation')
   )
 
-  // Un scénario déjà calculé (loyer enregistré) est réaffiché tel quel à l'ouverture,
-  // sans réécrire en base : seul le clic sur « Calculer et enregistrer » sauvegarde.
-  const [initial] = useState(() => {
-    if (!project.loyer_cible) return null
-    const out = calculerResultats(
-      project, initScenario, primaryFieldsFromProject(project, initScenario),
-      initComparaisonType
-        ? { type: initComparaisonType, fields: { ...defaultFields(initComparaisonType), ...(project.scenario_comparaison_data ?? {}) } }
-        : null,
-    )
-    return 'error' in out ? null : out
-  })
+  // Les résultats suivent la saisie : ce qui est affiché est toujours ce qui sortira dans le PDF.
+  const resultats = useMemo(
+    () => calculerResultats(
+      project, scenarioType, fields,
+      comparaisonActive && comparaisonType ? { type: comparaisonType, fields: comparaisonFields } : null,
+    ),
+    [project, scenarioType, fields, comparaisonActive, comparaisonType, comparaisonFields],
+  )
+  const result = resultats.r
+  const result2 = resultats.r2
 
-  const [result, setResult]   = useState<any>(initial?.r ?? null)
-  const [result2, setResult2] = useState<any>(initial?.r2 ?? null)
-  const [error, setError]     = useState<string | null>(null)
-  const [saved, setSaved]     = useState(false)
+  const payload = useMemo(
+    () => construirePayload(resultats, scenarioType, fields, comparaisonActive, comparaisonType),
+    [resultats, scenarioType, fields, comparaisonActive, comparaisonType],
+  )
+  const payloadKey = payload ? JSON.stringify(payload) : null
+
+  // ─── Enregistrement automatique ───────────────────────────────────────────
+  // L'état à l'ouverture correspond à la base : pas de réécriture tant que rien ne change.
+  const lastSavedKey = useRef<string | null>(payloadKey)
+  const payloadRef = useRef<PayloadScenario | null>(payload)
+  useEffect(() => { payloadRef.current = payload }, [payload])
+  // File d'attente : deux enregistrements ne partent jamais en parallèle (débounce + téléchargement).
+  const fileEnregistrement = useRef<Promise<boolean>>(Promise.resolve(true))
+  const [statut, setStatut] = useState<StatutEnregistrement>('idle')
+
+  const enregistrerMaintenant = useCallback((): Promise<boolean> => {
+    fileEnregistrement.current = fileEnregistrement.current.then(async () => {
+      const p = payloadRef.current
+      const key = p ? JSON.stringify(p) : null
+      if (!p || key === lastSavedKey.current) return true
+      setStatut('saving')
+      try {
+        await updateProjectScenario(project.id, p.loyerCible, p.scenarioType, p.extras)
+        lastSavedKey.current = key
+        const aJour = JSON.stringify(payloadRef.current) === key
+        setStatut(aJour ? 'saved' : 'pending')
+        return true
+      } catch (err) {
+        console.error('Enregistrement du scénario échoué :', err)
+        setStatut('error')
+        return false
+      }
+    })
+    return fileEnregistrement.current
+  }, [project.id])
 
   useEffect(() => {
-    if (!saved) return
-    const t = setTimeout(() => setSaved(false), 2500)
+    if (!payloadKey || payloadKey === lastSavedKey.current) return
+    setStatut('pending')
+    const t = setTimeout(enregistrerMaintenant, DELAI_ENREGISTREMENT_MS)
     return () => clearTimeout(t)
-  }, [saved])
+  }, [payloadKey, enregistrerMaintenant])
+
+  // Fermeture d'onglet pendant le délai : le navigateur demande confirmation.
+  useEffect(() => {
+    if (statut !== 'pending' && statut !== 'saving') return
+    const avertir = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', avertir)
+    return () => window.removeEventListener('beforeunload', avertir)
+  }, [statut])
+
+  // Navigation interne (lien vers une autre page de l'app) : on enregistre ce qui reste en attente.
+  useEffect(() => () => { void enregistrerMaintenant() }, [enregistrerMaintenant])
+
+  /** Enregistre ce qui est en attente avant d'ouvrir le PDF, qui est généré depuis la base. */
+  const telecharger = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    const url = e.currentTarget.href
+    // Ouverte tout de suite, dans le geste de l'utilisateur, sinon le bloqueur de pop-up s'en mêle.
+    const fenetre = window.open('', '_blank')
+    const ok = await enregistrerMaintenant()
+    if (!ok) { fenetre?.close(); return }
+    if (fenetre) { fenetre.opener = null; fenetre.location.href = url }
+    else window.location.href = url
+  }
 
   const setField = <K extends keyof ScenarioFields>(k: K, v: ScenarioFields[K]) =>
     setFields((prev) => ({ ...prev, [k]: v }))
@@ -181,43 +293,10 @@ export default function ScenarioPanel({ project }: { project: any }) {
   const handleChangeScenarioType = (type: TypeScenario) => {
     setScenarioType(type)
     setFields((prev) => ({ ...prev, vacancePct: type === 'colocation' ? 8 : 5 }))
-    setResult(null)
-    setError(null)
     // Le scénario de comparaison ne peut pas être identique au scénario principal
     if (comparaisonType === type) {
       setComparaisonType(SCENARIOS.find((s) => s.id !== type)?.id ?? null)
     }
-  }
-
-  // ─── Calcul ───────────────────────────────────────────────────────────────
-
-  const handleCalculer = () => {
-    setError(null)
-    const out = calculerResultats(
-      project, scenarioType, fields,
-      comparaisonActive && comparaisonType ? { type: comparaisonType, fields: comparaisonFields } : null,
-    )
-    if ('error' in out) { setError(out.error); return }
-
-    setResult(out.r)
-    setResult2(out.r2)
-    setSaved(false)
-
-    const loyerCible =
-      scenarioType === 'lmnp_meuble' ? Number(fields.loyerMensuel) :
-      scenarioType === 'colocation'  ? Number(fields.loyerParChambre) :
-                                       Number(fields.prixNuitee)
-
-    updateProjectScenario(project.id, loyerCible, scenarioType, {
-      fraisGestionPct: Number(fields.fraisGestionPct) || 0,
-      conciergePct: Number(fields.conciergeriePct) || 0,
-      vacancePct: Number(fields.vacancePct) || 0,
-      nuitsConservateur: Number(fields.nuitsConservateur) || 0,
-      nuitsOptimiste: Number(fields.nuitsOptimiste) || 0,
-      nbChambres: Number(fields.nbChambres) || 1,
-      scenarioComparaisonType: comparaisonActive ? comparaisonType : null,
-      scenarioComparaisonData: comparaisonActive ? out.comparaisonParams : null,
-    }).then(() => setSaved(true))
   }
 
   // ─── Rendu ────────────────────────────────────────────────────────────────
@@ -247,16 +326,11 @@ export default function ScenarioPanel({ project }: { project: any }) {
 
             <ScenarioFieldsInputs prefix="p" type={scenarioType} fields={fields} setField={setField} large />
 
-            {error && (
+            {resultats.erreur && (
               <p className="mt-4 text-[12.5px] font-medium px-3 py-2 rounded-lg" style={{ color: 'var(--cs-neg)', backgroundColor: 'var(--cs-neg-wash)' }} role="alert">
-                {error}
+                {resultats.erreur}
               </p>
             )}
-
-            <button onClick={handleCalculer} className="cs-btn cs-btn-primary cs-btn-lg w-full mt-5">
-              Calculer et enregistrer
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </button>
           </div>
 
           {/* Comparaison */}
@@ -277,12 +351,22 @@ export default function ScenarioPanel({ project }: { project: any }) {
               <>
                 <div className="cs-seg mt-4" role="group" aria-label="Type de location comparé">
                   {otherTypes.map((s) => (
-                    <button key={s.id} type="button" aria-pressed={comparaisonType === s.id} onClick={() => { setComparaisonType(s.id); setResult2(null) }}>
+                    <button key={s.id} type="button" aria-pressed={comparaisonType === s.id} onClick={() => setComparaisonType(s.id)}>
                       {s.label}
                     </button>
                   ))}
                 </div>
                 <ScenarioFieldsInputs prefix="c" type={comparaisonType} fields={comparaisonFields} setField={setComparaisonField} />
+                {resultats.manquantComparaison && (
+                  <p className="cs-hint mt-3">
+                    {resultats.manquantComparaison} L’encart de la fiche commerciale sera mis à jour dès que ce champ sera rempli.
+                  </p>
+                )}
+                {resultats.erreurComparaison && (
+                  <p className="mt-3 text-[12.5px] font-medium px-3 py-2 rounded-lg" style={{ color: 'var(--cs-neg)', backgroundColor: 'var(--cs-neg-wash)' }} role="alert">
+                    {resultats.erreurComparaison}
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -296,7 +380,9 @@ export default function ScenarioPanel({ project }: { project: any }) {
               <ResultCard
                 result={result}
                 scenarioType={scenarioType}
-                saved={saved}
+                statut={statut}
+                onReessayer={() => { void enregistrerMaintenant() }}
+                onTelecharger={telecharger}
                 projectId={project.id}
               />
               {result2 && comparaisonType && (
@@ -313,7 +399,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
               </div>
               <p className="cs-h3">Aucun résultat pour l’instant</p>
               <p className="cs-sub mt-1 max-w-[34ch]">
-                Renseignez le loyer du scénario puis cliquez sur « Calculer et enregistrer ». Les fiches se téléchargent ensuite d’ici.
+                Renseignez le loyer du scénario : les résultats s’affichent au fil de la saisie et sont enregistrés automatiquement. Les fiches se téléchargent ensuite d’ici.
               </p>
             </div>
           )}
@@ -423,10 +509,34 @@ function NumField({ id, label, value, onChange, unit, hint, min = 0, max, full =
   )
 }
 
-function ResultCard({ result, scenarioType, saved, projectId }: {
+function IndicateurEnregistrement({ statut, onReessayer }: { statut: StatutEnregistrement; onReessayer: () => void }) {
+  if (statut === 'error') {
+    return (
+      <button type="button" onClick={onReessayer} className="text-[12px] font-semibold underline underline-offset-2" style={{ color: 'var(--cs-neg)' }} role="alert">
+        Échec de l’enregistrement, réessayer
+      </button>
+    )
+  }
+  if (statut === 'pending' || statut === 'saving') {
+    return <span className="text-[12px] font-semibold" style={{ color: 'var(--cs-mist)' }} aria-live="polite">Enregistrement…</span>
+  }
+  if (statut === 'saved') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: 'var(--cs-pos)' }} aria-live="polite">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        Enregistré
+      </span>
+    )
+  }
+  return null
+}
+
+function ResultCard({ result, scenarioType, statut, onReessayer, onTelecharger, projectId }: {
   result: any
   scenarioType: TypeScenario
-  saved: boolean
+  statut: StatutEnregistrement
+  onReessayer: () => void
+  onTelecharger: (e: React.MouseEvent<HTMLAnchorElement>) => void
   projectId: string
 }) {
   const s = result.scenario
@@ -448,14 +558,7 @@ function ResultCard({ result, scenarioType, saved, projectId }: {
           </span>
           <h3 className="cs-h3">Résultat mensuel</h3>
         </div>
-        <span
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold transition-opacity"
-          style={{ color: 'var(--cs-pos)', opacity: saved ? 1 : 0 }}
-          aria-live="polite"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-          {saved ? 'Enregistré' : ''}
-        </span>
+        <IndicateurEnregistrement statut={statut} onReessayer={onReessayer} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1.25fr_1fr]">
@@ -526,11 +629,11 @@ function ResultCard({ result, scenarioType, saved, projectId }: {
       </div>
 
       <div className="flex gap-2.5 flex-wrap px-[22px] py-4 border-t cs-divider rounded-b-[14px]" style={{ backgroundColor: '#FBFAF7' }}>
-        <a href={`/api/projets/${projectId}/fiche`} target="_blank" rel="noopener noreferrer" className="cs-btn cs-btn-primary flex-[1_1_180px]">
+        <a href={`/api/projets/${projectId}/fiche`} onClick={onTelecharger} target="_blank" rel="noopener noreferrer" className="cs-btn cs-btn-primary flex-[1_1_180px]">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
           Fiche commerciale
         </a>
-        <a href={`/api/projets/${projectId}/rapport`} target="_blank" rel="noopener noreferrer" className="cs-btn flex-[1_1_180px]">
+        <a href={`/api/projets/${projectId}/rapport`} onClick={onTelecharger} target="_blank" rel="noopener noreferrer" className="cs-btn flex-[1_1_180px]">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>
           Rapport analytique
         </a>
