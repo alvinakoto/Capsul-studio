@@ -46,6 +46,7 @@ export async function createProject(
       // Infos bien
       adresse: state.adresse || null,
       ville: state.ville || null,
+      ville_id: state.ville_id || null,
       ville_infos: formToVilleInfos(state.ville_infos),
       surface_m2: state.surface_m2 || null,
       type_bien: state.type_bien || null,
@@ -154,6 +155,7 @@ export async function updateProject(
 
       adresse: state.adresse || null,
       ville: state.ville || null,
+      ville_id: state.ville_id || null,
       ville_infos: formToVilleInfos(state.ville_infos),
       surface_m2: state.surface_m2 || null,
       type_bien: state.type_bien || null,
@@ -280,6 +282,7 @@ export async function duplicateProject(projectId: string, userId: string): Promi
 
       adresse: project.adresse,
       ville: project.ville,
+      ville_id: project.ville_id,
       ville_infos: project.ville_infos,
       surface_m2: project.surface_m2,
       type_bien: project.type_bien,

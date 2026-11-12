@@ -122,6 +122,7 @@
   --cs-gold: #C9943A;
   --cs-gold-ink: #946A22;
   --cs-gold-wash: #F6EEDF;
+  --cs-gold-deep: #7A5518;      /* texte or sur fond gold-wash : 5,8:1 (gold-ink n'y fait que 4,2:1) */
   --cs-ivory: #F7F5F1;
   --cs-stone: #EDE9E1;
   --cs-line: #E4DFD5;
@@ -162,6 +163,8 @@
   .cs-btn-gold { background: var(--cs-gold); border-color: var(--cs-gold); color: var(--cs-navy); font-weight: 700; }
   .cs-btn-gold:hover:not(:disabled) { background: #D4A24B; border-color: #D4A24B; }
   .cs-btn-danger:hover:not(:disabled) { background: var(--cs-neg-wash); border-color: #EBC3BC; color: var(--cs-neg); }
+  .cs-btn-danger-plein { background: var(--cs-neg); border-color: var(--cs-neg); color: #fff; font-weight: 700; }
+  .cs-btn-danger-plein:hover:not(:disabled) { background: #9A2F25; border-color: #9A2F25; }
   .cs-btn-icon { width: 38px; padding: 0; }
   .cs-btn-lg { height: 46px; border-radius: 11px; font-size: 14px; font-weight: 700; }
 

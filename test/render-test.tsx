@@ -3,6 +3,7 @@ import React from 'react';
 import { writeFileSync } from 'fs';
 import { DiagnosticDocument } from '../lib/pdf/diagnostic/DiagnosticDocument';
 import { normalizePayload } from '../lib/pdf/diagnostic/calculations';
+import { getMarketData } from '../lib/pdf/diagnostic/marketData';
 
 const raw = {
   prenom: 'Sophie',
@@ -50,8 +51,10 @@ const raw = {
 
 async function main() {
   const payload = normalizePayload(raw);
+  // Chiffres de Reims tels qu'enregistrés dans le catalogue `villes` (le script tourne sans base)
+  const market = getMarketData(payload.villeProjet, { nom: 'Reims', prixM2Min: 2200, prixM2Max: 3600, rendementMoyenPct: 6 });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buf = await renderToBuffer(React.createElement(DiagnosticDocument, { payload }) as any);
+  const buf = await renderToBuffer(React.createElement(DiagnosticDocument, { payload, market }) as any);
   const path = 'test-diagnostic-render.pdf';
   writeFileSync(path, buf);
   console.log(`PDF genere : ${buf.byteLength} octets -> ${path}`);

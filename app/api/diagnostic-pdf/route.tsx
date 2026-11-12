@@ -3,6 +3,7 @@ import { renderToBuffer } from '@react-pdf/renderer';
 import { DiagnosticDocument } from '@/lib/pdf/diagnostic/DiagnosticDocument';
 import { normalizePayload } from '@/lib/pdf/diagnostic/calculations';
 import { DiagnosticPayloadRaw } from '@/lib/pdf/diagnostic/types';
+import { chargerMarketData } from '@/lib/pdf/diagnostic/marketData';
 
 /**
  * Remplace le module PDFMonkey dans le scénario Make.
@@ -40,9 +41,10 @@ export async function POST(req: NextRequest) {
   }
 
   const payload = normalizePayload(raw);
+  const market = await chargerMarketData(payload.villeProjet);
 
   try {
-    const buffer = await renderToBuffer(<DiagnosticDocument payload={payload} />);
+    const buffer = await renderToBuffer(<DiagnosticDocument payload={payload} market={market} />);
 
     // Option A (par défaut ici) : renvoyer le PDF directement dans la
     // réponse HTTP. Make peut le transmettre tel quel à HubSpot (en pièce

@@ -15,9 +15,30 @@ import path from 'path'
 import { registerFonts } from '../lib/pdf/common/fonts'
 import FicheCommerciale from '../lib/pdf/FicheCommerciale'
 import { calculerScenario } from '../lib/calculs/index'
-import { findVille } from '../lib/data/villes'
+import type { VilleInfos } from '../lib/data/villes'
 import { getPostesTravaux } from '../lib/data/travaux'
 import type { FicheData } from '../lib/pdf/types'
+
+// Reims tel qu'enregistré dans le catalogue `villes` (le script tourne sans base)
+const REIMS: {
+  infos: VilleInfos; aireAttraction: number; croissanceDemographiquePct: number
+  quartiers: string[]; projetsAVenir: string[]
+} = {
+  infos: {
+    surnom: 'La cité des sacres', habitants: 179_992, etudiants: 37_000,
+    acces: 'à 45 min de Paris en TGV', atout: '12ème ville de France',
+    prixM2Min: 2_200, prixM2Max: 3_600, rendementMoyenPct: 6.0,
+  },
+  aireAttraction: 356_721,
+  croissanceDemographiquePct: 0.1,
+  quartiers: ['Clairmarais', 'Croix-Rouge', 'Saint-Remi', 'Centre-ville / Cathédrale', 'Jean-Jaurès / Moissons'],
+  projetsAVenir: [
+    "Reims Grand Centre : reconversion des friches ferroviaires et pôle d'échanges multimodal bus-tram-train",
+    'Reconstruction du nouveau CHU de Reims (secteur Croix-Rouge), 564 M€, achèvement prévu 2031',
+    'Deux lignes de bus à haut niveau de service (BHNS) portées par le Grand Reims',
+    'ZAC de Bezannes (172 ha) près de la gare Champagne-TGV : logements, activités, commerces',
+  ],
+}
 
 const outDir = process.argv[2] ?? '.'
 const photo = process.argv[3] ?? null
@@ -102,20 +123,20 @@ const base: FicheData = {
   projectionConservateur: r.projectionConservateur,
   projectionRealiste: r.projectionRealiste,
   villeNom: 'Reims',
-  villeInfos: findVille('Reims')?.infos ?? null,
-  villePhotoPath: null,
-  villeCartePath: null,
-  villeAireAttraction: findVille('Reims')?.aireAttraction ?? null,
-  villeCroissanceDemographiquePct: findVille('Reims')?.croissanceDemographiquePct ?? null,
-  villeQuartiers: findVille('Reims')?.quartiers ?? [],
-  villeProjetsAVenir: findVille('Reims')?.projetsAVenir ?? [],
+  villeInfos: REIMS.infos,
+  villePhotoSrc: null,
+  villeCarte: null,
+  villeAireAttraction: REIMS.aireAttraction,
+  villeCroissanceDemographiquePct: REIMS.croissanceDemographiquePct,
+  villeQuartiers: REIMS.quartiers,
+  villeProjetsAVenir: REIMS.projetsAVenir,
   travauxPostes: getPostesTravaux(project.travaux_postes),
   comparaison: null,
 }
 
 const variants: Array<{ file: string; data: FicheData }> = [
   { file: 'fiche-complete.pdf', data: base },
-  ...(photo ? [{ file: 'fiche-avec-photo.pdf', data: { ...base, villePhotoPath: photo } }] : []),
+  ...(photo ? [{ file: 'fiche-avec-photo.pdf', data: { ...base, villePhotoSrc: photo } }] : []),
   { file: 'fiche-minimale.pdf', data: { ...base, villeInfos: null, travauxPostes: [] } },
 ]
 

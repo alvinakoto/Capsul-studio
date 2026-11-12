@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document } from '@react-pdf/renderer';
-import { DiagnosticPayload } from './types';
+import { DiagnosticPayload, MarketData } from './types';
 import { PageCouverture } from './pages/PageCouverture';
 import { PageSynthese } from './pages/PageSynthese';
 import { PageFinancement } from './pages/PageFinancement';
@@ -13,7 +13,9 @@ import { registerFonts } from '@/lib/pdf/common/fonts';
 
 registerFonts();
 
-export function DiagnosticDocument({ payload }: { payload: DiagnosticPayload }) {
+// `market` : comparatif marché de la ville du projet, lu dans le catalogue par la
+// route (chargerMarketData) avant le rendu, react-pdf ne gérant pas l'asynchrone.
+export function DiagnosticDocument({ payload, market }: { payload: DiagnosticPayload; market: MarketData }) {
   return (
     <Document title={`Diagnostic Capsul · ${payload.prenom}`}>
       <PageCouverture p={payload} />
@@ -22,7 +24,7 @@ export function DiagnosticDocument({ payload }: { payload: DiagnosticPayload }) 
       <PageCashflow p={payload} />
       <PageProjection p={payload} />
       <PageLeviers p={payload} />
-      <PageMarche p={payload} />
+      <PageMarche p={payload} market={market} />
       <PageApropos p={payload} />
     </Document>
   );

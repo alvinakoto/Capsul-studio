@@ -15,11 +15,13 @@ export interface AlerteReglementaire {
   message: string
 }
 
-export function suggererScenarios(state: WizardState): Suggestion[] {
+/**
+ * `villeTouristique` : case « Ville touristique » de la ville dans le catalogue
+ * (écran Villes), qui remplace l'ancienne liste de villes écrite en dur.
+ */
+export function suggererScenarios(state: WizardState, villeTouristique: boolean): Suggestion[] {
   const surface = Number(state.surface_m2) || 0
   const type = state.type_bien
-  const ville = state.ville?.toLowerCase() || ''
-  const villesTouristiques = ['paris', 'reims', 'toulouse', 'nancy', 'épernay']
 
   // LMNP meublé
   let scoreLMNP = 60
@@ -36,7 +38,7 @@ export function suggererScenarios(state: WizardState): Suggestion[] {
   let scoreCourte = 35
   if (['T1', 'studio', 'T2'].includes(type)) scoreCourte += 15
   if (type === 'immeuble') scoreCourte += 10  // plusieurs unités exploitables
-  if (villesTouristiques.includes(ville)) scoreCourte += 20
+  if (villeTouristique) scoreCourte += 20
   if (surface < 40) scoreCourte += 10
 
   return [

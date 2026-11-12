@@ -1,5 +1,7 @@
 'use client'
 
+import { useRef, useState } from 'react'
+import { ExternalLinkIcon, PlusIcon } from 'lucide-react'
 import { WizardState } from './WizardShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,7 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { NOMS_VILLES, findVille, villeInfosToForm, type VilleInfosForm } from '@/lib/data/villes'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import FormulaireVille from '@/components/villes/FormulaireVille'
+import { hasVilleInfos, villeInfosToForm, type Ville, type VilleInfosForm } from '@/lib/data/villes'
+import { trouverVille } from '@/lib/supabase/villes'
 import { nomProjetAuto } from '@/lib/supabase/projects'
 
 const TYPES_BIEN = ['studio', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6+', 'maison', 'immeuble']
@@ -33,6 +38,9 @@ const MAX_DESCRIPTION = 400
 interface Props {
   state: WizardState
   setField: <K extends keyof WizardState>(field: K, value: WizardState[K]) => void
+  villes: Ville[] | null               // catalogue, null pendant le chargement
+  erreurVilles: boolean
+  onVilleMaj: (ville: Ville) => void   // ville ajoutée ou relue : mise à jour de la liste du wizard
 }
 
 function DpeSelect({
@@ -126,46 +134,74 @@ function NumField({
 }
 
 function VilleInfosCard({
-  ville, infos, onChange,
+  ville, infos, onChange, onVilleMaj,
 }: {
-  ville: string
+  ville: Ville | null
   infos: VilleInfosForm
   onChange: (next: VilleInfosForm) => void
+  onVilleMaj: (ville: Ville) => void
 }) {
-  const dataset = findVille(ville)
+  const [relecture, setRelecture] = useState(false)
+  const catalogueRenseigne = !!ville && hasVilleInfos(ville.infos)
   const set = <K extends keyof VilleInfosForm>(key: K, value: VilleInfosForm[K]) =>
     onChange({ ...infos, [key]: value })
+
+  // Relit la fiche ville : elle a pu être complétée entre-temps (autre onglet, autre chargé)
+  const reinitialiser = async () => {
+    if (!ville) return
+    setRelecture(true)
+    try {
+      const aJour = await trouverVille(ville.id)
+      if (aJour) {
+        onVilleMaj(aJour)
+        onChange(villeInfosToForm(aJour.infos))
+      }
+    } finally {
+      setRelecture(false)
+    }
+  }
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0 max-w-[52ch]">
             <CardTitle>Infos ville</CardTitle>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Page 2 de la fiche commerciale, modifiable pour ce projet.
+              Page « La ville » de la fiche, ajustable pour ce projet. La photo, la carte et les quartiers
+              viennent de la fiche de la ville, commune à tous les projets.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <span
               className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-              style={dataset
+              style={catalogueRenseigne
                 ? { backgroundColor: 'rgba(201,148,58,0.12)', color: 'var(--cs-gold-ink)' }
                 : { backgroundColor: '#F0EDE7', color: '#6E6E73' }}
             >
-              {dataset ? 'Données Capsul' : 'Aucune donnée à compléter'}
+              {catalogueRenseigne ? 'Données du catalogue' : 'Fiche ville à compléter'}
             </span>
-            {dataset && (
+            {catalogueRenseigne && (
               <button
                 type="button"
-                onClick={() => onChange(villeInfosToForm(dataset.infos))}
-                className="text-[11px] font-medium transition-colors"
-                style={{ color: '#6E6E73' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#0E2240' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#6E6E73' }}
+                onClick={reinitialiser}
+                disabled={relecture}
+                className="text-[11px] font-medium text-[var(--cs-mist)] transition-colors hover:text-[var(--cs-navy)] disabled:opacity-60"
               >
-                Réinitialiser
+                {relecture ? 'Relecture…' : 'Réinitialiser'}
               </button>
+            )}
+            {ville && (
+              <a
+                href={`/villes/${ville.id}`}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--cs-navy)] transition-colors hover:text-[var(--cs-gold-ink)]"
+              >
+                Fiche de la ville
+                <ExternalLinkIcon size={12} strokeWidth={2.2} aria-hidden="true" />
+                <span className="sr-only">(nouvel onglet)</span>
+              </a>
             )}
           </div>
         </div>
@@ -197,13 +233,22 @@ function VilleInfosCard({
 
 // ─── Bloc A ───────────────────────────────────────────────────────────────────
 
-export default function BlocA({ state, setField }: Props) {
+export default function BlocA({ state, setField, villes, erreurVilles, onVilleMaj }: Props) {
   const descLen = state.description_bien?.length || 0
+  const [ajoutVille, setAjoutVille] = useState(false)
+  const boutonAjoutRef = useRef<HTMLButtonElement>(null)
+  const villeChoisie = villes?.find((v) => v.id === state.ville_id) ?? null
 
-  const handleVilleChange = (v: string) => {
-    setField('ville', v)
-    // Changer de ville = nouvelles données : on repart du dataset Capsul (vide si inconnue)
-    setField('ville_infos', villeInfosToForm(findVille(v)?.infos))
+  const selectionnerVille = (ville: Ville) => {
+    setField('ville_id', ville.id)
+    setField('ville', ville.nom)
+    // Changer de ville = nouvelles données : on repart de la fiche de la ville (vide si à compléter)
+    setField('ville_infos', villeInfosToForm(ville.infos))
+  }
+
+  const handleVilleChange = (id: string) => {
+    const ville = villes?.find((v) => v.id === id)
+    if (ville) selectionnerVille(ville)
   }
 
   return (
@@ -227,20 +272,39 @@ export default function BlocA({ state, setField }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Ville</Label>
+            <Label htmlFor="ville">Ville</Label>
             <Select
-              value={state.ville}
+              value={state.ville_id}
               onValueChange={handleVilleChange}
+              disabled={villes === null}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une ville" />
+              <SelectTrigger id="ville">
+                <SelectValue placeholder={villes === null ? 'Chargement des villes…' : 'Sélectionner une ville'}>
+                  {state.ville_id ? state.ville : undefined}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {NOMS_VILLES.map((v) => (
-                  <SelectItem key={v} value={v}>{v}</SelectItem>
+                {(villes ?? []).map((v) => (
+                  <SelectItem key={v.id} value={v.id}>{v.nom}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {/* Hors du select : ouvrir une fenêtre depuis une option de Radix Select
+                laisse la page bloquée (pointer-events: none sur <body>) */}
+            <button
+              ref={boutonAjoutRef}
+              type="button"
+              onClick={() => setAjoutVille(true)}
+              className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--cs-navy)] transition-colors hover:text-[var(--cs-gold-ink)]"
+            >
+              <PlusIcon size={13} strokeWidth={2.4} aria-hidden="true" />
+              Ville absente de la liste ? Ajouter une ville
+            </button>
+            {erreurVilles && (
+              <p className="text-[11px] font-medium" style={{ color: 'var(--cs-neg)' }}>
+                Impossible de charger les villes. Rechargez la page.
+              </p>
+            )}
           </div>
 
           <div className="sm:col-span-2 space-y-1.5">
@@ -259,14 +323,39 @@ export default function BlocA({ state, setField }: Props) {
         </CardContent>
       </Card>
 
-      {/* Infos ville (page 2 de la fiche) */}
-      {state.ville && (
+      {/* Infos ville (page « La ville » de la fiche) */}
+      {state.ville_id && (
         <VilleInfosCard
-          ville={state.ville}
+          ville={villeChoisie}
           infos={state.ville_infos}
           onChange={(next) => setField('ville_infos', next)}
+          onVilleMaj={onVilleMaj}
         />
       )}
+
+      {/* Ajout d'une ville au catalogue sans quitter le wizard */}
+      <Dialog open={ajoutVille} onOpenChange={setAjoutVille}>
+        <DialogContent
+          titre="Ajouter une ville au catalogue"
+          description="Elle sera proposée à tous les chargés. Seul le nom est obligatoire : la fiche peut être complétée plus tard depuis l’écran Villes."
+          className="max-w-[760px]"
+          // Un clic à côté ne doit pas faire perdre une fiche en cours de saisie
+          onInteractOutside={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => { e.preventDefault(); boutonAjoutRef.current?.focus() }}
+        >
+          <FormulaireVille
+            ville={null}
+            variante="fenetre"
+            onCreee={onVilleMaj}
+            onEnregistree={(ville) => {
+              onVilleMaj(ville)
+              selectionnerVille(ville)
+              setAjoutVille(false)
+            }}
+            onAnnuler={() => setAjoutVille(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Caractéristiques */}
       <Card>

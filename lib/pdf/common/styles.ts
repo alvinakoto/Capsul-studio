@@ -1,4 +1,5 @@
 import { StyleSheet } from '@react-pdf/renderer'
+import { sizes } from './sizes'
 
 // ─── Palette Capsul ───────────────────────────────────────────────────────────
 
@@ -22,16 +23,9 @@ export const DPE_BG: Record<string, string> = {
   D: '#eab308', E: '#f97316', F: '#ea580c', G: '#dc2626',
 }
 
-// ─── Mesures (en points, 1pt = 1/72 inch) ────────────────────────────────────
-// A4 = 595 × 842 points
-
-export const sizes = {
-  pageW: 595,
-  pageH: 842,
-  margin: 36,         // marge standard
-  marginAccent: 38,   // marge + offset pour la barre or
-  accentBar: 2,       // largeur de la barre or
-}
+// ─── Mesures (en points) : lib/pdf/common/sizes.ts, sans dépendance à react-pdf
+// pour que l'app puisse les importer côté navigateur (aperçu de l'écran Villes).
+export { sizes }
 
 // ─── Styles communs aux pages ────────────────────────────────────────────────
 

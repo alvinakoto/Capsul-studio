@@ -6,17 +6,19 @@ import { createBrowserClient } from '@supabase/ssr'
 import { getProjectById, nomProjetAuto } from '@/lib/supabase/projects'
 import WizardShell from '@/components/wizard/WizardShell'
 import type { WizardState } from '@/components/wizard/WizardShell'
-import { findVille, villeInfosToForm } from '@/lib/data/villes'
+import { villeInfosToForm, type VilleInfos } from '@/lib/data/villes'
+import { trouverVille } from '@/lib/supabase/villes'
 
-function projectToWizardState(p: any): Partial<WizardState> {
+function projectToWizardState(p: any, infosCatalogue: VilleInfos | null): Partial<WizardState> {
   return {
     // Nom laissé vide s'il n'a jamais été personnalisé, pour qu'il continue
     // de suivre l'adresse du bien tant que le chargé ne le renomme pas.
     nom_projet:         p.name && p.name !== nomProjetAuto(p.adresse, p.ville) ? p.name : '',
     adresse:            p.adresse ?? '',
     ville:              p.ville ?? '',
-    // Projets antérieurs à la page « La ville » : on repart du dataset Capsul
-    ville_infos:        villeInfosToForm(p.ville_infos ?? findVille(p.ville)?.infos),
+    ville_id:           p.ville_id ?? '',
+    // Projets antérieurs à la page « La ville » : on repart du catalogue
+    ville_infos:        villeInfosToForm(p.ville_infos ?? infosCatalogue),
     surface_m2:         p.surface_m2 ?? '',
     dpe_actuel:         p.dpe_actuel ?? '',
     dpe_apres_travaux:  p.dpe_apres_travaux ?? '',
@@ -81,7 +83,8 @@ export default function ModifierProjetPage() {
         if (!user) { router.push('/login'); return }
 
         const project = await getProjectById(id, user.id)
-        setInitialData(projectToWizardState(project))
+        const catalogue = !project.ville_infos && project.ville_id ? await trouverVille(project.ville_id) : null
+        setInitialData(projectToWizardState(project, catalogue?.infos ?? null))
       } catch {
         router.push('/projets')
       } finally {

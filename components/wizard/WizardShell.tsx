@@ -14,7 +14,8 @@ import type { TypeScenario } from '@/lib/engine/suggestions'
 import RecapSticky from './RecapSticky'
 import { createProject, updateProject } from '@/lib/supabase/projects'
 import { uploadPhoto, getProjectPhotos, deletePhoto, type ExistingPhoto } from '@/lib/supabase/storage'
-import { villeInfosToForm, type VilleInfosForm } from '@/lib/data/villes'
+import { villeInfosToForm, type Ville, type VilleInfosForm } from '@/lib/data/villes'
+import { listerVilles } from '@/lib/supabase/villes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,8 +23,9 @@ export interface WizardState {
   // Bloc A
   nom_projet: string                   // vide → le nom du projet suit l'adresse du bien
   adresse: string
-  ville: string
-  ville_infos: VilleInfosForm          // page « La ville » de la fiche — pré-rempli depuis lib/data/villes.ts
+  ville: string                        // nom de la ville (affichage, nom du projet)
+  ville_id: string                     // ville du catalogue `villes` ('' = aucune)
+  ville_infos: VilleInfosForm          // page « La ville » de la fiche, pré-rempli depuis le catalogue
   surface_m2: number | ''
   dpe_actuel: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
   dpe_apres_travaux: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
@@ -81,6 +83,7 @@ const initialState: WizardState = {
   nom_projet: '',
   adresse: '',
   ville: '',
+  ville_id: '',
   ville_infos: villeInfosToForm(),
   surface_m2: '',
   dpe_actuel: '',
@@ -196,6 +199,18 @@ export default function WizardShell({
     else if (photo.type === 'localisation') setExistingLocalisation(null)
     else setExistingSecondary((prev) => prev.filter((p) => p.id !== photo.id))
   }
+
+  // Catalogue de villes (select du Bloc A, suggestion de scénario du Bloc F)
+  const [villes, setVilles] = useState<Ville[] | null>(null)
+  const [erreurVilles, setErreurVilles] = useState(false)
+  useEffect(() => {
+    listerVilles().then(setVilles).catch(() => { setVilles([]); setErreurVilles(true) })
+  }, [])
+  const majVille = (ville: Ville) => setVilles((prev) =>
+    [...(prev ?? []).filter((v) => v.id !== ville.id), ville]
+      .sort((a, b) => a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' }))
+  )
+  const villeTouristique = villes?.find((v) => v.id === state.ville_id)?.zoneTouristique ?? false
 
   const [activeBloc, setActiveBloc] = useState('A')
   const [saving, setSaving] = useState(false)
@@ -372,7 +387,9 @@ export default function WizardShell({
         </nav>
 
         <Tabs value={activeBloc} onValueChange={setActiveBloc}>
-          <TabsContent value="A"><BlocA state={state} setField={setField} /></TabsContent>
+          <TabsContent value="A">
+            <BlocA state={state} setField={setField} villes={villes} erreurVilles={erreurVilles} onVilleMaj={majVille} />
+          </TabsContent>
           <TabsContent value="B">
             <BlocB
               coverPhoto={coverPhoto}
@@ -398,6 +415,7 @@ export default function WizardShell({
           <TabsContent value="F">
             <BlocF
               state={state}
+              villeTouristique={villeTouristique}
               onScenarioChange={setWizardScenario}
             />
           </TabsContent>

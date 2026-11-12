@@ -6,11 +6,19 @@ import { PdfBackground } from '../common/background'
 import type { IconName } from '../../data/icons'
 import { FicheData } from '../types'
 import { nombre, pct, pageNum } from '../helpers'
+import {
+  BANDEAU_VILLE_H, BANDEAU_VILLE_H_AVEC_CARTE, GAP_ENCARTS_INVESTIR, PADDING_ENCART_INVESTIR,
+  tailleCarteVille, tailleNomVille,
+} from '../common/mesuresVille'
 
-const HERO_H = 290
+// Mesures partagées avec l'aperçu de l'écran Villes (bandeau, plafond de la carte)
+const HERO_H = BANDEAU_VILLE_H
 // Le bandeau est resserré quand une carte est présente, pour lui laisser assez
 // de hauteur pour s'afficher entière (sans rognage) dans l'encart dédié.
-const HERO_H_AVEC_CARTE = 125
+const HERO_H_AVEC_CARTE = BANDEAU_VILLE_H_AVEC_CARTE
+// Taille du nom dans le bandeau, réduite pour un nom long (tailleNomVille)
+const NOM_PT_AVEC_PHOTO = 30
+const NOM_PT_SANS_PHOTO = 40
 
 const s = StyleSheet.create({
   page: {
@@ -71,14 +79,11 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   heroName: {
-    fontSize: 30,
+    fontSize: NOM_PT_AVEC_PHOTO,
     fontWeight: 900,
     letterSpacing: -0.8,
     lineHeight: 1,
     color: colors.white,
-  },
-  heroNameLarge: {
-    fontSize: 40,
   },
   heroSurnom: {
     fontSize: 9,
@@ -110,7 +115,7 @@ const s = StyleSheet.create({
   // ─── Où investir (quartiers / projets à venir) ──────────────────────────────
   investirRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: GAP_ENCARTS_INVESTIR,
     marginTop: 28,
     // stretch (comportement par défaut) : les deux encarts s'alignent sur la
     // hauteur du plus grand des deux, fond compris — voulu pour la carte, qui
@@ -123,8 +128,8 @@ const s = StyleSheet.create({
     borderRadius: 6,
     paddingTop: 10,
     paddingBottom: 10,
-    paddingLeft: 14,
-    paddingRight: 14,
+    paddingLeft: PADDING_ENCART_INVESTIR,
+    paddingRight: PADDING_ENCART_INVESTIR,
   },
   quartiersWrap: {
     flexDirection: 'row',
@@ -166,19 +171,16 @@ const s = StyleSheet.create({
   },
 
   // ─── Carte des quartiers (dans l'encart, à la place des chips de noms) ────
-  // Largeur pilotée (pleine largeur de l'encart), hauteur déduite du ratio
-  // réel de l'image : jamais de rognage, et le bandeau ville est resserré
-  // (HERO_H_AVEC_CARTE) pour lui laisser la place de s'afficher en entier.
-  // `overflow: hidden` reste un filet de sécurité (cf. leçon « débordement
-  // silencieux » du CLAUDE.md : sans lui, un dépassement de hauteur ne clippe
-  // pas visuellement, il se retrouve sur une page suivante quasi vide).
+  // Taille calculée par tailleCarteVille() : jamais de rognage, et le bandeau ville
+  // est resserré (HERO_H_AVEC_CARTE) pour lui laisser la place. `overflow:
+  // hidden` reste un filet de sécurité (cf. leçon « débordement silencieux »
+  // du CLAUDE.md : sans lui, un dépassement de hauteur ne clippe pas
+  // visuellement, il se retrouve sur une page suivante quasi vide).
   carteFrame: {
     marginTop: 8,
     borderRadius: 6,
     overflow: 'hidden',
-  },
-  carteImage: {
-    width: '100%',
+    alignSelf: 'center',
   },
 
   // ─── Tuiles chiffres clés ─────────────────────────────────────────────────
@@ -309,7 +311,7 @@ interface Tile {
 
 export default function PageVille({ data, pageNumber }: Props) {
   const {
-    project, villeNom, villeInfos, villePhotoPath, villeCartePath, chargeNom,
+    project, villeNom, villeInfos, villePhotoSrc, villeCarte, chargeNom,
     villeAireAttraction, villeCroissanceDemographiquePct, villeQuartiers, villeProjetsAVenir,
   } = data
   const infos = villeInfos ?? {}
@@ -337,9 +339,11 @@ export default function PageVille({ data, pageNumber }: Props) {
     villeCroissanceDemographiquePct !== null ? `Croissance démo. : ${croissanceLabel(villeCroissanceDemographiquePct)}` : null,
   ].filter((p): p is string => p !== null)
 
-  const heroH = villeCartePath ? HERO_H_AVEC_CARTE : HERO_H
-  const hasQuartiers = villeQuartiers.length > 0 || !!villeCartePath
+  const heroH = villeCarte ? HERO_H_AVEC_CARTE : HERO_H
+  const hasQuartiers = villeQuartiers.length > 0 || !!villeCarte
   const hasInvestir = hasQuartiers || villeProjetsAVenir.length > 0
+  const carte = villeCarte ? tailleCarteVille(villeCarte, villeProjetsAVenir.length === 0) : null
+  const carteTaille = carte ? { width: carte.width, height: carte.height } : null
 
   const hasPrix = infos.prixM2Min !== undefined || infos.prixM2Max !== undefined
   const prixLabel =
@@ -353,7 +357,9 @@ export default function PageVille({ data, pageNumber }: Props) {
     <>
       <View style={s.overline} />
       <Text style={s.heroEyebrow}>Investir à</Text>
-      <Text style={[s.heroName, villePhotoPath ? {} : s.heroNameLarge]}>{villeNom.toUpperCase()}</Text>
+      <Text style={[s.heroName, { fontSize: tailleNomVille(villeNom, villePhotoSrc ? NOM_PT_AVEC_PHOTO : NOM_PT_SANS_PHOTO) }]}>
+        {villeNom.toUpperCase()}
+      </Text>
       {infos.surnom ? <Text style={s.heroSurnom}>{infos.surnom}</Text> : null}
     </>
   )
@@ -373,9 +379,9 @@ export default function PageVille({ data, pageNumber }: Props) {
 
       {/* Bandeau : photo + légende, ou composition typographique */}
       <View style={[s.hero, { height: heroH }]}>
-        {villePhotoPath ? (
+        {villePhotoSrc ? (
           <>
-            <Image src={villePhotoPath} style={[s.heroPhoto, { height: heroH }]} />
+            <Image src={villePhotoSrc} style={[s.heroPhoto, { height: heroH }]} />
             <View style={s.heroCaption}>{caption}</View>
           </>
         ) : (
@@ -453,11 +459,11 @@ export default function PageVille({ data, pageNumber }: Props) {
             {hasQuartiers && (
               <View style={s.investirBox}>
                 <Text style={common.secLabel}>
-                  {villeCartePath ? `Les quartiers de ${villeNom}` : `Quelques quartiers de ${villeNom}`}
+                  {villeCarte ? `Les quartiers de ${villeNom}` : `Quelques quartiers de ${villeNom}`}
                 </Text>
-                {villeCartePath ? (
-                  <View style={s.carteFrame} wrap={false}>
-                    <Image src={villeCartePath} style={s.carteImage} />
+                {villeCarte && carteTaille ? (
+                  <View style={[s.carteFrame, carteTaille]} wrap={false}>
+                    <Image src={villeCarte.src} style={carteTaille} />
                   </View>
                 ) : (
                   <View style={s.quartiersWrap}>

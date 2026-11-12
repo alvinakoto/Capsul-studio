@@ -24,6 +24,12 @@ export function isHeicFile(file: File): boolean {
   )
 }
 
+/** Fichier acceptable comme photo : type image, ou extension connue (les iPhone envoient souvent `type = ""`). */
+export function estFichierImage(file: File): boolean {
+  return file.type.startsWith('image/') || isHeicFile(file) ||
+    /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name)
+}
+
 // Taille maximale d'une photo stockée : assez pour une page A4 du PDF et un écran
 // Retina, sans les 5 à 8 Mo des originaux d'appareil photo (octobre 2026 : les
 // vignettes du dashboard mettaient jusqu'à 20 s à charger).

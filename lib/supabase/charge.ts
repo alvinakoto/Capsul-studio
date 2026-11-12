@@ -36,3 +36,11 @@ export async function fetchChargeContact(
     telephone: row?.phone ?? null,
   }
 }
+
+/** Vrai si l'utilisateur connecté est admin (lecture de sa propre ligne, autorisée par la RLS). */
+export async function estAdministrateur(supabase: SupabaseClient): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false
+  const { data } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle()
+  return (data as { role?: string } | null)?.role === 'admin'
+}

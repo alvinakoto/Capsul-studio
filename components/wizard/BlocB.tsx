@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ensureJpeg, isHeicFile } from '@/lib/utils/convertHeic'
+import { ensureJpeg, estFichierImage } from '@/lib/utils/convertHeic'
 import type { ExistingPhoto } from '@/lib/supabase/storage'
 
 export type PhotoType = 'cover' | 'main' | 'secondary' | 'localisation'
@@ -164,9 +164,7 @@ function SinglePhotoSlot({
 
   const handleFile = async (file: File | undefined | null) => {
     if (!file) return
-    const isImage = file.type.startsWith('image/') || isHeicFile(file) ||
-      /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name)
-    if (!isImage) return
+    if (!estFichierImage(file)) return
     setConverting(true)
     setConvertError(null)
     try {
@@ -305,10 +303,7 @@ function MultiPhotoSlot({
 
   const handleFiles = async (files: FileList | null) => {
     if (!files) return
-    const candidates = Array.from(files).filter(
-      (f) => f.type.startsWith('image/') || isHeicFile(f) ||
-        /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(f.name)
-    )
+    const candidates = Array.from(files).filter(estFichierImage)
     if (candidates.length === 0) return
     setConverting(true)
     setConvertError(null)

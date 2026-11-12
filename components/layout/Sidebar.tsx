@@ -17,6 +17,16 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    href: '/villes',
+    label: 'Villes',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 14.5s4.75-4.1 4.75-8.1a4.75 4.75 0 0 0-9.5 0c0 4 4.75 8.1 4.75 8.1Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <circle cx="8" cy="6.4" r="1.7" stroke="currentColor" strokeWidth="1.5"/>
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar() {

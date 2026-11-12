@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'atgedsxwrbatrntupuwe.supabase.co', pathname: '/storage/v1/object/public/project-images/**' },
+      // Écran Villes : photos de bandeau et cartes des quartiers du catalogue
+      { protocol: 'https', hostname: 'atgedsxwrbatrntupuwe.supabase.co', pathname: '/storage/v1/object/public/villes/**' },
     ],
   },
 };

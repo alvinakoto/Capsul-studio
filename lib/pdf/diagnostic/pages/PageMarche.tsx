@@ -1,8 +1,8 @@
 import React from 'react';
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
-import { DiagnosticPayload } from '../types';
+import { DiagnosticPayload, MarketData } from '../types';
 import { fmtPct } from '../format';
-import { getMarketData, classifyEcart, classifyTaux } from '../marketData';
+import { classifyEcart, classifyTaux } from '../marketData';
 import { ECART_COLORS } from '../styles';
 import {
   C, interiorBase, dS,
@@ -78,8 +78,7 @@ const s = StyleSheet.create({
   contextDesc: { fontSize: 7.5, color: C.muted, fontWeight: 300, lineHeight: 1.4 },
 });
 
-export function PageMarche({ p }: { p: DiagnosticPayload }) {
-  const market = getMarketData(p.villeProjet);
+export function PageMarche({ p, market }: { p: DiagnosticPayload; market: MarketData }) {
   const ecartBrut = classifyEcart(p.rentabiliteBrute, market.marcheRdtBrut);
   const ecartNet  = classifyEcart(p.rentabiliteNette, market.marcheRdtNet);
   const taux      = classifyTaux(p.tauxInteret);

@@ -4,13 +4,13 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import React from 'react'
 import { registerFonts } from '@/lib/pdf/common/fonts'
-import { findVillePhotoPath, findVilleCartePath } from '@/lib/pdf/common/villePhoto'
 import { fetchChargeContact } from '@/lib/supabase/charge'
 import { nomFichierProjet, contentDisposition } from '@/lib/pdf/common/filename'
 import FicheCommerciale from '@/lib/pdf/FicheCommerciale'
 import { calculerScenario } from '@/lib/calculs/index'
 import { calculerMensualite } from '@/lib/calculs/communs'
-import { findVille, hasVilleInfos } from '@/lib/data/villes'
+import { hasVilleInfos } from '@/lib/data/villes'
+import { chargerVille } from '@/lib/supabase/villes'
 import { getPostesTravaux } from '@/lib/data/travaux'
 import type { FicheData } from '@/lib/pdf/types'
 
@@ -188,12 +188,12 @@ export async function GET(
     }
 
     // ─── Ville & travaux ─────────────────────────────────────────────────────
-    const ville = findVille(project.city || project.ville)
+    // Catalogue `villes` : infos de base en repli de ville_infos (projets antérieurs
+    // à la page « La ville »), photo, carte et champs propres au catalogue.
+    const ville = project.ville_id ? await chargerVille(supabase, project.ville_id) : null
     const villeNom = ville?.nom ?? (project.city || project.ville || '')
     const villeInfosRaw = project.ville_infos ?? ville?.infos ?? null
     const villeInfos = hasVilleInfos(villeInfosRaw) ? villeInfosRaw : null
-    const villePhotoPath = findVillePhotoPath(ville?.slug)
-    const villeCartePath = findVilleCartePath(ville?.slug)
     const travauxPostes = getPostesTravaux(project.travaux_postes)
 
     // ─── Assemblage des données ──────────────────────────────────────────────
@@ -216,8 +216,10 @@ export async function GET(
       projectionRealiste,
       villeNom,
       villeInfos,
-      villePhotoPath,
-      villeCartePath,
+      villePhotoSrc: ville?.photo?.url ?? null,
+      villeCarte: ville?.carte
+        ? { src: ville.carte.url, largeur: ville.carte.largeur, hauteur: ville.carte.hauteur }
+        : null,
       villeAireAttraction: ville?.aireAttraction ?? null,
       villeCroissanceDemographiquePct: ville?.croissanceDemographiquePct ?? null,
       villeQuartiers: ville?.quartiers ?? [],

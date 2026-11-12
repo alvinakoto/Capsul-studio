@@ -6,6 +6,8 @@ import { suggererScenarios, detecterAlertes, TypeScenario, Suggestion, AlerteReg
 
 interface Props {
   state: WizardState
+  /** Case « Ville touristique » de la ville choisie (catalogue `villes`). */
+  villeTouristique: boolean
   onScenarioChange?: (type: TypeScenario) => void
 }
 
@@ -15,10 +17,10 @@ const SCENARIO_LABELS: Record<TypeScenario, string> = {
   courte_duree: 'Courte durée',
 }
 
-export default function BlocF({ state, onScenarioChange }: Props) {
+export default function BlocF({ state, villeTouristique, onScenarioChange }: Props) {
   const [selectedScenario, setSelectedScenario] = useState<TypeScenario | null>(null)
 
-  const suggestions = suggererScenarios(state)
+  const suggestions = suggererScenarios(state, villeTouristique)
   const alertes = detecterAlertes(state)
   const meilleureSuggestion = suggestions[0]
 
