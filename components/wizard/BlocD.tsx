@@ -133,12 +133,12 @@ export default function BlocD({ state, setField }: Props) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="apport" className="whitespace-nowrap">Apport personnel</Label>
-              <div className="flex rounded-md overflow-hidden border text-xs shrink-0" style={{ borderColor: 'var(--cs-line)' }}>
+              <div className="flex rounded-md border text-xs shrink-0" style={{ borderColor: 'var(--cs-line)' }}>
                 <button
                   type="button"
                   disabled={state.is_comptant}
                   onClick={() => setApportMode('eur')}
-                  className="px-2 py-1 transition"
+                  className="cs-cible-y px-2 py-1 transition first:rounded-l-[5px] last:rounded-r-[5px]"
                   style={{
                     backgroundColor: apportMode === 'eur' ? '#0E2240' : '#F7F5F1',
                     color: apportMode === 'eur' ? '#fff' : '#6E6E73',
@@ -149,7 +149,7 @@ export default function BlocD({ state, setField }: Props) {
                   type="button"
                   disabled={state.is_comptant}
                   onClick={() => prixProjetTotal > 0 && setApportMode('pct')}
-                  className="px-2 py-1 transition"
+                  className="cs-cible-y px-2 py-1 transition first:rounded-l-[5px] last:rounded-r-[5px]"
                   style={{
                     backgroundColor: apportMode === 'pct' ? '#0E2240' : '#F7F5F1',
                     color: apportMode === 'pct' ? '#fff' : prixProjetTotal > 0 ? '#6E6E73' : '#C0BDB7',
@@ -209,7 +209,7 @@ export default function BlocD({ state, setField }: Props) {
                     key={d}
                     type="button"
                     onClick={() => setField('duree_annees', d)}
-                    className="flex-1 py-2 rounded-md text-sm border transition"
+                    className="flex-1 py-2 pointer-coarse:min-h-11 rounded-md text-sm border transition"
                     style={
                       state.duree_annees === d
                         ? { backgroundColor: '#0E2240', color: '#fff', borderColor: '#0E2240', fontWeight: 600 }

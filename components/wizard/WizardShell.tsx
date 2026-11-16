@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useState, useEffect, type ReactElement } from 'react'
+import { useReducer, useState, useEffect, useRef, type ReactElement } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -12,6 +12,7 @@ import BlocE from './BlocE'
 import BlocF from './BlocF'
 import type { TypeScenario } from '@/lib/engine/suggestions'
 import RecapSticky from './RecapSticky'
+import BarreWizardMobile, { type ActionWizard } from './BarreWizardMobile'
 import { createProject, updateProject } from '@/lib/supabase/projects'
 import { uploadPhoto, getProjectPhotos, deletePhoto, type ExistingPhoto } from '@/lib/supabase/storage'
 import { villeInfosToForm, type Ville, type VilleInfosForm } from '@/lib/data/villes'
@@ -216,6 +217,14 @@ export default function WizardShell({
   const villeTouristique = villes?.find((v) => v.id === state.ville_id)?.zoneTouristique ?? false
 
   const [activeBloc, setActiveBloc] = useState('A')
+  const refEtapes = useRef<HTMLDivElement>(null)
+  /** Change d'étape et remonte au début du formulaire s'il est passé au-dessus de l'écran
+   *  (sur téléphone, on finit chaque étape tout en bas d'une longue page). */
+  const allerA = (bloc: string) => {
+    setActiveBloc(bloc)
+    const etapes = refEtapes.current
+    if (etapes && etapes.getBoundingClientRect().top < 0) etapes.scrollIntoView({ block: 'start' })
+  }
   const [saving, setSaving] = useState(false)
   const [wizardScenario, setWizardScenario] = useState<TypeScenario | null>(null)
   const router = useRouter()
@@ -360,19 +369,56 @@ export default function WizardShell({
 
   const blocs = BLOCS
   const currentIndex = blocs.findIndex((b) => b.id === activeBloc)
+  const precedent = currentIndex > 0 ? () => allerA(blocs[currentIndex - 1].id) : null
+
+  // Action principale, la même dans la barre du bas (téléphone) et en fin de formulaire
+  const action: ActionWizard = editProjectId
+    ? { label: saving ? 'Enregistrement…' : 'Enregistrer', labelLong: saving ? 'Enregistrement…' : 'Enregistrer les modifications', onClick: handleSave, variante: 'enregistrer', disabled: saving }
+    : currentIndex < blocs.length - 1
+      ? { label: 'Suivant', labelLong: `Suivant : ${blocs[currentIndex + 1].label}`, onClick: () => allerA(blocs[currentIndex + 1].id), variante: 'suivant' }
+      : { label: saving ? 'Enregistrement…' : 'Enregistrer', labelLong: saving ? 'Enregistrement…' : 'Enregistrer le projet', onClick: handleSave, variante: 'enregistrer', disabled: saving }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
+    // Sous 1 280 px : place réservée en bas pour la barre du wizard
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start pb-20 xl:pb-0">
       {/* Zone principale */}
       <div className="min-w-0">
-        {/* Étapes */}
-        <nav className="grid grid-cols-3 md:grid-cols-6 gap-x-1.5 gap-y-3.5 mb-7" aria-label="Étapes">
+        {/* Étapes, version téléphone : l'étape en cours et une barre de progression
+            dont chaque segment mène à son étape (la grille de 6 prenait deux lignes) */}
+        <div ref={refEtapes} className="scroll-mt-4">
+        <nav className="mb-6 md:hidden" aria-label="Étapes">
+          <p className="text-[11px] font-bold tracking-[0.08em]" style={{ color: 'var(--cs-gold-ink)' }}>
+            {`ÉTAPE ${currentIndex + 1} SUR ${blocs.length}`}
+          </p>
+          <p className="cs-h2 mt-0.5">{blocs[currentIndex].label}</p>
+          <ol className="mt-1 flex gap-1.5">
+            {blocs.map((bloc, i) => (
+              <li key={bloc.id} className="flex-1">
+                <button
+                  type="button"
+                  onClick={() => allerA(bloc.id)}
+                  aria-current={i === currentIndex ? 'step' : undefined}
+                  aria-label={`Étape ${i + 1} : ${bloc.label}`}
+                  className="flex h-11 w-full items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)] rounded-sm"
+                >
+                  <span
+                    className="h-1.5 w-full rounded-full transition-colors"
+                    style={{ backgroundColor: i < currentIndex ? 'var(--cs-gold)' : i === currentIndex ? 'var(--cs-navy)' : 'var(--cs-line)' }}
+                  />
+                </button>
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        {/* Étapes, à partir de 768 px */}
+        <nav className="hidden md:grid grid-cols-6 gap-x-1.5 gap-y-3.5 mb-7" aria-label="Étapes">
           {blocs.map((bloc, i) => {
             const active = activeBloc === bloc.id
             return (
               <button
                 key={bloc.id}
-                onClick={() => setActiveBloc(bloc.id)}
+                onClick={() => allerA(bloc.id)}
                 aria-current={active ? 'step' : undefined}
                 className="grid gap-1 pb-2.5 text-left transition-colors hover:text-[var(--cs-navy)]"
                 style={{
@@ -388,6 +434,7 @@ export default function WizardShell({
             )
           })}
         </nav>
+        </div>
 
         <Tabs value={activeBloc} onValueChange={setActiveBloc}>
           <TabsContent value="A">
@@ -425,41 +472,34 @@ export default function WizardShell({
           </TabsContent>
         </Tabs>
 
-        {/* Navigation */}
-        <div className="cs-card flex items-center justify-between gap-3 mt-5 px-4 py-3.5">
+        {/* Navigation, à partir de 1 280 px (en dessous : BarreWizardMobile) */}
+        <div className="cs-card hidden xl:flex items-center justify-between gap-3 mt-5 px-4 py-3.5">
           <button
-            onClick={() => setActiveBloc(blocs[currentIndex - 1].id)}
-            disabled={currentIndex === 0}
+            onClick={precedent ?? undefined}
+            disabled={!precedent}
             className="cs-btn"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
             Précédent
           </button>
-          <span className="hidden sm:inline text-[12.5px]" style={{ color: 'var(--cs-mist)' }}>
+          <span className="text-[12.5px]" style={{ color: 'var(--cs-mist)' }}>
             Étape <b style={{ color: 'var(--cs-navy)' }}>{currentIndex + 1}</b> sur {blocs.length}
           </span>
-          {editProjectId ? (
-            <button onClick={handleSave} disabled={saving} className="cs-btn cs-btn-gold">
-              {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
-            </button>
-          ) : currentIndex < blocs.length - 1 ? (
-            <button onClick={() => setActiveBloc(blocs[currentIndex + 1].id)} className="cs-btn cs-btn-primary">
-              Suivant : {blocs[currentIndex + 1].label}
+          <button onClick={action.onClick} disabled={action.disabled} className={`cs-btn ${action.variante === 'enregistrer' ? 'cs-btn-gold' : 'cs-btn-primary'}`}>
+            {action.labelLong ?? action.label}
+            {action.variante === 'suivant' && (
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-          ) : (
-            <button onClick={handleSave} disabled={saving} className="cs-btn cs-btn-gold">
-              {saving ? 'Enregistrement…' : 'Enregistrer le projet'}
-            </button>
-          )}
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Récap sticky */}
-      <div className="xl:sticky xl:top-6">
+      {/* Récap, à partir de 1 280 px (en dessous : ouvert depuis la barre du bas) */}
+      <div className="hidden xl:block xl:sticky xl:top-6">
         <RecapSticky state={state} />
       </div>
 
+      <BarreWizardMobile state={state} onPrecedent={precedent} action={action} />
     </div>
   )
 }

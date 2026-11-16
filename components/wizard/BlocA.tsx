@@ -147,7 +147,7 @@ function VilleInfosCard({
                 type="button"
                 onClick={reinitialiser}
                 disabled={relecture}
-                className="text-[11px] font-medium text-[var(--cs-mist)] transition-colors hover:text-[var(--cs-navy)] disabled:opacity-60"
+                className="cs-cible text-[11px] font-medium text-[var(--cs-mist)] transition-colors hover:text-[var(--cs-navy)] disabled:opacity-60"
               >
                 {relecture ? 'Relecture…' : 'Réinitialiser'}
               </button>
@@ -157,7 +157,7 @@ function VilleInfosCard({
                 href={`/villes/${ville.id}`}
                 target="_blank"
                 rel="noopener"
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--cs-navy)] transition-colors hover:text-[var(--cs-gold-ink)]"
+                className="cs-cible inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--cs-navy)] transition-colors hover:text-[var(--cs-gold-ink)]"
               >
                 Fiche de la ville
                 <ExternalLinkIcon size={12} strokeWidth={2.2} aria-hidden="true" />
@@ -263,7 +263,8 @@ export default function BlocA({ state, setField, villes, erreurVilles, onVilleMa
               ref={boutonAjoutRef}
               type="button"
               onClick={() => setAjoutVille(true)}
-              className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--cs-navy)] transition-colors hover:text-[var(--cs-gold-ink)]"
+              // Écart supplémentaire au doigt : la zone cliquable agrandie ne doit pas mordre sur le sélecteur
+              className="cs-cible inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--cs-navy)] transition-colors hover:text-[var(--cs-gold-ink)] pointer-coarse:mt-2"
             >
               <PlusIcon size={13} strokeWidth={2.4} aria-hidden="true" />
               Ville absente de la liste ? Ajouter une ville

@@ -95,10 +95,11 @@ function LoginForm() {
           />
         </div>
 
-        <div className="grid gap-1.5">
+        {/* Au doigt, écart plus grand : la zone cliquable de « Mot de passe oublié ? » ne doit pas mordre sur le champ */}
+        <div className="grid gap-1.5 pointer-coarse:gap-3">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="password" className="cs-field-label text-[12.5px]">Mot de passe</label>
-            <a href="/mot-de-passe-oublie" className="cs-link text-[12.5px]">Mot de passe oublié ?</a>
+            <a href="/mot-de-passe-oublie" className="cs-link cs-cible text-[12.5px]">Mot de passe oublié ?</a>
           </div>
           <PasswordInput
             id="password"
@@ -134,7 +135,7 @@ function LoginForm() {
       </form>
 
       <p className="mt-6 text-center text-[13px]" style={{ color: 'var(--cs-mist)' }}>
-        Première connexion ? <a href="/inscription" className="cs-link">Créer un compte</a>
+        Première connexion ? <a href="/inscription" className="cs-link cs-cible">Créer un compte</a>
       </p>
     </AuthLayout>
   )

@@ -6,7 +6,9 @@ export const AUTH_INPUT = 'cs-input h-[46px] font-medium text-[14px]'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
+    // Téléphone : bandeau à sa hauteur (auto) et formulaire juste dessous, plutôt
+    // que deux rangées étirées à parts égales (bandeau navy vide de 230 px)
+    <div className="min-h-screen grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-2 lg:grid-rows-1 bg-white">
       <div className="relative overflow-hidden flex flex-col justify-between gap-10 px-5 py-6 lg:p-12 text-white" style={{ backgroundColor: 'var(--cs-navy)' }}>
         <div className="flex items-center gap-3 relative z-10">
           <img src="/logo-capsul.jpg" alt="" className="rounded-[7px] shrink-0" style={{ width: 36, height: 36, objectFit: 'cover' }} />
@@ -42,7 +44,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
       </div>
 
-      <div className="flex items-center justify-center px-5 py-10 lg:py-12">
+      <div className="flex items-start lg:items-center justify-center px-5 py-10 lg:py-12">
         <div className="w-full max-w-[380px]">{children}</div>
       </div>
     </div>

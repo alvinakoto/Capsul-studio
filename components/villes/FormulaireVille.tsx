@@ -313,10 +313,17 @@ export default function FormulaireVille({ ville, variante, onEnregistree, onCree
       {resume}
       {alerteServeur}
       {sections}
-      {/* Barre fixe (et non sticky) : <main> a un overflow qui neutralise position: sticky */}
+      {/* Barre fixe (et non sticky) : <main> a un overflow qui neutralise position: sticky.
+          Calée sur la navigation : au-dessus de la barre du bas, à droite de la barre latérale. */}
       <div
-        className="fixed bottom-0 left-[220px] right-0 z-30 border-t"
-        style={{ backgroundColor: 'rgba(255,255,255,0.96)', borderColor: 'var(--cs-line)', boxShadow: '0 -8px 24px -18px rgba(14,34,64,.35)' }}
+        className="fixed right-0 z-30 border-t"
+        style={{
+          left: 'var(--cs-sidebar)',
+          bottom: 'calc(var(--cs-nav-bas) + var(--cs-clavier, 0px))',
+          backgroundColor: 'rgba(255,255,255,0.96)',
+          borderColor: 'var(--cs-line)',
+          boxShadow: '0 -8px 24px -18px rgba(14,34,64,.35)',
+        }}
       >
         <div className="max-w-[880px] mx-auto px-4 md:px-10 py-3 flex flex-wrap items-center justify-between gap-3">
           <p className="flex items-center gap-2 text-[12.5px] font-medium" style={{ color: modifie ? 'var(--cs-gold-ink)' : 'var(--cs-mist)' }} aria-live="polite">
@@ -527,7 +534,7 @@ function ListeLignes({
                 type="button"
                 onClick={() => retirer(i)}
                 aria-label={`Retirer ${singulier}${ligne ? ` : ${ligne}` : ''}`}
-                className="mt-[3px] flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--cs-mist)] transition-colors hover:bg-[var(--cs-neg-wash)] hover:text-[var(--cs-neg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)]"
+                className="cs-cible mt-[3px] flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--cs-mist)] transition-colors hover:bg-[var(--cs-neg-wash)] hover:text-[var(--cs-neg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)]"
               >
                 <XIcon size={16} strokeWidth={2} aria-hidden="true" />
               </button>

@@ -65,7 +65,7 @@ export default function LotsImmeuble({ immeuble, onChange }: {
                     type="button"
                     onClick={() => retirerLot(lot.id)}
                     aria-label={`Retirer ${libelleLot(lot, i)}`}
-                    className="mb-[3px] flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--cs-mist)] transition-colors hover:bg-[var(--cs-neg-wash)] hover:text-[var(--cs-neg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)]"
+                    className="cs-cible mb-[3px] flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--cs-mist)] transition-colors hover:bg-[var(--cs-neg-wash)] hover:text-[var(--cs-neg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)]"
                   >
                     <XIcon size={16} strokeWidth={2} aria-hidden="true" />
                   </button>

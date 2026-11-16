@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { calculerScenario } from '@/lib/calculs/index'
 import { donneesProjet, donneesFinancement, donneesCharges, alerteApport } from '@/lib/calculs/depuisProjet'
 import AlerteApport from './AlerteApport'
@@ -8,7 +8,7 @@ import { updateProjectScenario } from '@/lib/supabase/projects'
 import { euros, eurosSigne, pct } from '@/lib/utils/format'
 import ProjectionChart from './ProjectionChart'
 import {
-  BoutonsDocuments, IndicateurEnregistrement, Kpi, NumField, Toggle, useEnregistrementAuto,
+  BoutonsDocuments, IndicateurEnregistrement, Kpi, NumField, ResultatFlottant, Toggle, useEnregistrementAuto,
   type StatutEnregistrement,
 } from './simulateur'
 
@@ -227,6 +227,7 @@ export default function ScenarioPanel({ project }: { project: any }) {
     [project.id],
   )
   const { statut, enregistrerMaintenant, telecharger } = useEnregistrementAuto(payload, enregistrer)
+  const refResultat = useRef<HTMLDivElement>(null)
 
   const setField = <K extends keyof ScenarioFields>(k: K, v: ScenarioFields[K]) =>
     setFields((prev) => ({ ...prev, [k]: v }))
@@ -322,14 +323,16 @@ export default function ScenarioPanel({ project }: { project: any }) {
           <AlerteApport alerte={alerteApport(project)} />
           {result ? (
             <>
-              <ResultCard
-                result={result}
-                scenarioType={scenarioType}
-                statut={statut}
-                onReessayer={() => { void enregistrerMaintenant() }}
-                onTelecharger={telecharger}
-                projectId={project.id}
-              />
+              <div ref={refResultat} className="scroll-mt-4">
+                <ResultCard
+                  result={result}
+                  scenarioType={scenarioType}
+                  statut={statut}
+                  onReessayer={() => { void enregistrerMaintenant() }}
+                  onTelecharger={telecharger}
+                  projectId={project.id}
+                />
+              </div>
               {result2 && comparaisonType && (
                 <ComparisonTable
                   a={result} b={result2}
@@ -358,6 +361,14 @@ export default function ScenarioPanel({ project }: { project: any }) {
           isComptant={result.isComptant}
         />
       )}
+
+      <ResultatFlottant
+        cible={refResultat}
+        libelle={SCENARIO_LABELS[scenarioType]}
+        cashflow={result ? result.scenario.cashflowMensuel : null}
+        rentabiliteBrute={result ? result.scenario.rentabiliteBrutePct : null}
+        statut={statut}
+      />
     </section>
   )
 }
@@ -529,10 +540,10 @@ function ComparisonTable({ a, b, labelA, labelB }: { a: any; b: any; labelA: str
         <table className="w-full text-[13.5px] tabular-nums">
           <thead>
             <tr style={{ backgroundColor: '#FBFAF7' }}>
-              <th className="px-[22px] py-3" />
-              <th className="cs-label px-[22px] py-3 text-right" style={{ color: 'var(--cs-navy)' }}>{labelA}</th>
-              <th className="cs-label px-[22px] py-3 text-right">{labelB}</th>
-              <th className="cs-label px-[22px] py-3 text-right">Écart</th>
+              <th className="pl-4 pr-2 sm:px-[22px] py-3" />
+              <th className="cs-label px-2 sm:px-[22px] py-3 text-right" style={{ color: 'var(--cs-navy)' }}>{labelA}</th>
+              <th className="cs-label pl-2 pr-4 sm:px-[22px] py-3 text-right">{labelB}</th>
+              <th className="cs-label hidden sm:table-cell px-[22px] py-3 text-right">Écart</th>
             </tr>
           </thead>
           <tbody>
@@ -540,25 +551,28 @@ function ComparisonTable({ a, b, labelA, labelB }: { a: any; b: any; labelA: str
               const d = Math.round((r.vb - r.va) * 100) / 100
               const favorable = r.plusHaut ? d >= 0 : d <= 0
               const isCashflow = r.label === 'Cash-flow mensuel'
+              const ecart = d === 0 ? (
+                <span style={{ color: 'var(--cs-mist)' }}>=</span>
+              ) : (
+                <span
+                  className="inline-block min-w-[64px] px-2 py-0.5 rounded-md text-[12px] font-bold text-center"
+                  style={favorable
+                    ? { backgroundColor: 'var(--cs-pos-wash)', color: 'var(--cs-pos)' }
+                    : { backgroundColor: 'var(--cs-neg-wash)', color: 'var(--cs-neg)' }}
+                >
+                  {r.ecart(d)}
+                </span>
+              )
               return (
                 <tr key={r.label} className="border-t cs-divider">
-                  <td className="px-[22px] py-3 font-medium" style={{ color: 'var(--cs-ink)' }}>{r.label}</td>
-                  <td className="px-[22px] py-3 text-right font-semibold" style={{ color: isCashflow && r.va < 0 ? 'var(--cs-neg)' : 'var(--cs-navy)' }}>{r.fmt(r.va)}</td>
-                  <td className="px-[22px] py-3 text-right font-semibold" style={{ color: isCashflow && r.vb < 0 ? 'var(--cs-neg)' : 'var(--cs-navy)' }}>{r.fmt(r.vb)}</td>
-                  <td className="px-[22px] py-3 text-right">
-                    {d === 0 ? (
-                      <span style={{ color: 'var(--cs-mist)' }}>=</span>
-                    ) : (
-                      <span
-                        className="inline-block min-w-[64px] px-2 py-0.5 rounded-md text-[12px] font-bold text-center"
-                        style={favorable
-                          ? { backgroundColor: 'var(--cs-pos-wash)', color: 'var(--cs-pos)' }
-                          : { backgroundColor: 'var(--cs-neg-wash)', color: 'var(--cs-neg)' }}
-                      >
-                        {r.ecart(d)}
-                      </span>
-                    )}
+                  <td className="pl-4 pr-2 sm:px-[22px] py-3 align-top sm:align-middle font-medium" style={{ color: 'var(--cs-ink)' }}>{r.label}</td>
+                  <td className="px-2 sm:px-[22px] py-3 text-right align-top sm:align-middle font-semibold whitespace-nowrap" style={{ color: isCashflow && r.va < 0 ? 'var(--cs-neg)' : 'var(--cs-navy)' }}>{r.fmt(r.va)}</td>
+                  <td className="pl-2 pr-4 sm:px-[22px] py-3 text-right align-top sm:align-middle font-semibold whitespace-nowrap" style={{ color: isCashflow && r.vb < 0 ? 'var(--cs-neg)' : 'var(--cs-navy)' }}>
+                    {r.fmt(r.vb)}
+                    {/* Téléphone : l'écart passe sous la valeur comparée, faute de place pour sa colonne */}
+                    <span className="block mt-1 sm:hidden">{ecart}</span>
                   </td>
+                  <td className="hidden sm:table-cell px-[22px] py-3 text-right">{ecart}</td>
                 </tr>
               )
             })}

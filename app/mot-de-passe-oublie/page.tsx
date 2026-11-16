@@ -83,7 +83,7 @@ export default function MotDePasseOubliePage() {
       </form>
 
       <p className="mt-6 text-center text-[13px]">
-        <a href="/login" className="cs-link">Retour à la connexion</a>
+        <a href="/login" className="cs-link cs-cible">Retour à la connexion</a>
       </p>
     </AuthLayout>
   )

@@ -5,9 +5,10 @@ import { euros } from '@/lib/utils/format'
 import { prixProjetDepuisSaisie, financementDepuisSaisie, alerteApportDepuisSaisie } from './calculsSaisie'
 import AlerteApport from '@/components/projects/AlerteApport'
 
-// ─── Composant ────────────────────────────────────────────────────────────────
+// ─── Calcul ───────────────────────────────────────────────────────────────────
 
-export default function RecapSticky({ state }: { state: WizardState }) {
+/** Chiffres du récapitulatif, partagés par la carte et la barre du bas (téléphone). */
+export function syntheseRecap(state: WizardState) {
   const prixAchat = Number(state.prix_achat) || 0
   const { prixProjetTotal: prixProjet, fraisNotaireEuros, honorairesCapsul } = prixProjetDepuisSaisie(state)
 
@@ -21,9 +22,20 @@ export default function RecapSticky({ state }: { state: WizardState }) {
   const comptant = state.is_comptant || !!financement?.isComptant
   const titre = state.nom_projet?.trim() || [state.adresse, state.ville].filter(Boolean).join(', ')
 
+  return { prixAchat, prixProjet, fraisNotaireEuros, honorairesCapsul, financement, apport, mensualiteTotale, assuranceMensuelle, comptant, titre }
+}
+
+// ─── Composant ────────────────────────────────────────────────────────────────
+
+export default function RecapSticky({ state, className = '' }: { state: WizardState; className?: string }) {
+  const {
+    prixAchat, prixProjet, fraisNotaireEuros, honorairesCapsul, financement, apport,
+    mensualiteTotale, assuranceMensuelle, comptant, titre,
+  } = syntheseRecap(state)
+
   return (
     <aside
-      className="rounded-[14px] p-5 text-white tabular-nums"
+      className={`rounded-[14px] p-5 text-white tabular-nums ${className}`}
       style={{ backgroundColor: 'var(--cs-navy)', boxShadow: '0 18px 40px -22px rgba(14,34,64,.6)' }}
       aria-label="Récapitulatif du projet"
     >

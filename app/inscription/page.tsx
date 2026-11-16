@@ -156,7 +156,7 @@ export default function InscriptionPage() {
       </form>
 
       <p className="mt-6 text-center text-[13px]" style={{ color: 'var(--cs-mist)' }}>
-        Déjà un compte ? <a href="/login" className="cs-link">Se connecter</a>
+        Déjà un compte ? <a href="/login" className="cs-link cs-cible">Se connecter</a>
       </p>
     </AuthLayout>
   )

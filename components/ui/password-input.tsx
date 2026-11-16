@@ -25,6 +25,8 @@ export const PasswordInput = forwardRef<HTMLInputElement, React.InputHTMLAttribu
           onClick={() => setVisible((v) => !v)}
           tabIndex={-1}
           aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          // Zone de 44 px au doigt autour de l'icône (globals.css)
+          className="cs-cible"
           style={{
             position: 'absolute',
             right: 12,

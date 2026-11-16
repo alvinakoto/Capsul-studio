@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { ChevronDownIcon } from 'lucide-react'
 import ProjectionChart from './ProjectionChart'
 import AlerteApport from './AlerteApport'
-import { BoutonsDocuments, IndicateurEnregistrement, Kpi, NumField, Toggle, useEnregistrementAuto } from './simulateur'
+import { BoutonsDocuments, IndicateurEnregistrement, Kpi, NumField, ResultatFlottant, Toggle, useEnregistrementAuto } from './simulateur'
 import { alerteApport, calculerProjetImmeuble, donneesCharges, resoudreExploitation } from '@/lib/calculs/depuisProjet'
 import { calculerExploitationLot, fluxMensuelsImmeuble } from '@/lib/calculs/immeuble'
 import type { ResultatsImmeuble, TypeScenario } from '@/lib/calculs/types'
@@ -52,6 +52,7 @@ export default function ImmeublePanel({ project, immeubleInitial }: { project: a
     [project.id],
   )
   const { statut, enregistrerMaintenant, telecharger } = useEnregistrementAuto(payload, enregistrer)
+  const refResultat = useRef<HTMLDivElement>(null)
 
   const modifierLot = (id: string, champs: Partial<LotImmeuble>) =>
     setImmeuble((prev) => ({ ...prev, lots: prev.lots.map((l) => (l.id === id ? { ...l, ...champs } : l)) }))
@@ -139,7 +140,7 @@ export default function ImmeublePanel({ project, immeubleInitial }: { project: a
         <div className="space-y-5 min-w-0">
           <AlerteApport alerte={alerteApport(project)} />
 
-          <div className="cs-card">
+          <div ref={refResultat} className="cs-card scroll-mt-4">
             <div className="flex items-center justify-between gap-3 flex-wrap px-[22px] py-[18px] border-b cs-divider">
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold uppercase tracking-[0.06em] px-2.5 py-1 rounded-md text-white" style={{ backgroundColor: 'var(--cs-navy)' }}>
@@ -192,6 +193,14 @@ export default function ImmeublePanel({ project, immeubleInitial }: { project: a
           isComptant={resultats.isComptant}
         />
       )}
+
+      <ResultatFlottant
+        cible={refResultat}
+        libelle={`Immeuble · ${immeuble.lots.length} lots`}
+        cashflow={resultats && flux ? flux.cashflow : null}
+        rentabiliteBrute={resultats ? resultats.scenario.rentabiliteBrutePct : null}
+        statut={statut}
+      />
     </section>
   )
 }
@@ -429,13 +438,47 @@ function TableauLots({ immeuble, flux, effets }: {
   effets: (number | null)[]
 }) {
   const avecAlternatives = effets.some((e) => e !== null)
+  const totalBrut = flux.lots.reduce((n, l) => n + l.brut, 0)
   return (
     <div className="cs-card overflow-hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap px-[22px] py-[18px] border-b cs-divider">
         <h3 className="cs-h3">Détail par lot</h3>
         <span className="cs-sub">Montants nets, par mois</span>
       </div>
-      <div className="overflow-x-auto">
+
+      {/* Téléphone : une ligne par lot, net mis en avant (le tableau défilait à l'horizontale) */}
+      <ul className="sm:hidden">
+        {immeuble.lots.map((lot, i) => (
+          <li key={lot.id} className="border-t first:border-t-0 cs-divider px-4 py-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[14px] font-semibold" style={{ color: 'var(--cs-navy)' }}>{libelleLot(lot, i)}</p>
+                <p className="cs-hint mt-0.5">
+                  {[lot.typeBien, lot.surfaceM2 ? `${lot.surfaceM2} m²` : null, lot.exploitation ? LABEL[lot.exploitation.type] : null].filter(Boolean).join(' · ')}
+                </p>
+              </div>
+              <div className="shrink-0 text-right tabular-nums">
+                <p className="text-[15px] font-bold" style={{ color: 'var(--cs-navy)' }}>{euros(flux.lots[i].net)}</p>
+                <p className="cs-hint mt-0.5">{`${euros(flux.lots[i].brut)} brut`}</p>
+              </div>
+            </div>
+            {effets[i] !== null && lot.comparaison && (
+              <p className="mt-2 text-[12.5px] font-semibold tabular-nums" style={{ color: (effets[i] ?? 0) >= 0 ? 'var(--cs-pos)' : 'var(--cs-neg)' }}>
+                {`En ${LABEL[lot.comparaison.type].toLowerCase()} : ${eurosSigne(effets[i] ?? 0)} par mois sur l’immeuble`}
+              </p>
+            )}
+          </li>
+        ))}
+        <li className="flex items-start justify-between gap-3 border-t-2 px-4 py-3.5" style={{ borderColor: 'var(--cs-navy)' }}>
+          <p className="text-[14px] font-bold" style={{ color: 'var(--cs-navy)' }}>Total</p>
+          <div className="text-right tabular-nums">
+            <p className="text-[15px] font-bold" style={{ color: 'var(--cs-navy)' }}>{euros(flux.recettesNettesLots)}</p>
+            <p className="cs-hint mt-0.5">{`${euros(totalBrut)} brut`}</p>
+          </div>
+        </li>
+      </ul>
+
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-[13.5px] tabular-nums">
           <thead>
             <tr style={{ backgroundColor: '#FBFAF7' }}>
@@ -471,7 +514,7 @@ function TableauLots({ immeuble, flux, effets }: {
             ))}
             <tr className="border-t-2" style={{ borderColor: 'var(--cs-navy)' }}>
               <th scope="row" colSpan={2} className="px-[22px] py-3 text-left font-bold" style={{ color: 'var(--cs-navy)' }}>Total</th>
-              <td className="px-3 py-3 text-right font-semibold" style={{ color: 'var(--cs-mist)' }}>{euros(flux.lots.reduce((n, l) => n + l.brut, 0))}</td>
+              <td className="px-3 py-3 text-right font-semibold" style={{ color: 'var(--cs-mist)' }}>{euros(totalBrut)}</td>
               <td className="px-[22px] py-3 text-right font-bold" style={{ color: 'var(--cs-navy)' }}>{euros(flux.recettesNettesLots)}</td>
               {avecAlternatives && <td />}
             </tr>

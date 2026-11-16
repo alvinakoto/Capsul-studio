@@ -87,7 +87,7 @@ function PostesTravaux({
               type="button"
               onClick={() => toggle(poste.id)}
               aria-pressed={active}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-left transition-all"
+              className="cs-cible flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-left transition-all"
               style={{
                 backgroundColor: active ? '#0E2240' : '#fff',
                 color: active ? '#fff' : '#1C1C1E',
@@ -202,11 +202,11 @@ export default function BlocC({ state, setField }: Props) {
                     onCheckedChange={(checked) => setField('frais_notaire_estime', checked)}
                   />
                 </div>
-                <div className="flex rounded-md overflow-hidden border text-xs" style={{ borderColor: 'var(--cs-line)' }}>
+                <div className="flex rounded-md border text-xs" style={{ borderColor: 'var(--cs-line)' }}>
                   <button
                     type="button"
                     onClick={() => setFraisNotaireMode('pct')}
-                    className="px-2 py-1 transition"
+                    className="cs-cible-y px-2 py-1 transition first:rounded-l-[5px] last:rounded-r-[5px]"
                     style={{
                       backgroundColor: fraisNotaireMode === 'pct' ? '#0E2240' : '#F7F5F1',
                       color: fraisNotaireMode === 'pct' ? '#fff' : '#6E6E73',
@@ -215,7 +215,7 @@ export default function BlocC({ state, setField }: Props) {
                   <button
                     type="button"
                     onClick={() => prixAchat > 0 && setFraisNotaireMode('eur')}
-                    className="px-2 py-1 transition"
+                    className="cs-cible-y px-2 py-1 transition first:rounded-l-[5px] last:rounded-r-[5px]"
                     style={{
                       backgroundColor: fraisNotaireMode === 'eur' ? '#0E2240' : '#F7F5F1',
                       color: fraisNotaireMode === 'eur' ? '#fff' : prixAchat > 0 ? '#6E6E73' : '#C0BDB7',
@@ -324,11 +324,11 @@ export default function BlocC({ state, setField }: Props) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="frais_agence" className="whitespace-nowrap">Frais d'agence</Label>
-              <div className="flex rounded-md overflow-hidden border text-xs shrink-0" style={{ borderColor: 'var(--cs-line)' }}>
+              <div className="flex rounded-md border text-xs shrink-0" style={{ borderColor: 'var(--cs-line)' }}>
                 <button
                   type="button"
                   onClick={() => setFraisAgenceMode('eur')}
-                  className="px-2 py-1 transition"
+                  className="cs-cible-y px-2 py-1 transition first:rounded-l-[5px] last:rounded-r-[5px]"
                   style={{
                     backgroundColor: fraisAgenceMode === 'eur' ? '#0E2240' : '#F7F5F1',
                     color: fraisAgenceMode === 'eur' ? '#fff' : '#6E6E73',
@@ -337,7 +337,7 @@ export default function BlocC({ state, setField }: Props) {
                 <button
                   type="button"
                   onClick={() => prixAchat > 0 && setFraisAgenceMode('pct')}
-                  className="px-2 py-1 transition"
+                  className="cs-cible-y px-2 py-1 transition first:rounded-l-[5px] last:rounded-r-[5px]"
                   style={{
                     backgroundColor: fraisAgenceMode === 'pct' ? '#0E2240' : '#F7F5F1',
                     color: fraisAgenceMode === 'pct' ? '#fff' : prixAchat > 0 ? '#6E6E73' : '#C0BDB7',

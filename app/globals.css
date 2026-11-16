@@ -135,6 +135,62 @@
   --cs-neg: #B23A2E;
   --cs-neg-wash: #F8EAE7;
   --cs-shadow: 0 1px 2px rgba(14,34,64,.04), 0 6px 20px -12px rgba(14,34,64,.14);
+
+  /* Navigation (novembre 2026, version mobile) : barre d'onglets en bas sous
+     1 024 px, barre latérale au-delà. Tout élément fixe (barre d'enregistrement…)
+     se cale sur ces variables plutôt que sur des valeurs en dur. */
+  --cs-nav-bas-h: 60px;
+  --cs-nav-bas: calc(var(--cs-nav-bas-h) + env(safe-area-inset-bottom));
+  --cs-sidebar: 0px;
+  /* Hauteur du clavier virtuel ouvert (SuiviClavier.tsx) : les barres fixes
+     se posent avec bottom: calc(var(--cs-nav-bas) + var(--cs-clavier)). */
+  --cs-clavier: 0px;
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --cs-nav-bas: 0px;
+    --cs-sidebar: 220px;
+  }
+}
+
+/* Clavier ouvert : la barre d'onglets laisse la place à la saisie */
+:root[data-clavier] { --cs-nav-bas: 0px; }
+:root[data-clavier] .cs-nav-mobile { display: none; }
+
+/* Écran tactile : champs à 16 px minimum, sinon Safari (iPhone) zoome toute la
+   page à chaque champ touché. Hors @layer pour primer sur les classes text-[14px]. */
+@media (pointer: coarse) {
+  :where(input, textarea, select) { font-size: 16px; }
+  .cs-input-lg { font-size: 18px; }
+}
+
+/* Cibles tactiles : 44 × 44 px au doigt (WCAG 2.5.5, Apple), écran tactile
+   seulement. Dans @layer components : une classe utilitaire posée sur
+   l'élément (absolute, h-9…) garde la main. */
+@layer components {
+  @media (pointer: coarse) {
+    .cs-btn { min-height: 44px; }
+    .cs-btn-icon { min-width: 44px; }
+    .cs-seg > button { min-height: 44px; }
+    .cs-input { min-height: 44px; } /* même hauteur que <Input> et <Select> au doigt : grilles alignées */
+
+    /* Petits éléments (lien texte, pastille, interrupteur) : zone cliquable
+       invisible d'au moins 44 × 44 px centrée dessus, rendu inchangé */
+    .cs-cible, .cs-crumb { position: relative; }
+    .cs-cible::after, .cs-crumb::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: max(100%, 44px); height: max(100%, 44px);
+      transform: translate(-50%, -50%);
+    }
+    /* Boutons accolés (€ | %) : extension verticale seulement, sinon un appui
+       sur l'un tomberait sur son voisin */
+    .cs-cible-y { position: relative; }
+    .cs-cible-y::after {
+      content: ''; position: absolute; left: 0; right: 0; top: 50%;
+      height: max(100%, 44px); transform: translateY(-50%);
+    }
+  }
 }
 
 @layer components {

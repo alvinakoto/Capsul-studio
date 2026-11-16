@@ -186,8 +186,8 @@ function SinglePhotoSlot({
           type="button"
           onClick={() => onSet(null)}
           className="absolute top-2 right-2 bg-black/70 text-white
-                     rounded-full w-7 h-7 text-xs flex items-center justify-center
-                     hover:bg-black/90 transition"
+                     cs-cible rounded-full w-7 h-7 text-xs flex items-center justify-center
+                     hover:bg-black/90 transition pointer-coarse:w-10 pointer-coarse:h-10 pointer-coarse:text-sm"
           aria-label="Annuler"
         >
           ✕
@@ -195,8 +195,8 @@ function SinglePhotoSlot({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="absolute bottom-2 right-2 bg-black/70 text-white text-xs
-                     px-2.5 py-1 rounded-md hover:bg-black/90 transition"
+          className="cs-cible absolute bottom-2 right-2 bg-black/70 text-white text-xs
+                     px-2.5 py-1 rounded-md hover:bg-black/90 transition pointer-coarse:px-3.5 pointer-coarse:py-2.5 pointer-coarse:text-[13px]"
         >
           Changer
         </button>
@@ -221,8 +221,8 @@ function SinglePhotoSlot({
             type="button"
             onClick={() => onDeleteExisting(existing)}
             className="absolute top-2 right-2 bg-black/70 text-white
-                       rounded-full w-7 h-7 text-xs flex items-center justify-center
-                       hover:bg-black/90 transition"
+                       cs-cible rounded-full w-7 h-7 text-xs flex items-center justify-center
+                       hover:bg-black/90 transition pointer-coarse:w-10 pointer-coarse:h-10 pointer-coarse:text-sm"
             aria-label="Supprimer"
           >
             ✕
@@ -231,8 +231,8 @@ function SinglePhotoSlot({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="absolute bottom-2 right-2 bg-black/70 text-white text-xs
-                     px-2.5 py-1 rounded-md hover:bg-black/90 transition"
+          className="cs-cible absolute bottom-2 right-2 bg-black/70 text-white text-xs
+                     px-2.5 py-1 rounded-md hover:bg-black/90 transition pointer-coarse:px-3.5 pointer-coarse:py-2.5 pointer-coarse:text-[13px]"
         >
           Remplacer
         </button>
@@ -268,10 +268,14 @@ function SinglePhotoSlot({
                  hover:border-foreground hover:bg-muted/40 transition-colors
                  max-w-xl aspect-[16/9] flex flex-col items-center justify-center"
     >
-      <p className="text-sm font-medium">{placeholder}</p>
-      <p className="text-xs text-muted-foreground mt-1">
+      {/* Souris : glisser-déposer ; écran tactile : appareil photo ou galerie (pas de
+          `capture` sur l'input, pour laisser le choix entre les deux) */}
+      <p className="text-sm font-medium pointer-coarse:hidden">{placeholder}</p>
+      <p className="text-xs text-muted-foreground mt-1 pointer-coarse:hidden">
         JPG, PNG, WEBP, HEIC, ou cliquez pour parcourir
       </p>
+      <p className="hidden text-sm font-medium pointer-coarse:block">Touchez pour ajouter la photo</p>
+      <p className="hidden text-xs text-muted-foreground mt-1 pointer-coarse:block">Appareil photo ou galerie</p>
       {convertError && (
         <p className="text-xs text-red-500 mt-2 max-w-xs">{convertError}</p>
       )}
@@ -337,8 +341,11 @@ function MultiPhotoSlot({
             className="border-2 border-dashed rounded-xl py-6 text-center cursor-pointer
                        hover:border-foreground hover:bg-muted/40 transition-colors"
           >
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium pointer-coarse:hidden">
               Glissez vos photos ici ou cliquez pour sélectionner
+            </p>
+            <p className="hidden text-sm font-medium pointer-coarse:block">
+              Touchez pour ajouter des photos (appareil photo ou galerie)
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {remaining} emplacement{remaining > 1 ? 's' : ''} restant{remaining > 1 ? 's' : ''} · JPG, PNG, HEIC acceptés
@@ -369,8 +376,9 @@ function MultiPhotoSlot({
                   type="button"
                   onClick={() => onDeleteExisting(p)}
                   className="absolute top-1.5 right-1.5 bg-black/60 text-white
-                             rounded-full w-6 h-6 text-xs flex items-center justify-center
-                             opacity-0 group-hover:opacity-100 transition-opacity"
+                             cs-cible rounded-full w-6 h-6 text-xs flex items-center justify-center
+                             opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity
+                             pointer-coarse:opacity-100 pointer-coarse:w-9 pointer-coarse:h-9 pointer-coarse:text-sm"
                   aria-label="Supprimer"
                 >
                   ✕
@@ -390,8 +398,9 @@ function MultiPhotoSlot({
                 type="button"
                 onClick={() => onRemove(i)}
                 className="absolute top-1.5 right-1.5 bg-black/60 text-white
-                           rounded-full w-6 h-6 text-xs flex items-center justify-center
-                           opacity-0 group-hover:opacity-100 transition-opacity"
+                           cs-cible rounded-full w-6 h-6 text-xs flex items-center justify-center
+                           opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity
+                           pointer-coarse:opacity-100 pointer-coarse:w-9 pointer-coarse:h-9 pointer-coarse:text-sm"
                 aria-label="Supprimer"
               >
                 ✕

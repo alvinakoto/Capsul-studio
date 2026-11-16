@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ChevronDownIcon } from 'lucide-react'
+import { eurosSigne, pct } from '@/lib/utils/format'
 
 // Briques communes aux simulateurs (bien simple : ScenarioPanel, immeuble :
 // ImmeublePanel) : enregistrement automatique, champs et indicateurs.
@@ -26,6 +28,11 @@ export function useEnregistrementAuto<T>(payload: T | null, enregistrer: (p: T) 
   useEffect(() => { enregistrerRef.current = enregistrer }, [enregistrer])
   const file = useRef<Promise<boolean>>(Promise.resolve(true))
   const [statut, setStatut] = useState<StatutEnregistrement>('idle')
+  // Statut à retrouver quand la saisie revient à ce qui est déjà en base :
+  // « Enregistré » si un enregistrement a abouti, rien sinon
+  const statutAuRepos = useRef<'idle' | 'saved'>('idle')
+  // Relance la comparaison saisie / base après une écriture (voir plus bas)
+  const [relance, setRelance] = useState(0)
 
   const enregistrerMaintenant = useCallback((): Promise<boolean> => {
     file.current = file.current.then(async () => {
@@ -36,7 +43,16 @@ export function useEnregistrementAuto<T>(payload: T | null, enregistrer: (p: T) 
       try {
         await enregistrerRef.current(p)
         lastSavedKey.current = key
-        setStatut(JSON.stringify(payloadRef.current) === key ? 'saved' : 'pending')
+        statutAuRepos.current = 'saved'
+        if (JSON.stringify(payloadRef.current) === key) {
+          setStatut('saved')
+        } else {
+          // Modifié pendant l'écriture, peut-être pour revenir à l'état d'avant :
+          // l'effet ne se relancerait pas tout seul (la saisie n'a pas changé depuis),
+          // et la base garderait une valeur que l'écran ne montre plus
+          setStatut('pending')
+          setRelance((n) => n + 1)
+        }
         return true
       } catch (err) {
         console.error('Enregistrement de la simulation échoué :', err)
@@ -48,11 +64,18 @@ export function useEnregistrementAuto<T>(payload: T | null, enregistrer: (p: T) 
   }, [])
 
   useEffect(() => {
-    if (!payloadKey || payloadKey === lastSavedKey.current) return
+    if (!payloadKey) return
+    if (payloadKey === lastSavedKey.current) {
+      // Revenu à ce qui est en base avant la fin du délai : rien à écrire, et le
+      // statut ne doit pas rester bloqué sur « Enregistrement… »
+      const auRepos = statutAuRepos.current
+      setStatut((s) => (s === 'pending' || s === 'error' ? auRepos : s))
+      return
+    }
     setStatut('pending')
     const t = setTimeout(enregistrerMaintenant, DELAI_ENREGISTREMENT_MS)
     return () => clearTimeout(t)
-  }, [payloadKey, enregistrerMaintenant])
+  }, [payloadKey, relance, enregistrerMaintenant])
 
   // Fermeture d'onglet pendant le délai : le navigateur demande confirmation.
   useEffect(() => {
@@ -90,7 +113,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className="relative shrink-0 w-[38px] h-[22px] rounded-full transition-colors"
+      className="cs-cible relative shrink-0 w-[38px] h-[22px] rounded-full transition-colors"
       style={{ backgroundColor: checked ? 'var(--cs-navy)' : '#D8D3C9' }}
     >
       <span
@@ -159,6 +182,121 @@ export function Kpi({ label, value }: { label: string; value: string }) {
       <span className="cs-label">{label}</span>
       <span className="text-[20px] font-bold tabular-nums" style={{ color: 'var(--cs-navy)' }}>{value}</span>
     </div>
+  )
+}
+
+// ─── Résultat flottant (téléphone, tablette) ──────────────────────────────────
+
+/**
+ * Sous 1 280 px, le résultat s'affiche sous les champs : en modifiant un loyer
+ * devant le client, on ne le voit plus. Ce bandeau garde cash-flow et
+ * rentabilité à l'écran tant que la carte de résultat est plus bas dans la page,
+ * au-dessus de la barre d'onglets ou du clavier. Un appui y fait défiler.
+ */
+export function ResultatFlottant({ cible, libelle, cashflow, rentabiliteBrute, statut }: {
+  cible: React.RefObject<HTMLElement | null>
+  libelle: string
+  cashflow: number | null
+  rentabiliteBrute: number | null
+  statut: StatutEnregistrement
+}) {
+  const [resultatPlusBas, setResultatPlusBas] = useState(false)
+  const aUnResultat = cashflow !== null
+
+  // Position recalculée au défilement et à chaque changement de hauteur de la page
+  // (lot déplié…). Pas d'IntersectionObserver : un saut de défilement fait passer
+  // la carte d'au-dessus à en dessous de l'écran sans le croiser, et il ne signale rien.
+  // Relancé quand le résultat apparaît : la carte observée n'existe qu'à partir de là.
+  useEffect(() => {
+    const el = cible.current
+    if (!el) return
+    let image = 0
+    const mesurer = () => {
+      cancelAnimationFrame(image)
+      image = requestAnimationFrame(() => {
+        // Visible seulement quand le résultat est sous l'écran (saisie en cours), pas une fois dépassé
+        setResultatPlusBas(el.getBoundingClientRect().top > window.innerHeight - 96)
+      })
+    }
+    mesurer()
+    document.addEventListener('scroll', mesurer, { capture: true, passive: true })
+    window.addEventListener('resize', mesurer)
+    const tailles = new ResizeObserver(mesurer)
+    tailles.observe(document.body)
+    return () => {
+      cancelAnimationFrame(image)
+      document.removeEventListener('scroll', mesurer, { capture: true })
+      window.removeEventListener('resize', mesurer)
+      tailles.disconnect()
+    }
+  }, [cible, aUnResultat])
+
+  const visible = resultatPlusBas && aUnResultat
+  const positif = (cashflow ?? 0) >= 0
+  const allerAuResultat = () => {
+    const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    cible.current?.scrollIntoView({ behavior: reduit ? 'auto' : 'smooth', block: 'start' })
+  }
+
+  return (
+    <div
+      inert={!visible}
+      className={`fixed right-0 z-30 border-t transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none xl:hidden ${
+        visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0'
+      }`}
+      style={{
+        left: 'var(--cs-sidebar)',
+        bottom: 'calc(var(--cs-nav-bas) + var(--cs-clavier, 0px))',
+        backgroundColor: 'rgba(255,255,255,0.97)',
+        borderColor: 'var(--cs-line)',
+        boxShadow: '0 -8px 24px -18px rgba(14,34,64,.35)',
+      }}
+    >
+      <button
+        type="button"
+        onClick={allerAuResultat}
+        className="mx-auto flex min-h-[56px] w-full max-w-[880px] items-center gap-3 px-4 py-2 text-left md:px-10 active:bg-[var(--cs-ivory)]"
+        aria-label={cashflow !== null ? `Voir le résultat, ${libelle} : cash-flow de ${eurosSigne(cashflow)} par mois` : 'Voir le résultat'}
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[10.5px] font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--cs-mist)' }}>
+            Cash-flow
+          </span>
+          <span className="flex items-baseline gap-1.5 tabular-nums">
+            <span className="text-[20px] font-extrabold leading-tight" style={{ color: positif ? 'var(--cs-pos)' : 'var(--cs-neg)' }}>
+              {cashflow !== null ? eurosSigne(cashflow).replace('+ ', '+') : '—'}
+            </span>
+            <span className="text-[12px] font-semibold" style={{ color: 'var(--cs-mist)' }}>/ mois</span>
+          </span>
+        </span>
+        <span className="shrink-0 text-right">
+          <span className="block text-[10.5px] font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--cs-mist)' }}>Renta. brute</span>
+          <span className="block text-[16px] font-bold tabular-nums" style={{ color: 'var(--cs-navy)' }}>
+            {rentabiliteBrute !== null ? pct(rentabiliteBrute) : '—'}
+          </span>
+        </span>
+        <PastilleStatut statut={statut} />
+        {/* Le résultat détaillé est plus bas : un appui y descend */}
+        <ChevronDownIcon size={18} strokeWidth={2.2} className="shrink-0 text-[var(--cs-mist)]" aria-hidden="true" />
+      </button>
+    </div>
+  )
+}
+
+/** Statut d'enregistrement en version courte (le bouton « réessayer » reste sur la carte de résultat). */
+function PastilleStatut({ statut }: { statut: StatutEnregistrement }) {
+  const enCours = statut === 'pending' || statut === 'saving'
+  const couleur = statut === 'error' ? 'var(--cs-neg)' : enCours ? 'var(--cs-mist)' : 'var(--cs-pos)'
+  const texte = statut === 'error' ? 'Échec' : enCours ? 'En cours' : statut === 'saved' ? 'Enregistré' : null
+  return (
+    <span className="flex w-[62px] shrink-0 flex-col items-center gap-0.5 text-[10.5px] font-semibold" style={{ color: couleur }}>
+      {texte && (
+        <>
+          <span className={`h-2 w-2 rounded-full ${enCours ? 'animate-pulse motion-reduce:animate-none' : ''}`} style={{ backgroundColor: couleur }} aria-hidden="true" />
+          {texte}
+        </>
+      )}
+    </span>
   )
 }
 
