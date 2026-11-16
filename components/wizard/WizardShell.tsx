@@ -2,6 +2,7 @@
 
 import { useReducer, useState, useEffect, useRef, type ReactElement } from 'react'
 import { useRouter } from 'next/navigation'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BlocA from './BlocA'
@@ -217,14 +218,28 @@ export default function WizardShell({
   const villeTouristique = villes?.find((v) => v.id === state.ville_id)?.zoneTouristique ?? false
 
   const [activeBloc, setActiveBloc] = useState('A')
-  const refEtapes = useRef<HTMLDivElement>(null)
-  /** Change d'étape et remonte au début du formulaire s'il est passé au-dessus de l'écran
-   *  (sur téléphone, on finit chaque étape tout en bas d'une longue page). */
-  const allerA = (bloc: string) => {
-    setActiveBloc(bloc)
+  const refEtapes = useRef<HTMLElement>(null)
+  const refOnglets = useRef<HTMLOListElement>(null)
+
+  // À chaque changement d'étape. Fait ici plutôt qu'au clic : les gestionnaires
+  // passés au rendu ne lisent ainsi aucune ref (règle react-hooks/refs).
+  useEffect(() => {
+    // Remonte au début du formulaire s'il est passé au-dessus de l'écran
+    // (sur téléphone, on finit chaque étape tout en bas d'une longue page)
     const etapes = refEtapes.current
     if (etapes && etapes.getBoundingClientRect().top < 0) etapes.scrollIntoView({ block: 'start' })
-  }
+
+    // Sous 768 px, les étapes défilent à l'horizontale : l'étape en cours est
+    // ramenée au centre, pour que ses voisines restent visibles des deux côtés
+    const liste = refOnglets.current
+    const actif = liste?.querySelector<HTMLElement>('[aria-current="step"]')
+    if (!liste || !actif || liste.scrollWidth <= liste.clientWidth) return
+    const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    liste.scrollTo({
+      left: actif.offsetLeft - (liste.clientWidth - actif.offsetWidth) / 2,
+      behavior: reduit ? 'auto' : 'smooth',
+    })
+  }, [activeBloc])
   const [saving, setSaving] = useState(false)
   const [wizardScenario, setWizardScenario] = useState<TypeScenario | null>(null)
   const router = useRouter()
@@ -369,72 +384,58 @@ export default function WizardShell({
 
   const blocs = BLOCS
   const currentIndex = blocs.findIndex((b) => b.id === activeBloc)
-  const precedent = currentIndex > 0 ? () => allerA(blocs[currentIndex - 1].id) : null
+  const blocPrecedent = currentIndex > 0 ? blocs[currentIndex - 1] : null
+  const blocSuivant = currentIndex < blocs.length - 1 ? blocs[currentIndex + 1] : null
+  const precedent = blocPrecedent ? () => setActiveBloc(blocPrecedent.id) : null
+  const suivant = blocSuivant ? () => setActiveBloc(blocSuivant.id) : null
 
-  // Action principale, la même dans la barre du bas (téléphone) et en fin de formulaire
+  // Action principale, la même dans la barre du bas (téléphone) et en fin de formulaire.
+  // En modification, c'est l'enregistrement, possible à chaque étape : on passe d'une
+  // étape à l'autre par les étapes du haut et les boutons de fin d'étape.
+  const enCours = saving ? 'Enregistrement…' : null
   const action: ActionWizard = editProjectId
-    ? { label: saving ? 'Enregistrement…' : 'Enregistrer', labelLong: saving ? 'Enregistrement…' : 'Enregistrer les modifications', onClick: handleSave, variante: 'enregistrer', disabled: saving }
-    : currentIndex < blocs.length - 1
-      ? { label: 'Suivant', labelLong: `Suivant : ${blocs[currentIndex + 1].label}`, onClick: () => allerA(blocs[currentIndex + 1].id), variante: 'suivant' }
-      : { label: saving ? 'Enregistrement…' : 'Enregistrer', labelLong: saving ? 'Enregistrement…' : 'Enregistrer le projet', onClick: handleSave, variante: 'enregistrer', disabled: saving }
+    ? { label: enCours ?? 'Enregistrer', labelLong: enCours ?? 'Enregistrer les modifications', onClick: handleSave, variante: 'enregistrer', disabled: saving }
+    : blocSuivant && suivant
+      ? { label: 'Suivant', labelLong: `Suivant : ${blocSuivant.label}`, onClick: suivant, variante: 'suivant' }
+      : { label: enCours ?? 'Enregistrer', labelLong: enCours ?? 'Enregistrer le projet', onClick: handleSave, variante: 'enregistrer', disabled: saving }
 
   return (
     // Sous 1 280 px : place réservée en bas pour la barre du wizard
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start pb-20 xl:pb-0">
       {/* Zone principale */}
       <div className="min-w-0">
-        {/* Étapes, version téléphone : l'étape en cours et une barre de progression
-            dont chaque segment mène à son étape (la grille de 6 prenait deux lignes) */}
-        <div ref={refEtapes} className="scroll-mt-4">
-        <nav className="mb-6 md:hidden" aria-label="Étapes">
-          <p className="text-[11px] font-bold tracking-[0.08em]" style={{ color: 'var(--cs-gold-ink)' }}>
-            {`ÉTAPE ${currentIndex + 1} SUR ${blocs.length}`}
-          </p>
-          <p className="cs-h2 mt-0.5">{blocs[currentIndex].label}</p>
-          <ol className="mt-1 flex gap-1.5">
-            {blocs.map((bloc, i) => (
-              <li key={bloc.id} className="flex-1">
-                <button
-                  type="button"
-                  onClick={() => allerA(bloc.id)}
-                  aria-current={i === currentIndex ? 'step' : undefined}
-                  aria-label={`Étape ${i + 1} : ${bloc.label}`}
-                  className="flex h-11 w-full items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)] rounded-sm"
-                >
-                  <span
-                    className="h-1.5 w-full rounded-full transition-colors"
-                    style={{ backgroundColor: i < currentIndex ? 'var(--cs-gold)' : i === currentIndex ? 'var(--cs-navy)' : 'var(--cs-line)' }}
-                  />
-                </button>
-              </li>
-            ))}
+        {/* Étapes, en onglets libellés à toutes les tailles. Sous 768 px, ils défilent
+            à l'horizontale (l'onglet coupé au bord montre qu'il y en a d'autres) : la barre
+            de progression qui les remplaçait ne laissait pas deviner qu'on pouvait la toucher. */}
+        <nav ref={refEtapes} className="mb-6 scroll-mt-4 md:mb-7" aria-label="Étapes">
+          <ol
+            ref={refOnglets}
+            className="relative -mx-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-6 md:overflow-visible md:px-0"
+          >
+            {blocs.map((bloc, i) => {
+              const active = i === currentIndex
+              return (
+                <li key={bloc.id} className="min-w-[96px] shrink-0 md:min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setActiveBloc(bloc.id)}
+                    aria-current={active ? 'step' : undefined}
+                    className="grid w-full gap-1 pb-2.5 pr-3 pt-1 text-left transition-colors hover:text-[var(--cs-navy)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--cs-navy)] md:pr-0 md:pt-0"
+                    style={{
+                      borderBottom: `2px solid ${active ? 'var(--cs-navy)' : 'var(--cs-line)'}`,
+                      color: active ? 'var(--cs-navy)' : 'var(--cs-mist)',
+                    }}
+                  >
+                    <span className="text-[11px] font-bold tracking-[0.08em]" style={{ color: active ? 'var(--cs-gold-ink)' : undefined }}>
+                      ÉTAPE {i + 1}
+                    </span>
+                    <span className="whitespace-nowrap text-[13px] font-semibold">{bloc.label}</span>
+                  </button>
+                </li>
+              )
+            })}
           </ol>
         </nav>
-
-        {/* Étapes, à partir de 768 px */}
-        <nav className="hidden md:grid grid-cols-6 gap-x-1.5 gap-y-3.5 mb-7" aria-label="Étapes">
-          {blocs.map((bloc, i) => {
-            const active = activeBloc === bloc.id
-            return (
-              <button
-                key={bloc.id}
-                onClick={() => allerA(bloc.id)}
-                aria-current={active ? 'step' : undefined}
-                className="grid gap-1 pb-2.5 text-left transition-colors hover:text-[var(--cs-navy)]"
-                style={{
-                  borderBottom: `2px solid ${active ? 'var(--cs-navy)' : 'var(--cs-line)'}`,
-                  color: active ? 'var(--cs-navy)' : 'var(--cs-mist)',
-                }}
-              >
-                <span className="text-[11px] font-bold tracking-[0.08em]" style={{ color: active ? 'var(--cs-gold-ink)' : undefined }}>
-                  ÉTAPE {i + 1}
-                </span>
-                <span className="text-[13px] font-semibold">{bloc.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-        </div>
 
         <Tabs value={activeBloc} onValueChange={setActiveBloc}>
           <TabsContent value="A">
@@ -472,19 +473,64 @@ export default function WizardShell({
           </TabsContent>
         </Tabs>
 
+        {/* Fin d'étape en modification, sous 1 280 px : la barre du bas sert à enregistrer,
+            on passe ici à l'étape voisine, là où l'on termine l'étape */}
+        {editProjectId && (
+          <nav className="mt-5 grid grid-cols-2 gap-3 xl:hidden" aria-label="Étapes voisines">
+            {blocPrecedent && precedent && (
+              <button
+                type="button"
+                onClick={precedent}
+                aria-label={`Étape précédente : ${blocPrecedent.label}`}
+                className="cs-card flex min-h-16 items-center gap-2 px-3 py-2.5 text-left transition-colors hover:border-[#D3CDC1] active:bg-[var(--cs-ivory)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)]"
+              >
+                <ChevronLeftIcon size={18} strokeWidth={2.2} className="shrink-0 text-[var(--cs-mist)]" aria-hidden="true" />
+                <span className="min-w-0">
+                  <span className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--cs-mist)]">Précédent</span>
+                  <span className="block truncate text-[14px] font-bold text-[var(--cs-navy)]">{blocPrecedent.label}</span>
+                </span>
+              </button>
+            )}
+            {blocSuivant && suivant && (
+              <button
+                type="button"
+                onClick={suivant}
+                aria-label={`Étape suivante : ${blocSuivant.label}`}
+                className="cs-card col-start-2 flex min-h-16 items-center justify-end gap-2 border-[var(--cs-navy)] px-3 py-2.5 text-right transition-colors active:bg-[var(--cs-ivory)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cs-navy)]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--cs-gold-ink)]">Suivant</span>
+                  <span className="block truncate text-[14px] font-bold text-[var(--cs-navy)]">{blocSuivant.label}</span>
+                </span>
+                <ChevronRightIcon size={18} strokeWidth={2.2} className="shrink-0 text-[var(--cs-navy)]" aria-hidden="true" />
+              </button>
+            )}
+          </nav>
+        )}
+
         {/* Navigation, à partir de 1 280 px (en dessous : BarreWizardMobile) */}
         <div className="cs-card hidden xl:flex items-center justify-between gap-3 mt-5 px-4 py-3.5">
-          <button
-            onClick={precedent ?? undefined}
-            disabled={!precedent}
-            className="cs-btn"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-            Précédent
-          </button>
-          <span className="text-[12.5px]" style={{ color: 'var(--cs-mist)' }}>
-            Étape <b style={{ color: 'var(--cs-navy)' }}>{currentIndex + 1}</b> sur {blocs.length}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={precedent ?? undefined}
+              disabled={!precedent}
+              className="cs-btn"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+              Précédent
+            </button>
+            {editProjectId && blocSuivant && suivant && (
+              <button onClick={suivant} className="cs-btn">
+                {`Suivant : ${blocSuivant.label}`}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            )}
+          </div>
+          {!editProjectId && (
+            <span className="text-[12.5px]" style={{ color: 'var(--cs-mist)' }}>
+              Étape <b style={{ color: 'var(--cs-navy)' }}>{currentIndex + 1}</b> sur {blocs.length}
+            </span>
+          )}
           <button onClick={action.onClick} disabled={action.disabled} className={`cs-btn ${action.variante === 'enregistrer' ? 'cs-btn-gold' : 'cs-btn-primary'}`}>
             {action.labelLong ?? action.label}
             {action.variante === 'suivant' && (
@@ -499,7 +545,7 @@ export default function WizardShell({
         <RecapSticky state={state} />
       </div>
 
-      <BarreWizardMobile state={state} onPrecedent={precedent} action={action} />
+      <BarreWizardMobile state={state} onPrecedent={precedent} avecPrecedent={!editProjectId} action={action} />
     </div>
   )
 }

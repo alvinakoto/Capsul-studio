@@ -11,6 +11,9 @@ import { euros } from '@/lib/utils/format'
 // formulaire) : étape précédente, prix projet total (un appui ouvre le récap
 // complet) et action principale, à portée du pouce. Se pose au-dessus de la
 // barre d'onglets, ou du clavier pendant la saisie.
+// En modification, l'action principale est « Enregistrer » et la barre n'a pas de
+// bouton précédent : un retour sans « suivant » à côté laissait croire qu'on ne
+// pouvait pas avancer. Les étapes voisines sont proposées en fin d'étape.
 
 export interface ActionWizard {
   label: string
@@ -21,9 +24,10 @@ export interface ActionWizard {
   disabled?: boolean
 }
 
-export default function BarreWizardMobile({ state, onPrecedent, action }: {
+export default function BarreWizardMobile({ state, onPrecedent, avecPrecedent = true, action }: {
   state: WizardState
   onPrecedent: (() => void) | null
+  avecPrecedent?: boolean
   action: ActionWizard
 }) {
   const { prixAchat, prixProjet, mensualiteTotale, comptant } = syntheseRecap(state)
@@ -31,25 +35,26 @@ export default function BarreWizardMobile({ state, onPrecedent, action }: {
 
   return (
     <div
-      className="fixed right-0 z-30 border-t xl:hidden"
+      className="fixed right-0 z-30 border-t bg-white xl:hidden"
       style={{
         left: 'var(--cs-sidebar)',
         bottom: 'calc(var(--cs-nav-bas) + var(--cs-clavier, 0px))',
-        backgroundColor: 'rgba(255,255,255,0.97)',
         borderColor: 'var(--cs-line)',
         boxShadow: '0 -8px 24px -18px rgba(14,34,64,.35)',
       }}
     >
       <div className="mx-auto flex max-w-[880px] items-center gap-2 px-3 py-2 md:px-10">
-        <button
-          type="button"
-          onClick={onPrecedent ?? undefined}
-          disabled={!onPrecedent}
-          className="cs-btn cs-btn-icon h-11 w-11 shrink-0"
-          aria-label="Étape précédente"
-        >
-          <ChevronLeftIcon size={20} strokeWidth={2.2} aria-hidden="true" />
-        </button>
+        {avecPrecedent && (
+          <button
+            type="button"
+            onClick={onPrecedent ?? undefined}
+            disabled={!onPrecedent}
+            className="cs-btn cs-btn-icon h-11 w-11 shrink-0"
+            aria-label="Étape précédente"
+          >
+            <ChevronLeftIcon size={20} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+        )}
 
         <DialogPrimitive.Root>
           <DialogPrimitive.Trigger
