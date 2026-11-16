@@ -157,6 +157,7 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - Pages sans style en `npm run dev` après un changement de `app/globals.css` (classes `cs-*` absentes du CSS servi alors que `next build` les contient) = cache Turbopack périmé : supprimer `.next` et relancer. (Revu en novembre 2026 : nouvelles règles de `globals.css` et variable `--cs-clavier` absentes du CSS servi, d'où une barre fixe mal placée sans aucune erreur.)
 - Une action révélée seulement au survol (`opacity-0 group-hover:opacity-100`) est invisible au doigt : c'était le cas des croix de suppression des photos du wizard. Toujours prévoir `pointer-coarse:opacity-100`.
 - `IntersectionObserver` ne signale un élément que s'il croise l'écran : un saut de défilement (lien d'ancre, `scrollIntoView`, défilement rapide) le fait passer d'au-dessus à en dessous sans rien déclencher. Pour savoir où se trouve un élément, recalculer sa position au défilement et au redimensionnement (`ResultatFlottant`).
+- Lint `react-hooks/refs` : une fonction utilisée à l'affichage (condition, prop) ne doit lire aucune `ref.current`, même si elle ne sert qu'au clic. Faire cette lecture dans un effet déclenché par l'état (défilement du wizard au changement d'étape, `WizardShell.tsx`).
 
 ## Outils & intégrations externes (hors périmètre Capsul Studio mais pertinents pour le contexte business)
 
@@ -193,7 +194,7 @@ Capsul Studio est l'app web interne qui remplace le workflow Excel + Canva pour 
 - Fil d'Ariane `← Projets` présent sur toutes les pages de détail/édition
 
 ### Wizard (WizardShell)
-- Stepper « ÉTAPE n / libellé » souligné (navy sur l'étape active), barre de navigation en carte avec « Étape n sur 6 » et « Suivant : <étape> »
+- Stepper « ÉTAPE n / libellé » souligné (navy sur l'étape active), barre de navigation en carte avec « Étape n sur 6 » et « Suivant : <étape> » (en modification : « Précédent », « Suivant : <étape> » et « Enregistrer les modifications »)
 - CTA "Suivant" = navy, "Enregistrer" = or
 - Champs marqués « Estimation » : fond doré léger (`bg-[#FCF8F0] border-[#E9D9BC]`) et libellé « Estimation » en or quand l'interrupteur est actif
 - Récap latéral (`RecapSticky`) en carte navy, prix projet total en or
@@ -205,7 +206,7 @@ Site responsive (pas d'app native ni de PWA, choix d'Alvin), pour tous les usage
 - **Variables de mise en page** (`globals.css`) : `--cs-sidebar` (0 ou 220px), `--cs-nav-bas` (hauteur de la barre d'onglets + zone de la barre d'accueil de l'iPhone, 0 en grand écran) et `--cs-clavier`. Tout élément fixe s'y cale : `left: var(--cs-sidebar)` et `bottom: calc(var(--cs-nav-bas) + var(--cs-clavier, 0px))`, jamais de 220px en dur. `viewport-fit=cover` (export `viewport` de `app/layout.tsx`), zoom laissé libre.
 - **Clavier virtuel** (`SuiviClavier.tsx`, `visualViewport`) : Safari et Chrome mobile ne redimensionnent pas la page, une barre fixe en bas passe derrière le clavier. Clavier ouvert : `data-clavier` sur `<html>` masque la barre d'onglets, et `--cs-clavier` remonte les barres fixes juste au-dessus.
 - **Simulateur** : sous 1 280 px, bandeau `ResultatFlottant` (`simulateur.tsx`) tant que la carte de résultat est plus bas dans la page (cash-flow, rentabilité brute, statut d'enregistrement ; un appui y fait défiler). Détail par lot en cartes sous 640 px (le tableau défilait à l'horizontale), comparaison avec l'écart sous la valeur comparée.
-- **Wizard** : étapes condensées sous 768 px (« Étape n sur 6 » et barre de progression dont chaque segment mène à son étape), `BarreWizardMobile.tsx` sous 1 280 px (étape précédente, prix projet total qui ouvre le récap complet en panneau, action principale). Chiffres du récap : `syntheseRecap()`, exporté par `RecapSticky.tsx`. Un changement d'étape remonte au début du formulaire.
+- **Wizard** : étapes en onglets libellés à toutes les tailles, qui défilent à l'horizontale sous 768 px (l'onglet en cours est centré). `BarreWizardMobile.tsx` sous 1 280 px : prix projet total (ouvre le récap complet en panneau) et action principale. En création : bouton précédent et « Suivant », puis « Enregistrer ». En modification : « Enregistrer » à chaque étape, sans bouton précédent dans la barre ; « Précédent » et « Suivant » en fin d'étape (retour d'Alvin sur iPhone : rien n'indiquait comment passer à l'étape suivante, et les segments de l'ancienne barre de progression ne se devinaient pas cliquables). Chiffres du récap : `syntheseRecap()`, exporté par `RecapSticky.tsx`. Un changement d'étape remonte au début du formulaire.
 - **Écran tactile** (`@media (pointer: coarse)`, variante Tailwind `pointer-coarse:`) : champs à 16px (sinon Safari zoome sur chaque champ touché), `inputMode="decimal"` par défaut dans `<Input type="number">`, cibles de 44px (`.cs-btn`, `.cs-seg`, `.cs-input`, `<Input>` et `<Select>` à 44px de haut ; `.cs-cible` = zone invisible de 44 × 44px centrée sur un petit élément ; `.cs-cible-y` = extension verticale seule, pour des boutons accolés comme €|%, dont le conteneur ne doit pas avoir `overflow-hidden`). Rendu à la souris inchangé.
 
 ## État d'avancement des sprints
