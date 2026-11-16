@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { syntheseProjet } from '@/lib/calculs/depuisProjet'
 import { euros } from '@/lib/utils/format'
 import { statusConfig } from './status'
+import { libelleTypeProjet } from '@/lib/data/immeuble'
 
 interface Project {
   id: string
@@ -71,7 +72,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           {project.name}
         </p>
         <p className="text-[12px] mt-0.5 truncate" style={{ color: 'var(--cs-mist)' }}>
-          {[project.city, project.type_bien, project.surface_m2 ? `${project.surface_m2} m²` : null]
+          {[project.city, libelleTypeProjet(project), project.surface_m2 ? `${project.surface_m2}\u00a0m²` : null]
             .filter(Boolean).join(' · ')}
         </p>
       </div>

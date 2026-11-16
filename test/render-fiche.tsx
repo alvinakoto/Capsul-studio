@@ -7,6 +7,8 @@
  *   - fiche-complete.pdf     : ville + travaux, sans photo (composition typographique)
  *   - fiche-avec-photo.pdf   : idem avec la photo passée en 2e argument (si fournie)
  *   - fiche-minimale.pdf     : ni infos ville, ni postes → 3 pages, numérotation contractée
+ *   - fiche-immeuble.pdf     : immeuble de 5 lots à Troyes (cas de référence de lib/calculs/test.ts)
+ *   - fiche-immeuble-8-lots.pdf : pire cas de la page « Les lots » (8 lots, libellés longs, alternatives)
  */
 import { renderToBuffer } from '@react-pdf/renderer'
 import React from 'react'
@@ -18,6 +20,7 @@ import { calculerScenario } from '../lib/calculs/index'
 import type { VilleInfos } from '../lib/data/villes'
 import { getPostesTravaux } from '../lib/data/travaux'
 import type { FicheData } from '../lib/pdf/types'
+import { immeublePdf } from '../lib/pdf/common/immeuble'
 
 // Reims tel qu'enregistré dans le catalogue `villes` (le script tourne sans base)
 const REIMS: {
@@ -132,12 +135,62 @@ const base: FicheData = {
   villeProjetsAVenir: REIMS.projetsAVenir,
   travauxPostes: getPostesTravaux(project.travaux_postes),
   comparaison: null,
+  immeuble: null,
+}
+
+// ─── Immeuble : cas de référence (5 lots) et pire cas (8 lots) ─────────────────
+const lot = (libelle: string, typeBien: string, surfaceM2: number, dpeActuel: string | null, dpeVise: string | null,
+  exploitation: object, chargesPropres: object | null = null, comparaison: object | null = null) =>
+  ({ id: libelle, libelle, typeBien, surfaceM2, dpeActuel, dpeVise, exploitation, comparaison, chargesPropres })
+const lots5 = [
+  lot('Rez-de-chaussée', 'studio', 21, 'F', 'C', { type: 'courte_duree', prixNuitee: 55, nuitsConservateur: 15, nuitsOptimiste: 21 }, { electriciteEau: 1100, internet: 360, chauffage: 0 }),
+  lot('1er gauche', 'studio', 24, 'E', 'C', { type: 'lmnp_meuble', loyerMensuel: 460 }),
+  lot('1er droite', 'T2', 36, 'E', 'C', { type: 'lmnp_meuble', loyerMensuel: 560 }),
+  lot('2e étage', 'T2', 38, null, 'C', { type: 'lmnp_meuble', loyerMensuel: 580 }),
+  lot('Combles', 'T3', 49, 'G', 'D', { type: 'colocation', nbChambres: 3, loyerParChambre: 370 }, { electriciteEau: 1200, internet: 360, chauffage: 0 },
+    { type: 'lmnp_meuble', loyerMensuel: 690 }),
+]
+// Pire cas : 8 lots, libellés de longueur maximale (22), chacun avec une autre exploitation étudiée
+const alt = { type: 'courte_duree', prixNuitee: 58, nuitsConservateur: 16 }
+const lots8 = [
+  lot('Rez-de-chaussée gauche', 'studio', 21, 'F', 'C', { type: 'courte_duree', prixNuitee: 55, nuitsConservateur: 15, nuitsOptimiste: 21 }, { electriciteEau: 1100, internet: 360, chauffage: 0 }, { type: 'lmnp_meuble', loyerMensuel: 470 }),
+  lot('Rez-de-chaussée droite', 'studio', 24, 'E', 'C', { type: 'lmnp_meuble', loyerMensuel: 460 }, null, alt),
+  lot('Premier étage gauche', 'T2', 36, 'E', 'C', { type: 'lmnp_meuble', loyerMensuel: 560 }, null, alt),
+  lot('Premier étage droite', 'T2', 38, null, 'C', { type: 'lmnp_meuble', loyerMensuel: 580 }, null, { type: 'colocation', nbChambres: 2, loyerParChambre: 330 }),
+  lot('Combles aménagés rue', 'T4', 72, 'G', 'D', { type: 'colocation', nbChambres: 4, loyerParChambre: 390 }, { electriciteEau: 1500, internet: 360, chauffage: 900 }, { type: 'lmnp_meuble', loyerMensuel: 980 }),
+  lot('Troisième étage cour', 'studio', 19, 'F', 'D', { type: 'lmnp_meuble', loyerMensuel: 450 }, null, alt),
+  lot('Troisième étage rue W', 'T1', 27, 'E', 'C', { type: 'lmnp_meuble', loyerMensuel: 520 }, null, { type: 'colocation', nbChambres: 1, loyerParChambre: 540 }),
+  lot('Local commercial reconv', 'T2', 41, 'D', 'C', { type: 'lmnp_meuble', loyerMensuel: 640 }, null, alt),
+].map((l) => ({ ...l, libelle: l.libelle.slice(0, 22) }))
+const parametres = { vacanceMeublePct: 5, vacanceColocationPct: 8, fraisGestionPct: 7, conciergeriePct: 20 }
+function ficheImmeuble(lots: object[]): FicheData {
+  const p = {
+    ...project, name: '14 rue de la Cité, Troyes', adresse: '14 rue de la Cité', ville: 'Troyes', city: 'Troyes', type_bien: 'immeuble',
+    prix_achat: 265000, travaux: 70000, mobilier: 22000, honoraires_capsul: null, honoraires_override: false, apport: 40000, taux_assurance_pct: 0.3,
+    taxe_fonciere: 2100, charges_copro_annuelles: 0, assurance_pno: 650, frais_comptabilite: 600, cfe: 300, dpe_actuel: null, dpe_apres_travaux: null,
+    immeuble: { lots, parametres, chargesPropres: 'par_lot' },
+  }
+  const im = immeublePdf(p)!
+  p.surface_m2 = (lots as { surfaceM2: number }[]).reduce((n, l) => n + l.surfaceM2, 0)
+  return {
+    ...base, project: p, immeuble: im, villeNom: 'Troyes', villeInfos: null,
+    scenarioResult: im.resultats?.scenario ?? null,
+    prixProjetTotal: im.resultats?.prixProjetTotal ?? 0,
+    capitalEmprunte: im.resultats?.capitalEmprunte ?? 0,
+    mensualiteTotale: im.resultats?.mensualiteTotale ?? 0,
+    projectionConservateur: im.resultats?.projectionConservateur ?? [],
+    projectionRealiste: im.resultats?.projectionRealiste ?? [],
+  }
 }
 
 const variants: Array<{ file: string; data: FicheData }> = [
   { file: 'fiche-complete.pdf', data: base },
   ...(photo ? [{ file: 'fiche-avec-photo.pdf', data: { ...base, villePhotoSrc: photo } }] : []),
   { file: 'fiche-minimale.pdf', data: { ...base, villeInfos: null, travauxPostes: [] } },
+  // Sous-titre de couverture long : ville composée, typologie, surface et DPE (coupures)
+  { file: 'fiche-sous-titre-long.pdf', data: { ...base, project: { ...project, city: 'Châlons-en-Champagne', ville: 'Châlons-en-Champagne', type_bien: 'T4', surface_m2: 72, dpe_actuel: 'D' } } },
+  { file: 'fiche-immeuble.pdf', data: ficheImmeuble(lots5) },
+  { file: 'fiche-immeuble-8-lots.pdf', data: ficheImmeuble(lots8) },
 ]
 
 async function main() {

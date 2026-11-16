@@ -1,6 +1,8 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { WizardState } from '@/components/wizard/WizardShell'
 import { formToVilleInfos } from '@/lib/data/villes'
+import { surfaceTotale, type ImmeubleSaisie } from '@/lib/data/immeuble'
+import { copierPhotosProjet } from '@/lib/supabase/storage'
 
 function getClient() {
   return createBrowserClient(
@@ -15,6 +17,25 @@ export function nomProjetAuto(adresse?: string | null, ville?: string | null): s
   if (ville) return ville
   if (adresse) return adresse
   return 'Nouveau projet'
+}
+
+/**
+ * Champs qui dépendent du découpage en lots. Immeuble détaillé : la surface est
+ * celle des lots et le DPE se lit lot par lot (colonnes uniques vidées) ; bien
+ * simple ou immeuble non détaillé : saisie habituelle, `immeuble` à null.
+ */
+function champsBienOuLots(state: WizardState) {
+  const immeuble = state.type_bien === 'immeuble' ? state.immeuble : null
+  if (immeuble) {
+    return { immeuble, surface_m2: surfaceTotale(immeuble.lots), dpe_actuel: null, dpe_apres_travaux: null, dpe: null }
+  }
+  return {
+    immeuble: null,
+    surface_m2: state.surface_m2 || null,
+    dpe_actuel: state.dpe_actuel || null,
+    dpe_apres_travaux: state.dpe_apres_travaux || null,
+    dpe: state.dpe_actuel || null,
+  }
 }
 
 /** Nom saisi par le chargé s'il y en a un, sinon l'adresse du bien. */
@@ -48,15 +69,11 @@ export async function createProject(
       ville: state.ville || null,
       ville_id: state.ville_id || null,
       ville_infos: formToVilleInfos(state.ville_infos),
-      surface_m2: state.surface_m2 || null,
       type_bien: state.type_bien || null,
       description_bien: state.description_bien || null,
 
-      // DPE (utilise les colonnes natives dpe_actuel et dpe_apres_travaux)
-      dpe_actuel: state.dpe_actuel || null,
-      dpe_apres_travaux: state.dpe_apres_travaux || null,
-      // Maintien de la colonne "dpe" pour compat (= dpe_actuel)
-      dpe: state.dpe_actuel || null,
+      // Surface, DPE (colonnes dpe_actuel, dpe_apres_travaux et « dpe » gardée pour compat) et lots
+      ...champsBienOuLots(state),
 
       // Finances
       frais_notaire_pct: state.frais_notaire_pct,
@@ -112,7 +129,7 @@ export async function getProjects(userId: string) {
   const { data, error } = await supabase
     .from('projects')
     .select(`
-      id, name, city, adresse, type_bien, surface_m2,
+      id, name, city, adresse, type_bien, surface_m2, immeuble,
       prix_achat, frais_notaire_pct, travaux, mobilier, autres_frais, frais_agence,
       honoraires_capsul, honoraires_override,
       apport, taux_interet_pct, taux_assurance_pct, duree_annees, is_comptant,
@@ -157,13 +174,9 @@ export async function updateProject(
       ville: state.ville || null,
       ville_id: state.ville_id || null,
       ville_infos: formToVilleInfos(state.ville_infos),
-      surface_m2: state.surface_m2 || null,
       type_bien: state.type_bien || null,
       description_bien: state.description_bien || null,
-
-      dpe_actuel: state.dpe_actuel || null,
-      dpe_apres_travaux: state.dpe_apres_travaux || null,
-      dpe: state.dpe_actuel || null,
+      ...champsBienOuLots(state),
 
       frais_notaire_pct: state.frais_notaire_pct,
       travaux: state.travaux || 0,
@@ -240,6 +253,28 @@ export async function updateProjectScenario(
   if (error) throw error
 }
 
+/**
+ * Simulateur d'un immeuble : enregistre les lots (exploitations, comparaisons,
+ * paramètres communs). Statut « simulation » dès que tous les lots sont chiffrés,
+ * comme pour un bien simple (updateProjectScenario).
+ */
+export async function updateProjectImmeuble(
+  projectId: string,
+  immeuble: ImmeubleSaisie,
+  complet: boolean,
+): Promise<void> {
+  const supabase = getClient()
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      immeuble,
+      surface_m2: surfaceTotale(immeuble.lots),
+      ...(complet && { status: 'simulation' }),
+    })
+    .eq('id', projectId)
+  if (error) throw error
+}
+
 export async function updateProjectStatus(
   projectId: string,
   status: 'draft' | 'simulation' | 'validated' | 'archived'
@@ -283,6 +318,7 @@ export async function duplicateProject(projectId: string, userId: string): Promi
       adresse: project.adresse,
       ville: project.ville,
       ville_id: project.ville_id,
+      immeuble: project.immeuble,
       ville_infos: project.ville_infos,
       surface_m2: project.surface_m2,
       type_bien: project.type_bien,
@@ -345,6 +381,14 @@ export async function duplicateProject(projectId: string, userId: string): Promi
     .single()
 
   if (error) throw error
+
+  // Photos recopiées (demande Lucas et Jules). Le projet est déjà créé : une photo
+  // qui ne passe pas ne bloque pas la duplication, elle peut être ajoutée à la main.
+  try {
+    await copierPhotosProjet(projectId, data.id)
+  } catch (err) {
+    console.error('Photos non copiées à la duplication :', err)
+  }
   return data.id
 }
 

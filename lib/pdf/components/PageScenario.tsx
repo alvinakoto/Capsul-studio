@@ -5,6 +5,7 @@ import { PdfBackground } from '../common/background'
 import { FicheData } from '../types'
 import { euros, pct, pageNum } from '../helpers'
 import { calculerDetailHonorairesCapsul } from '@/lib/calculs/communs'
+import { libelleChargeImmeuble, titreExploitation } from '../common/immeuble'
 
 const SCENARIO_LABELS: Record<string, string> = {
   lmnp_meuble:  'LMNP Meublé',
@@ -242,6 +243,9 @@ export default function PageScenario({ data, pageNumber }: Props) {
   const sc = scenarioResult
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const scenarioLabel = SCENARIO_LABELS[project.scenario_type ?? 'lmnp_meuble'] ?? 'LMNP Meublé'
+  // Immeuble détaillé : flux de l'immeuble (recettes des lots, charges communes, crédit)
+  const immeuble = data.immeuble
+  const nbLots = immeuble?.saisie.lots.length ?? 0
 
   const loyer = project.loyer_cible ?? 0
   const vacancePct = data.vacancePct
@@ -284,6 +288,42 @@ export default function PageScenario({ data, pageNumber }: Props) {
   const honoraires = honorairesOverride ? (project.honoraires_capsul ?? 0) : detailHonoraires.total
   const budgetTotal = project.prix_achat + travaux + mobilier + fraisNotaire + honoraires + (project.autres_frais ?? 0)
 
+  const lignesFlux: [string, string][] = immeuble
+    ? immeuble.flux
+      ? [
+          [`Recettes nettes des ${nbLots} lots`, euros(immeuble.flux.recettesNettesLots)],
+          ...immeuble.flux.charges.map((c): [string, string] => [libelleChargeImmeuble(c.cle, project), `− ${euros(c.montant)}`]),
+          ['Mensualité crédit', `− ${euros(immeuble.flux.mensualite)}`],
+        ]
+      : []
+    : ([
+              [loyerLabel, euros(loyer)],
+              scenarioType === 'courte_duree'
+                ? [`Revenus mensuels bruts (${nuitsConservateur} nuits/mois)`, euros(revenusMensuelsBrutsCD)]
+                : null,
+              scenarioType !== 'courte_duree' && vacancePct > 0
+                ? [`Vacance locative (${vacancePct} %)`, `− ${euros(Math.round(loyer * vacancePct / 100))}`]
+                : null,
+              scenarioType === 'courte_duree'
+                ? [`Conciergerie (${conciergeriePct} %)`, `− ${euros(conciergerieMois)}`]
+                : null,
+              fraisGestionMois > 0
+                ? [`Frais de gestion locative (${fraisGestionPct} %)`, `− ${euros(fraisGestionMois)}`]
+                : null,
+              [`Charges de copropriété${estim(project.charges_copro_estime)}`, `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
+              [`Taxe foncière${estim(project.taxe_fonciere_estime)}`, `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
+              [`Assurance PNO${estim(project.assurance_pno_estime)}`, `− ${euros(Math.round((project.assurance_pno ?? 0) / 12))}`],
+              [`Frais de comptabilité${estim(project.frais_comptabilite_estime)}`, `− ${euros(Math.round((project.frais_comptabilite ?? 0) / 12))}`],
+              [`CFE (exonérée 1ère année)${estim(project.cfe_estime)}`, `− ${euros(cfeMois)}`],
+              fluidesMois > 0
+                ? ['Charges locatives (élec/eau/internet/chauffage)', `− ${euros(fluidesMois)}`]
+                : null,
+              autresChargesMois > 0
+                ? [`Autres charges${estim(project.autres_charges_estime)}`, `− ${euros(autresChargesMois)}`]
+                : null,
+              ['Mensualité crédit', `− ${euros(mensualite)}`],
+      ].filter(Boolean) as [string, string][])
+
   return (
     <Page size="A4" style={s.page}>
       <View style={common.accentBar} />
@@ -300,8 +340,8 @@ export default function PageScenario({ data, pageNumber }: Props) {
       {/* Hero */}
       <View style={s.hero}>
         <PdfBackground variant="bande" />
-        <Text style={s.heroOver}>Scénario retenu</Text>
-        <Text style={s.heroTitle}>{scenarioLabel}</Text>
+        <Text style={s.heroOver}>{immeuble ? 'Exploitation retenue' : 'Scénario retenu'}</Text>
+        <Text style={s.heroTitle}>{immeuble ? `Immeuble de ${nbLots} lots · ${titreExploitation(immeuble.saisie)}` : scenarioLabel}</Text>
         <View style={s.heroKpis}>
           <View style={s.heroKpi}>
             <Text style={s.heroKpiLabel}>Cash-flow mensuel</Text>
@@ -328,33 +368,7 @@ export default function PageScenario({ data, pageNumber }: Props) {
         <View style={s.col}>
           <Text style={common.secLabel}>Flux mensuels</Text>
           <View style={{ marginTop: 12 }}>
-            {([
-              [loyerLabel, euros(loyer)],
-              scenarioType === 'courte_duree'
-                ? [`Revenus mensuels bruts (${nuitsConservateur} nuits/mois)`, euros(revenusMensuelsBrutsCD)]
-                : null,
-              scenarioType !== 'courte_duree' && vacancePct > 0
-                ? [`Vacance locative (${vacancePct} %)`, `− ${euros(Math.round(loyer * vacancePct / 100))}`]
-                : null,
-              scenarioType === 'courte_duree'
-                ? [`Conciergerie (${conciergeriePct} %)`, `− ${euros(conciergerieMois)}`]
-                : null,
-              fraisGestionMois > 0
-                ? [`Frais de gestion locative (${fraisGestionPct} %)`, `− ${euros(fraisGestionMois)}`]
-                : null,
-              [`Charges de copropriété${estim(project.charges_copro_estime)}`, `− ${euros(Math.round((project.charges_copro_annuelles ?? 0) / 12))}`],
-              [`Taxe foncière${estim(project.taxe_fonciere_estime)}`, `− ${euros(Math.round((project.taxe_fonciere ?? 0) / 12))}`],
-              [`Assurance PNO${estim(project.assurance_pno_estime)}`, `− ${euros(Math.round((project.assurance_pno ?? 0) / 12))}`],
-              [`Frais de comptabilité${estim(project.frais_comptabilite_estime)}`, `− ${euros(Math.round((project.frais_comptabilite ?? 0) / 12))}`],
-              [`CFE (exonérée 1ère année)${estim(project.cfe_estime)}`, `− ${euros(cfeMois)}`],
-              fluidesMois > 0
-                ? ['Charges locatives (élec/eau/internet/chauffage)', `− ${euros(fluidesMois)}`]
-                : null,
-              autresChargesMois > 0
-                ? [`Autres charges${estim(project.autres_charges_estime)}`, `− ${euros(autresChargesMois)}`]
-                : null,
-              ['Mensualité crédit', `− ${euros(mensualite)}`],
-            ].filter(Boolean) as [string, string][]).map(([k, v], i) => (
+            {(lignesFlux).map(([k, v], i) => (
               <View key={i} style={s.tableRow}>
                 <Text style={s.tableTd}>{k}</Text>
                 <Text style={s.tableTdVal}>{v}</Text>
@@ -367,7 +381,13 @@ export default function PageScenario({ data, pageNumber }: Props) {
               </Text>
             </View>
           </View>
-          {scenarioType === 'courte_duree' && (
+          {immeuble ? (
+            <Text style={[s.cashNote, { marginTop: 6 }]}>
+              {immeuble.flux
+                ? 'Détail des recettes lot par lot en page précédente.'
+                : 'Certains lots restent à chiffrer dans le simulateur : les flux s\'afficheront ensuite.'}
+            </Text>
+          ) : scenarioType === 'courte_duree' && (
             <Text style={[s.cashNote, { marginTop: 6 }]}>
               Le prix par nuit correspond au tarif brut, hors commission ; celle-ci est bien déduite dans le calcul ci-dessus.
             </Text>
@@ -452,6 +472,11 @@ export default function PageScenario({ data, pageNumber }: Props) {
                     ? 'Le bien génère un excédent de trésorerie après charges et mensualité de crédit.'
                     : 'L\'effort mensuel reste limité et compensé par la constitution patrimoniale.'}
                 </Text>
+                {immeuble && sc?.cashflowOptimiste !== undefined && (
+                  <Text style={[s.cashNote, { marginTop: 4 }]}>
+                    {`Courte durée, hypothèse optimiste : cash-flow de ${sc.cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(sc.cashflowOptimiste)))}/mois`}
+                  </Text>
+                )}
                 {cashflowOptimiste !== null && (
                   <Text style={[s.cashNote, { marginTop: 4 }]}>
                     {`Scénario optimiste (${nuitsOptimiste} nuits/mois) : cash-flow de ${cashflowOptimiste >= 0 ? '+' : '− '}${euros(Math.abs(Math.round(cashflowOptimiste)))}/mois`}

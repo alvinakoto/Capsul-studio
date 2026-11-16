@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { euros } from '@/lib/utils/format'
 
 interface Props {
   state: WizardState
@@ -182,17 +183,17 @@ export default function BlocD({ state, setField }: Props) {
             </div>
             {apportMode === 'eur' && prixProjetTotal > 0 && apportEuros > 0 && (
               <p className="text-[11px] text-muted-foreground">
-                soit {apportPct.toFixed(1)} % du projet
+                soit {apportPct.toFixed(1)}{'\u00a0'}% du projet
               </p>
             )}
             {apportMode === 'pct' && (
               <p className="text-[11px] text-muted-foreground">
-                soit {apportEuros.toLocaleString('fr-FR')} €
+                soit {euros(apportEuros)}
               </p>
             )}
             {state.is_comptant && (
               <p className="text-[11px] text-muted-foreground">
-                Financement 100 % fonds propres, calculé automatiquement et non modifiable
+                {'Financement 100\u00a0% fonds propres'}, calculé automatiquement et non modifiable
               </p>
             )}
           </div>

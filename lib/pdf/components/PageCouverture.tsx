@@ -56,12 +56,19 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   addressSub: {
+    marginBottom: 34,
+  },
+  addressSubRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  addressSubItem: {
+    flexShrink: 0,
     fontSize: 10,
     fontWeight: 500,
     color: '#cddcea',
     letterSpacing: 0.6,
     lineHeight: 1.5,
-    marginBottom: 34,
   },
   divider: {
     width: '100%',
@@ -191,12 +198,20 @@ export default function PageCouverture({ data }: Props) {
     ? project.adresse.substring(project.adresse.lastIndexOf(' ', 20) + 1)
     : null
 
-  const subParts = [
-    project.city?.toUpperCase(),
-    project.type_bien,
-    project.surface_m2 ? `${project.surface_m2} M²` : null,
-    project.dpe_actuel ? `DPE ${project.dpe_actuel}` : null,
-  ].filter(Boolean).join('  ·  ')
+  // Immeuble détaillé : nombre de lots à la place du DPE, qui se lit lot par lot
+  const nbLots = data.immeuble?.saisie.lots.length ?? 0
+  // Ville sur sa propre ligne, caractéristiques en dessous : la colonne est trop
+  // étroite pour tout tenir sur une ligne, et un retour automatique laissait un
+  // « · » ou un « D » seul en début de ligne.
+  const ville = project.city?.toUpperCase() ?? null
+  const caracteristiques = (nbLots > 0
+    ? [`IMMEUBLE DE ${nbLots} LOTS`]   // surface : page « Le bien »
+    : [
+        project.type_bien,
+        project.surface_m2 ? `${project.surface_m2} M²` : null,
+        project.dpe_actuel ? `DPE ${project.dpe_actuel}` : null,
+      ]
+  ).filter((x): x is string => !!x)
 
   const budgetTotal = data.prixProjetTotal
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
@@ -227,7 +242,19 @@ export default function PageCouverture({ data }: Props) {
             <Text style={s.address}>
               {addressLine1}{addressLine2 ? '\n' + addressLine2 : ''}
             </Text>
-            <Text style={s.addressSub}>{subParts}</Text>
+            {/* Chaque élément est un bloc insécable (react-pdf n'a pas d'espace insécable
+                avec Montserrat) : « DPE D » ou « 55 M² » passent à la ligne d'un seul tenant */}
+            <View style={s.addressSub}>
+              {ville && <Text style={s.addressSubItem}>{ville}</Text>}
+              {caracteristiques.length > 0 && (
+                // Blocs insécables : si la ligne déborde, elle se coupe entre deux caractéristiques
+                <View style={s.addressSubRow}>
+                  {caracteristiques.map((part, i) => (
+                    <Text key={i} style={s.addressSubItem}>{i > 0 ? `·  ${part}` : part}{i < caracteristiques.length - 1 ? '  ' : ''}</Text>
+                  ))}
+                </View>
+              )}
+            </View>
             <View style={s.divider} />
             <Text style={s.preparedBy}>
               {'Dossier préparé par\n'}

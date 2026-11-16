@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { WizardState } from './WizardShell'
-import { suggererScenarios, detecterAlertes, TypeScenario, Suggestion, AlerteReglementaire } from '@/lib/engine/suggestions'
+import {
+  suggererScenarios, suggererPourLot, detecterAlertes, detecterAlertesImmeuble,
+  TypeScenario, Suggestion, AlerteReglementaire,
+} from '@/lib/engine/suggestions'
+import { libelleLot, type ImmeubleSaisie } from '@/lib/data/immeuble'
 
 interface Props {
   state: WizardState
+  setField: <K extends keyof WizardState>(field: K, value: WizardState[K]) => void
   /** Case « Ville touristique » de la ville choisie (catalogue `villes`). */
   villeTouristique: boolean
   onScenarioChange?: (type: TypeScenario) => void
@@ -17,7 +22,14 @@ const SCENARIO_LABELS: Record<TypeScenario, string> = {
   courte_duree: 'Courte durée',
 }
 
-export default function BlocF({ state, villeTouristique, onScenarioChange }: Props) {
+export default function BlocF(props: Props) {
+  const { state } = props
+  return state.type_bien === 'immeuble' && state.immeuble
+    ? <ExploitationLots {...props} immeuble={state.immeuble} />
+    : <ScenarioBien {...props} />
+}
+
+function ScenarioBien({ state, villeTouristique, onScenarioChange }: Props) {
   const [selectedScenario, setSelectedScenario] = useState<TypeScenario | null>(null)
 
   const suggestions = suggererScenarios(state, villeTouristique)
@@ -78,6 +90,79 @@ export default function BlocF({ state, villeTouristique, onScenarioChange }: Pro
         </div>
       )}
 
+    </div>
+  )
+}
+
+// ─── Immeuble : exploitation lot par lot ──────────────────────────────────────
+
+const LIBELLES_COURTS: Record<TypeScenario, string> = {
+  lmnp_meuble: 'Meublé',
+  colocation: 'Colocation',
+  courte_duree: 'Courte durée',
+}
+
+function ExploitationLots({ state, setField, villeTouristique, immeuble }: Props & { immeuble: ImmeubleSaisie }) {
+  const alertes = detecterAlertesImmeuble(state, immeuble.lots)
+  const suggestionsParLot = immeuble.lots.map((lot) => suggererPourLot(lot, villeTouristique)[0].type)
+
+  // Un lot sans exploitation reçoit la suggestion : si le chargé ne touche à rien,
+  // c'est elle qui s'ouvre dans le simulateur.
+  const lotsSansChoix = immeuble.lots.some((l) => !l.exploitation)
+  useEffect(() => {
+    if (!lotsSansChoix) return
+    setField('immeuble', {
+      ...immeuble,
+      lots: immeuble.lots.map((l, i) => (l.exploitation ? l : { ...l, exploitation: { type: suggestionsParLot[i] } })),
+    })
+  }, [lotsSansChoix]) // eslint-disable-line react-hooks/exhaustive-deps -- uniquement quand des lots attendent un choix
+
+  // Les montants déjà saisis sont gardés : revenir au type précédent les retrouve
+  const choisir = (id: string, type: TypeScenario) => setField('immeuble', {
+    ...immeuble,
+    lots: immeuble.lots.map((l) => (l.id === id ? { ...l, exploitation: { ...(l.exploitation ?? {}), type } } : l)),
+  })
+
+  return (
+    <div className="space-y-4">
+      {alertes.length > 0 && (
+        <div className="space-y-3">
+          {alertes.map((alerte, i) => <AlerteCard key={i} alerte={alerte} />)}
+        </div>
+      )}
+
+      <div className="cs-card p-[22px]">
+        <h2 className="text-[15px] font-bold" style={{ color: 'var(--cs-navy)' }}>Exploitation de chaque lot</h2>
+        <p className="cs-sub mt-0.5 max-w-[64ch]">
+          Suggestion selon la typologie, la surface et la ville. Les loyers se saisissent ensuite dans le simulateur,
+          où chaque lot peut aussi être comparé à une autre exploitation.
+        </p>
+
+        <ul className="mt-4 divide-y divide-[var(--cs-line-soft)]">
+          {immeuble.lots.map((lot, i) => {
+            const choisi = lot.exploitation?.type ?? suggestionsParLot[i]
+            const suggere = suggestionsParLot[i]
+            return (
+              <li key={lot.id} className="flex flex-wrap items-center justify-between gap-3 py-3.5 first:pt-0 last:pb-0">
+                <div className="min-w-0">
+                  <p className="text-[13.5px] font-semibold" style={{ color: 'var(--cs-navy)' }}>{libelleLot(lot, i)}</p>
+                  <p className="cs-hint mt-0.5">
+                    {[lot.typeBien, lot.surfaceM2 ? `${lot.surfaceM2}\u00a0m²` : null].filter(Boolean).join(' · ')}
+                    {' · '}Suggestion : <span className="font-semibold" style={{ color: '#2C5A86' }}>{LIBELLES_COURTS[suggere]}</span>
+                  </p>
+                </div>
+                <div className="cs-seg w-full sm:w-auto sm:min-w-[330px]" role="group" aria-label={`Exploitation de ${libelleLot(lot, i)}`}>
+                  {(['lmnp_meuble', 'colocation', 'courte_duree'] as TypeScenario[]).map((t) => (
+                    <button key={t} type="button" aria-pressed={choisi === t} onClick={() => choisir(lot.id, t)}>
+                      {LIBELLES_COURTS[t]}
+                    </button>
+                  ))}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
     </div>
   )
 }

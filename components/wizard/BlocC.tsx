@@ -249,12 +249,12 @@ export default function BlocC({ state, setField }: Props) {
             </div>
             {fraisNotaireMode === 'pct' && prixAchat > 0 && (
               <p className="text-[11px] text-muted-foreground">
-                soit {fraisNotaireEuros.toLocaleString('fr-FR')} €
+                soit {euros(fraisNotaireEuros)}
               </p>
             )}
             {fraisNotaireMode === 'eur' && (
               <p className="text-[11px] text-muted-foreground">
-                soit {state.frais_notaire_pct.toFixed(2)} %
+                soit {state.frais_notaire_pct.toFixed(2)}{'\u00a0'}%
               </p>
             )}
           </div>
@@ -409,14 +409,14 @@ export default function BlocC({ state, setField }: Props) {
                 <div className="flex justify-between gap-3">
                   <span style={{ color: 'var(--cs-mist)' }}>
                     {detail.planchAchatActif
-                      ? `Sur acquisition : minimum de 8 280 € (8,28 % de ${euros(base)} serait inférieur)`
-                      : `Sur acquisition : 8,28 % de ${euros(base)}${fraisAgence ? ' (prix net vendeur)' : ''}`}
+                      ? `Sur acquisition : minimum de 8\u00a0280\u00a0€ (8,28\u00a0% de ${euros(base)} serait inférieur)`
+                      : `Sur acquisition : 8,28\u00a0% de ${euros(base)}${fraisAgence ? ' (prix net vendeur)' : ''}`}
                   </span>
                   <span className="font-semibold" style={{ color: 'var(--cs-navy)' }}>{euros(detail.achat)}</span>
                 </div>
                 {travaux > 0 && (
                   <div className="flex justify-between gap-3">
-                    <span style={{ color: 'var(--cs-mist)' }}>Sur travaux : 6 % de {euros(travaux)}</span>
+                    <span style={{ color: 'var(--cs-mist)' }}>Sur travaux : 6{'\u00a0'}% de {euros(travaux)}</span>
                     <span className="font-semibold" style={{ color: 'var(--cs-navy)' }}>{euros(detail.travaux)}</span>
                   </div>
                 )}

@@ -98,7 +98,7 @@ export default function ProjectionChart({
       <div className="flex gap-5 flex-wrap mt-2 text-[12px]" style={{ color: MIST }}>
         <span className="inline-flex items-center gap-2">
           <svg width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" stroke={GOLD} strokeWidth="2.5" /></svg>
-          Réaliste (revalorisation 2 % / an)
+          {'Réaliste (revalorisation 2\u00a0% / an)'}
         </span>
         <span className="inline-flex items-center gap-2">
           <svg width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" stroke={NAVY} strokeWidth="2" strokeDasharray="5 4" /></svg>

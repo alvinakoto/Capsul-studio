@@ -4,6 +4,7 @@ import { colors, sizes, common } from '../common/styles'
 import { euros, pct } from '../helpers'
 import type { RapportData } from '../types'
 import { calculerDetailHonorairesCapsul } from '@/lib/calculs/communs'
+import { titreExploitation } from '../common/immeuble'
 
 const SCENARIO_LABELS: Record<string, string> = {
   lmnp_meuble:  'LMNP Meublé',
@@ -88,19 +89,28 @@ export default function PageSynthese({ data }: { data: RapportData }) {
     coutTotalInterets, scenarioResult,
   } = data
 
-  const scenarioLabel = SCENARIO_LABELS[scenarioType] ?? scenarioType
+  // Immeuble détaillé : totaux de l'immeuble, gestion et conciergerie additionnées sur les lots
+  const immeuble = data.immeuble
+  const lotsCalcules = immeuble?.resultats?.lots ?? []
+  const scenarioLabel = immeuble
+    ? `immeuble de ${immeuble.saisie.lots.length} lots, ${titreExploitation(immeuble.saisie)}`
+    : SCENARIO_LABELS[scenarioType] ?? scenarioType
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const fraisGestionPct = project.frais_gestion_pct ?? 7
-  const fraisGestionAnnuel = scenarioType !== 'courte_duree' && scenarioResult
-    ? Math.round(scenarioResult.revenusAnnuelsNets * (fraisGestionPct / 100))
-    : 0
+  const fraisGestionAnnuel = immeuble
+    ? lotsCalcules.reduce((n, l) => n + l.detail.gestion, 0)
+    : scenarioType !== 'courte_duree' && scenarioResult
+      ? Math.round(scenarioResult.revenusAnnuelsNets * (fraisGestionPct / 100))
+      : 0
   const cfeAnnuel = project.cfe ?? 300
   const conciergeriePct = project.concierge_pct ?? 20
-  const conciergerieAnnuel = scenarioType === 'courte_duree' && scenarioResult
-    ? Math.round(scenarioResult.revenusAnnuelsBruts * (conciergeriePct / 100))
-    : 0
+  const conciergerieAnnuel = immeuble
+    ? lotsCalcules.reduce((n, l) => n + l.detail.conciergerie, 0)
+    : scenarioType === 'courte_duree' && scenarioResult
+      ? Math.round(scenarioResult.revenusAnnuelsBruts * (conciergeriePct / 100))
+      : 0
   const nuitsOptimiste = project.nuits_optimiste ?? 22
-  const cashflowOptimiste = scenarioType === 'courte_duree' && scenarioResult
+  const cashflowOptimiste = (immeuble || scenarioType === 'courte_duree') && scenarioResult?.cashflowOptimiste !== undefined
     ? scenarioResult.cashflowOptimiste
     : null
   const negociationEnvisagee = !!project.negociation_envisagee && !!project.prix_affiche_origine
@@ -123,7 +133,8 @@ export default function PageSynthese({ data }: { data: RapportData }) {
       <View style={s.titleBar}>
         <Text style={s.projectName}>{project.name}</Text>
         <Text style={s.projectSub}>
-          {[project.type_bien, project.surface_m2 ? `${project.surface_m2} m²` : null, project.city]
+          {[immeuble ? 'Immeuble' : project.type_bien, immeuble ? `${immeuble.saisie.lots.length} lots` : null,
+            project.surface_m2 ? `${project.surface_m2} m²` : null, project.city]
             .filter(Boolean).join(' · ')}
         </Text>
       </View>
@@ -193,7 +204,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
 
           {scenarioResult ? (
             <>
-              {loyer > 0 && (
+              {!immeuble && loyer > 0 && (
                 <Row
                   label={scenarioType === 'colocation' ? 'Loyer / chambre' : scenarioType === 'courte_duree' ? 'Prix par nuit' : 'Loyer mensuel brut'}
                   value={euros(loyer)}
@@ -201,8 +212,8 @@ export default function PageSynthese({ data }: { data: RapportData }) {
               )}
               <Row label="Revenus annuels bruts" value={euros(scenarioResult.revenusAnnuelsBruts)} />
               {conciergerieAnnuel > 0 &&
-                <Row label={`dont conciergerie (${conciergeriePct} %)`} value={euros(conciergerieAnnuel) + ' /an'} muted />}
-              {scenarioType === 'courte_duree' && (
+                <Row label={immeuble ? 'dont conciergerie' : `dont conciergerie (${conciergeriePct} %)`} value={euros(conciergerieAnnuel) + ' /an'} muted />}
+              {!immeuble && scenarioType === 'courte_duree' && (
                 <Text style={{ fontSize: 6, color: colors.muted, fontStyle: 'italic', marginTop: -2, marginBottom: 4 }}>
                   Le prix par nuit est le tarif brut à la nuitée, hors commission ; celle-ci est bien déduite ci-dessus.
                 </Text>
@@ -210,7 +221,7 @@ export default function PageSynthese({ data }: { data: RapportData }) {
               <Row label="Revenus nets perçus" value={euros(scenarioResult.revenusAnnuelsNets)} />
               <Row label="Charges annuelles" value={euros(scenarioResult.chargesAnnuelles)} />
               {fraisGestionAnnuel > 0 &&
-                <Row label={`dont frais de gestion (${fraisGestionPct} %)`} value={euros(fraisGestionAnnuel) + ' /an'} muted />}
+                <Row label={immeuble ? 'dont frais de gestion des lots' : `dont frais de gestion (${fraisGestionPct} %)`} value={euros(fraisGestionAnnuel) + ' /an'} muted />}
               <Row label={`dont CFE (exonérée 1ère année)${project.cfe_estime ? ', estimation' : ''}`} value={euros(cfeAnnuel) + ' /an'} muted />
               <Row label="Mensualité totale" value={euros(mensualiteTotale)} />
               <Row
@@ -221,13 +232,13 @@ export default function PageSynthese({ data }: { data: RapportData }) {
               />
               {cashflowOptimiste !== null && (
                 <Row
-                  label={`Scénario optimiste (${nuitsOptimiste} nuits/mois)`}
+                  label={immeuble ? 'Courte durée, hypothèse optimiste' : `Scénario optimiste (${nuitsOptimiste} nuits/mois)`}
                   value={euros(cashflowOptimiste) + ' /mois'}
                   muted
                 />
               )}
-              <Row label="Rentabilité brute" value={`${scenarioResult.rentabiliteBrutePct} %`} />
-              <Row label="Rentabilité nette" value={`${scenarioResult.rentabiliteNettePct} %`} />
+              <Row label="Rentabilité brute" value={pct(scenarioResult.rentabiliteBrutePct, 1)} />
+              <Row label="Rentabilité nette" value={pct(scenarioResult.rentabiliteNettePct, 1)} />
             </>
           ) : (
             <Text style={{ fontSize: 7, color: colors.muted, fontStyle: 'italic' }}>

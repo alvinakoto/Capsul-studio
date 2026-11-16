@@ -2,6 +2,7 @@ import React from 'react'
 import { Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common, DPE_BG } from '../common/styles'
 import { FicheData } from '../types'
+import { compositionLots } from '@/lib/data/immeuble'
 import { euros, pageNum } from '../helpers'
 
 const s = StyleSheet.create({
@@ -133,12 +134,23 @@ interface Props {
 export default function PageBien({ data, pageNumber }: Props) {
   const { project, mainPhotoUrl, mainPhotoLegende, localisationPhotoUrl, secondaryPhotos } = data
 
+  // Immeuble détaillé : composition à la place du DPE, détaillé lot par lot page « Les lots »
+  const lots = data.immeuble?.saisie.lots ?? []
   const specs = [
-    { k: 'Type', v: project.type_bien ?? '—' },
-    { k: 'Surface', v: project.surface_m2 ? `${project.surface_m2} m²` : '—' },
-    { k: 'Ville', v: project.city },
-    { k: 'DPE actuel', v: project.dpe_actuel ?? null, isDpe: true },
-    { k: 'DPE visé', v: project.dpe_apres_travaux ?? null, isDpe: true },
+    ...(lots.length > 0
+      ? [
+          { k: 'Type', v: 'Immeuble' },
+          { k: 'Surface', v: [project.surface_m2 ? `${project.surface_m2} m²` : null, `${lots.length} lots`].filter(Boolean).join(' · ') },
+          { k: 'Ville', v: project.city },
+          { k: 'Composition', v: compositionLots(lots) },
+        ]
+      : [
+          { k: 'Type', v: project.type_bien ?? '—' },
+          { k: 'Surface', v: project.surface_m2 ? `${project.surface_m2} m²` : '—' },
+          { k: 'Ville', v: project.city },
+          { k: 'DPE actuel', v: project.dpe_actuel ?? null, isDpe: true },
+          { k: 'DPE visé', v: project.dpe_apres_travaux ?? null, isDpe: true },
+        ]),
     { k: 'Travaux prévus', v: project.travaux ? euros(project.travaux) : '—' },
     { k: 'Ameublement', v: project.mobilier ? euros(project.mobilier) : '—' },
     { k: 'Charges copro', v: project.charges_copro_annuelles ? `${euros(project.charges_copro_annuelles)}/an` : '—' },

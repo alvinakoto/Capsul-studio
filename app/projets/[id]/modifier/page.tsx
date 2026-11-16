@@ -8,6 +8,7 @@ import WizardShell from '@/components/wizard/WizardShell'
 import type { WizardState } from '@/components/wizard/WizardShell'
 import { villeInfosToForm, type VilleInfos } from '@/lib/data/villes'
 import { trouverVille } from '@/lib/supabase/villes'
+import { lireImmeuble } from '@/lib/data/immeuble'
 
 function projectToWizardState(p: any, infosCatalogue: VilleInfos | null): Partial<WizardState> {
   return {
@@ -23,6 +24,7 @@ function projectToWizardState(p: any, infosCatalogue: VilleInfos | null): Partia
     dpe_actuel:         p.dpe_actuel ?? '',
     dpe_apres_travaux:  p.dpe_apres_travaux ?? '',
     type_bien:          p.type_bien ?? '',
+    immeuble:           lireImmeuble(p.immeuble),
     description_bien:   p.description_bien ?? '',
 
     prix_achat:          p.prix_achat ?? '',

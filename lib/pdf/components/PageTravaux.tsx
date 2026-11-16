@@ -228,7 +228,23 @@ export default function PageTravaux({ data, pageNumber }: Props) {
     </View>
   )
 
-  if (hasDpe) {
+  // Immeuble détaillé : lots classés F ou G (passoires) avant et après travaux
+  const lots = data.immeuble?.saisie.lots ?? []
+  const lotsAvecDpe = lots.filter((l) => l.dpeActuel || l.dpeVise)
+  if (lotsAvecDpe.length > 0) {
+    const passoire = (c: string | null) => c === 'F' || c === 'G'
+    const avant = lots.filter((l) => passoire(l.dpeActuel)).length
+    const apres = lots.filter((l) => passoire(l.dpeVise)).length
+    kpis.push(
+      <View key="dpe-lots">
+        <Text style={s.heroKpiLabel}>Lots classés F ou G</Text>
+        <Text style={s.heroKpiValue}>
+          {`${avant} → ${apres}`}
+          <Text style={s.heroKpiUnit}> {apres === 0 && avant > 0 ? 'après travaux' : avant + apres > 1 ? 'lots' : 'lot'}</Text>
+        </Text>
+      </View>
+    )
+  } else if (hasDpe) {
     kpis.push(
       <View key="dpe">
         <Text style={s.heroKpiLabel}>{dpeActuel && dpeVise ? 'DPE actuel → visé' : dpeVise ? 'DPE visé' : 'DPE actuel'}</Text>

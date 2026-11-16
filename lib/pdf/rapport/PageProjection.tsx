@@ -1,7 +1,7 @@
 import React from 'react'
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
-import { euros } from '../helpers'
+import { euros, pageNum } from '../helpers'
 import type { RapportData } from '../types'
 
 const ROW_H = 19
@@ -65,7 +65,7 @@ const s = StyleSheet.create({
   },
 })
 
-export default function PageProjection({ data }: { data: RapportData }) {
+export default function PageProjection({ data, pageNumber }: { data: RapportData; pageNumber: number }) {
   const { project, projectionConservateur, projectionRealiste, tableauAmortissement, isComptant } = data
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const hasData = projectionRealiste.length > 0
@@ -83,7 +83,7 @@ export default function PageProjection({ data }: { data: RapportData }) {
         <Text style={common.headerLogo}>CAPSUL</Text>
         <View style={common.headerRight}>
           <Text style={common.eyebrow}>Projection patrimoniale sur 20 ans</Text>
-          <Text style={common.pageNum}>03</Text>
+          <Text style={common.pageNum}>{pageNum(pageNumber)}</Text>
         </View>
       </View>
 

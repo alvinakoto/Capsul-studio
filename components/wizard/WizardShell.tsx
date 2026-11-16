@@ -15,6 +15,7 @@ import RecapSticky from './RecapSticky'
 import { createProject, updateProject } from '@/lib/supabase/projects'
 import { uploadPhoto, getProjectPhotos, deletePhoto, type ExistingPhoto } from '@/lib/supabase/storage'
 import { villeInfosToForm, type Ville, type VilleInfosForm } from '@/lib/data/villes'
+import type { ImmeubleSaisie } from '@/lib/data/immeuble'
 import { listerVilles } from '@/lib/supabase/villes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,6 +31,7 @@ export interface WizardState {
   dpe_actuel: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
   dpe_apres_travaux: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | ''
   type_bien: 'studio' | 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6+' | 'maison' | 'immeuble' | ''
+  immeuble: ImmeubleSaisie | null      // lots d'un immeuble ; null = bien simple (ou immeuble saisi avant les lots)
   description_bien: string
 
   // Bloc C
@@ -89,6 +91,7 @@ const initialState: WizardState = {
   dpe_actuel: '',
   dpe_apres_travaux: '',
   type_bien: '',
+  immeuble: null,
   description_bien: '',
 
   prix_achat: '',
@@ -415,6 +418,7 @@ export default function WizardShell({
           <TabsContent value="F">
             <BlocF
               state={state}
+              setField={setField}
               villeTouristique={villeTouristique}
               onScenarioChange={setWizardScenario}
             />

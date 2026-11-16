@@ -2,81 +2,52 @@ import {
   DonneesProjet,
   DonneesFinancement,
   DonneesCharges,
-  ParamsLMNP,
-  ParamsColocation,
-  ParamsCourteDuree,
+  ParamsScenario,
   ResultatsComplets,
 } from './types'
-import { calculerPrixProjet, calculerFinancement, calculerProjection } from './communs'
-import { calculerLMNP } from './lmnp'
-import { calculerColocation } from './colocation'
-import { calculerCourteDuree } from './courteDuree'
+import { calculerImmeuble } from './immeuble'
 
-export type TypeScenario = 'lmnp_meuble' | 'colocation' | 'courte_duree'
+export type { TypeScenario, ParamsScenario } from './types'
+export { calculerImmeuble, calculerExploitationLot, mensualiserSansEcart } from './immeuble'
 
-export type ParamsScenario =
-  | { type: 'lmnp_meuble'; params: ParamsLMNP }
-  | { type: 'colocation'; params: ParamsColocation }
-  | { type: 'courte_duree'; params: ParamsCourteDuree }
-
+/**
+ * Bien simple : un immeuble d'un seul lot. Les fluides du projet restent comptés
+ * comme avant, en colocation (charges du projet) et en courte durée (paramètres
+ * du scénario), jamais en meublé classique.
+ */
 export function calculerScenario(
   projet: DonneesProjet,
   financement: DonneesFinancement,
   charges: DonneesCharges,
   scenarioInput: ParamsScenario,
   revalorisationRealistePct: number = 2.0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature historique, pas encore utilisée
   revalorisationLoyerPct: number = 1.5
 ): ResultatsComplets {
+  const fluides = scenarioInput.type === 'courte_duree'
+    ? {
+        electriciteEau: scenarioInput.params.electriciteEau ?? 0,
+        internet: scenarioInput.params.internet ?? 0,
+        chauffage: scenarioInput.params.chauffage ?? 0,
+      }
+    : { electriciteEau: charges.electriciteEau, internet: charges.internet, chauffage: charges.chauffage }
 
-  const { fraisNotaireEuros, honorairesCapsul, prixProjetTotal } =
-    calculerPrixProjet(projet)
-
-  const {
-    capitalEmprunte,
-    mensualiteCredit,
-    assuranceMensuelle,
-    mensualiteTotale,
-    coutTotalCredit,
-    isComptant,
-  } = calculerFinancement(prixProjetTotal, financement)
-
-  let scenario
-
-  if (scenarioInput.type === 'lmnp_meuble') {
-    scenario = calculerLMNP(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
-  } else if (scenarioInput.type === 'colocation') {
-    scenario = calculerColocation(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
-  } else {
-    scenario = calculerCourteDuree(charges, scenarioInput.params, prixProjetTotal, mensualiteTotale)
-  }
-
-  // Base patrimoniale : prix d'achat + travaux. Capsul ne s'engage pas sur une
-  // valeur de revente estimée (décision direction, septembre 2026).
-  const valeurBienApresTravaux = projet.prixAchat + projet.travaux
-
-  const projectionConservateur = calculerProjection(
-    valeurBienApresTravaux, financement.apport, capitalEmprunte,
-    financement.tauxInteretPct, financement.dureeAnnees,
-    scenario.cashflowMensuel, 0
+  const r = calculerImmeuble(
+    projet, financement, charges,
+    [{ scenario: scenarioInput, chargesPropres: fluides }],
+    0, revalorisationRealistePct,
   )
-
-  const projectionRealiste = calculerProjection(
-    valeurBienApresTravaux, financement.apport, capitalEmprunte,
-    financement.tauxInteretPct, financement.dureeAnnees,
-    scenario.cashflowMensuel, revalorisationRealistePct
-  )
-
   return {
-    prixProjetTotal,
-    honorairesCapsul,
-    fraisNotaireEuros,
-    capitalEmprunte,
-    mensualiteCredit,
-    assuranceMensuelle,
-    mensualiteTotale,
-    isComptant,
-    scenario,
-    projectionConservateur,
-    projectionRealiste,
+    prixProjetTotal: r.prixProjetTotal,
+    honorairesCapsul: r.honorairesCapsul,
+    fraisNotaireEuros: r.fraisNotaireEuros,
+    capitalEmprunte: r.capitalEmprunte,
+    mensualiteCredit: r.mensualiteCredit,
+    assuranceMensuelle: r.assuranceMensuelle,
+    mensualiteTotale: r.mensualiteTotale,
+    isComptant: r.isComptant,
+    scenario: r.scenario,
+    projectionConservateur: r.projectionConservateur,
+    projectionRealiste: r.projectionRealiste,
   }
 }

@@ -19,15 +19,11 @@ import FormulaireVille from '@/components/villes/FormulaireVille'
 import { hasVilleInfos, villeInfosToForm, type Ville, type VilleInfosForm } from '@/lib/data/villes'
 import { trouverVille } from '@/lib/supabase/villes'
 import { nomProjetAuto } from '@/lib/supabase/projects'
+import DpeSelect from './DpeSelect'
+import LotsImmeuble from './LotsImmeuble'
+import { nouvelImmeuble } from '@/lib/data/immeuble'
 
 const TYPES_BIEN = ['studio', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6+', 'maison', 'immeuble']
-const DPE_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-
-const DPE_COLORS: Record<string, string> = {
-  A: 'text-green-600', B: 'text-green-500', C: 'text-lime-500',
-  D: 'text-yellow-500', E: 'text-orange-400', F: 'text-orange-600', G: 'text-red-600',
-}
-
 // Calé pour garantir que la description + les 6 photos supplémentaires
 // tiennent toujours sur une seule page du PDF (page « Le bien »). Testé
 // empiriquement : au-delà de ~550 caractères avec 1-2 sauts de paragraphe
@@ -41,41 +37,6 @@ interface Props {
   villes: Ville[] | null               // catalogue, null pendant le chargement
   erreurVilles: boolean
   onVilleMaj: (ville: Ville) => void   // ville ajoutée ou relue : mise à jour de la liste du wizard
-}
-
-function DpeSelect({
-  label, value, onChange, hint,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  hint?: string
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      <Select
-        value={value || 'none'}
-        onValueChange={(v) => onChange(v === 'none' ? '' : v)}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Sélectionner" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">
-            <span className="text-muted-foreground">Non communiqué</span>
-          </SelectItem>
-          {DPE_OPTIONS.map((d) => (
-            <SelectItem key={d} value={d}>
-              <span className={`font-bold ${DPE_COLORS[d]}`}>{d}</span>
-              {d === 'F' || d === 'G' ? ' (passoire thermique)' : ''}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
-    </div>
-  )
 }
 
 // ─── Champs « Infos ville » ───────────────────────────────────────────────────
@@ -246,6 +207,13 @@ export default function BlocA({ state, setField, villes, erreurVilles, onVilleMa
     setField('ville_infos', villeInfosToForm(ville.infos))
   }
 
+  // Immeuble détaillé lot par lot : surface et DPE se saisissent pour chaque lot
+  const avecLots = state.type_bien === 'immeuble' && !!state.immeuble
+  const handleTypeChange = (v: string) => {
+    setField('type_bien', v as WizardState['type_bien'])
+    if (v === 'immeuble' && !state.immeuble) setField('immeuble', nouvelImmeuble())
+  }
+
   const handleVilleChange = (id: string) => {
     const ville = villes?.find((v) => v.id === id)
     if (ville) selectionnerVille(ville)
@@ -364,27 +332,26 @@ export default function BlocA({ state, setField, villes, erreurVilles, onVilleMa
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-          <div className="space-y-1.5">
-            <Label htmlFor="surface">Surface (m²)</Label>
-            <Input
-              id="surface"
-              type="number"
-              min={0}
-              placeholder="45"
-              value={state.surface_m2}
-              onChange={(e) =>
-                setField('surface_m2', e.target.value === '' ? '' : Number(e.target.value))
-              }
-            />
-          </div>
+          {!avecLots && (
+            <div className="space-y-1.5">
+              <Label htmlFor="surface">Surface (m²)</Label>
+              <Input
+                id="surface"
+                type="number"
+                min={0}
+                placeholder="45"
+                value={state.surface_m2}
+                onChange={(e) =>
+                  setField('surface_m2', e.target.value === '' ? '' : Number(e.target.value))
+                }
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
-            <Label>Type de bien</Label>
-            <Select
-              value={state.type_bien}
-              onValueChange={(v) => setField('type_bien', v as WizardState['type_bien'])}
-            >
-              <SelectTrigger>
+            <Label htmlFor="type_bien">Type de bien</Label>
+            <Select value={state.type_bien} onValueChange={handleTypeChange}>
+              <SelectTrigger id="type_bien">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
@@ -395,22 +362,45 @@ export default function BlocA({ state, setField, villes, erreurVilles, onVilleMa
             </Select>
           </div>
 
-          <DpeSelect
-            label="DPE actuel"
-            value={state.dpe_actuel}
-            onChange={(v) => setField('dpe_actuel', v as WizardState['dpe_actuel'])}
-            hint="Classe énergétique du diagnostic en cours"
-          />
+          {!avecLots && (
+            <>
+              <DpeSelect
+                id="dpe_actuel"
+                label="DPE actuel"
+                value={state.dpe_actuel}
+                onChange={(v) => setField('dpe_actuel', v as WizardState['dpe_actuel'])}
+                hint="Classe énergétique du diagnostic en cours"
+              />
 
-          <DpeSelect
-            label="DPE visé (après travaux)"
-            value={state.dpe_apres_travaux}
-            onChange={(v) => setField('dpe_apres_travaux', v as WizardState['dpe_apres_travaux'])}
-            hint="Classe ciblée après rénovation"
-          />
+              <DpeSelect
+                id="dpe_vise"
+                label="DPE visé (après travaux)"
+                value={state.dpe_apres_travaux}
+                onChange={(v) => setField('dpe_apres_travaux', v as WizardState['dpe_apres_travaux'])}
+                hint="Classe ciblée après rénovation"
+              />
+            </>
+          )}
+
+          {/* Immeuble saisi avant le détail par lot : simulé comme un seul bien tant que le chargé ne détaille pas */}
+          {state.type_bien === 'immeuble' && !state.immeuble && (
+            <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--cs-ivory)' }}>
+              <p className="text-[12.5px] max-w-[52ch]" style={{ color: 'var(--cs-ink)' }}>
+                Cet immeuble est simulé comme un seul bien. Détaillez ses lots pour donner à chaque appartement
+                sa typologie, son DPE et sa propre exploitation.
+              </p>
+              <button type="button" className="cs-btn cs-btn-primary h-9 px-3 text-[12.5px]" onClick={() => setField('immeuble', nouvelImmeuble())}>
+                Détailler les lots
+              </button>
+            </div>
+          )}
 
         </CardContent>
       </Card>
+
+      {avecLots && state.immeuble && (
+        <LotsImmeuble immeuble={state.immeuble} onChange={(next) => setField('immeuble', next)} />
+      )}
 
       {/* Description */}
       <Card>

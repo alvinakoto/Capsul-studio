@@ -1,89 +1,44 @@
 // ============================================================
-// CAPSUL STUDIO — Scénario Courte durée
+// CAPSUL STUDIO — Exploitation en courte durée (un lot)
 // ============================================================
-// Flux exprimés avant impôt (cf. note dans types.ts).
+// Flux exprimés avant impôt (cf. note dans types.ts). Charges de l'immeuble et
+// crédit : cf. calculerImmeuble (immeuble.ts).
 
-import { DonneesCharges, ParamsCourteDuree, ResultatsCourteDuree } from './types'
+import { ChargesPropresLot, ParamsCourteDuree, ResultatsLot } from './types'
 
-export function calculerCourteDuree(
-  charges: DonneesCharges,
-  params: ParamsCourteDuree,
-  prixProjetTotal: number,
-  mensualiteTotale: number
-): ResultatsCourteDuree {
+export function exploitationCourteDuree(params: ParamsCourteDuree, chargesPropres: ChargesPropresLot): ResultatsLot {
 
   // ── Revenus bruts (2 hypothèses) ─────────────────────────────
-  const revenusConservateur = Math.round(
-    params.prixNuitee * params.nuitsConservateur * 12
-  )
-  const revenusOptimiste = Math.round(
-    params.prixNuitee * params.nuitsOptimiste * 12
-  )
-  const revenusAnnuelsBruts = revenusConservateur
-
-  // ── Frais conciergerie ────────────────────────────────────────
-  const conciergierieConservateur = Math.round(
-    revenusConservateur * (params.conciergeriePct / 100)
-  )
-  const conciergierieOptimiste = Math.round(
-    revenusOptimiste * (params.conciergeriePct / 100)
-  )
+  // L'hypothèse conservatrice est la référence ; l'optimiste est donnée à titre indicatif.
+  const revenusConservateur = Math.round(params.prixNuitee * params.nuitsConservateur * 12)
+  const revenusOptimiste = Math.round(params.prixNuitee * params.nuitsOptimiste * 12)
 
   // ── Revenus nets après conciergerie ──────────────────────────
-  const revenusNetsConservateur = revenusConservateur - conciergierieConservateur
-  const revenusNetsOptimiste = revenusOptimiste - conciergierieOptimiste
-  const revenusAnnuelsNets = revenusNetsConservateur
+  const conciergerieConservateur = Math.round(revenusConservateur * (params.conciergeriePct / 100))
+  const conciergerieOptimiste = Math.round(revenusOptimiste * (params.conciergeriePct / 100))
+  const revenusNetsConservateur = revenusConservateur - conciergerieConservateur
+  const revenusNetsOptimiste = revenusOptimiste - conciergerieOptimiste
 
-  // ── Charges annuelles ─────────────────────────────────────────
-  // Charges générales (propriétaire)
-  const chargesGenerales =
-    charges.taxeFonciere +
-    charges.chargesCoproAnnuelles +
-    charges.assurancePno +
-    charges.fraisComptabilite +
-    charges.autresCharges
-
-  // Charges spécifiques CD (toujours à charge bailleur)
-  const chargesSpecifiquesCD =
-    params.electriciteEau +
-    params.internet +
-    params.chauffage
-
-  const chargesAnnuelles = chargesGenerales + chargesSpecifiquesCD + charges.cfe
-
-  // ── Rentabilité ───────────────────────────────────────────────
-  const rentabiliteBrutePct = Math.round(
-    (revenusAnnuelsBruts / prixProjetTotal) * 1000
-  ) / 10
-
-  const rentabiliteNettePct = Math.round(
-    ((revenusAnnuelsNets - chargesAnnuelles) / prixProjetTotal) * 1000
-  ) / 10
-
-  // ── Cash-flow ─────────────────────────────────────────────────
-  const chargesMensuelles = Math.round(chargesAnnuelles / 12)
-
-  const revenusMensuelsNetsConservateur = Math.round(revenusNetsConservateur / 12)
-  const cashflowConservateur =
-    revenusMensuelsNetsConservateur - chargesMensuelles - mensualiteTotale
-
-  const revenusMensuelsNetsOptimiste = Math.round(revenusNetsOptimiste / 12)
-  const cashflowOptimiste =
-    revenusMensuelsNetsOptimiste - chargesMensuelles - mensualiteTotale
-
-  // Le cash-flow de référence est l'hypothèse conservatrice
-  const cashflowMensuel = cashflowConservateur
+  // ── Charges propres au lot ───────────────────────────────────
+  // Fluides toujours à charge bailleur en courte durée
+  const fluides = chargesPropres.electriciteEau + chargesPropres.internet + chargesPropres.chauffage
 
   return {
-    revenusAnnuelsBruts,
-    revenusAnnuelsNets,
-    chargesAnnuelles,
-    rentabiliteBrutePct,
-    rentabiliteNettePct,
-    cashflowMensuel,
-    revenusConservateur,
-    revenusOptimiste,
-    cashflowConservateur,
-    cashflowOptimiste,
+    type: 'courte_duree',
+    revenusAnnuelsBruts: revenusConservateur,
+    revenusAnnuelsNets: revenusNetsConservateur,
+    chargesAnnuelles: fluides,
+    resultatAnnuel: revenusNetsConservateur - fluides,
+    detail: {
+      vacance: 0,
+      conciergerie: conciergerieConservateur,
+      gestion: 0,
+      chargesPropres: fluides,
+    },
+    optimiste: {
+      revenusAnnuelsBruts: revenusOptimiste,
+      revenusAnnuelsNets: revenusNetsOptimiste,
+      resultatAnnuel: revenusNetsOptimiste - fluides,
+    },
   }
 }

@@ -7,6 +7,7 @@ import { updateProjectStatus, deleteProject, duplicateProject, updateProjectName
 import { syntheseProjet } from '@/lib/calculs/depuisProjet'
 import { euros } from '@/lib/utils/format'
 import { STATUS_ORDER, statusConfig, type StatutProjet } from './status'
+import { libelleTypeProjet } from '@/lib/data/immeuble'
 
 export default function ProjetHeader({ project }: { project: any }) {
   const router = useRouter()
@@ -98,14 +99,14 @@ export default function ProjetHeader({ project }: { project: any }) {
 
   const { prixProjetTotal, isComptant } = syntheseProjet(project)
 
-  const meta = [project.type_bien, project.surface_m2 ? `${project.surface_m2} m²` : null, project.city].filter(Boolean)
+  const meta = [libelleTypeProjet(project), project.surface_m2 ? `${project.surface_m2}\u00a0m²` : null, project.city].filter(Boolean)
 
   const sousTitreApport = project.apport === null || project.apport === undefined
     ? 'Non renseigné'
     : isComptant
       ? 'Achat comptant'
       : project.taux_interet_pct
-        ? `Crédit ${project.duree_annees || 20} ans à ${Number(project.taux_interet_pct).toLocaleString('fr-FR')} %`
+        ? `Crédit ${project.duree_annees || 20} ans à ${Number(project.taux_interet_pct).toLocaleString('fr-FR')}\u00a0%`
         : `Crédit sur ${project.duree_annees || 20} ans`
 
   return (

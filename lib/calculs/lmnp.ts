@@ -1,16 +1,12 @@
 // ============================================================
-// CAPSUL STUDIO — Scénario LMNP meublé
+// CAPSUL STUDIO — Exploitation LMNP meublé (un lot)
 // ============================================================
-// Flux exprimés avant impôt (cf. note dans types.ts).
+// Flux exprimés avant impôt (cf. note dans types.ts). Charges de l'immeuble et
+// crédit : cf. calculerImmeuble (immeuble.ts).
 
-import { DonneesCharges, ParamsLMNP, ResultatsScenario } from './types'
+import { ParamsLMNP, ResultatsLot } from './types'
 
-export function calculerLMNP(
-  charges: DonneesCharges,
-  params: ParamsLMNP,
-  prixProjetTotal: number,
-  mensualiteTotale: number
-): ResultatsScenario {
+export function exploitationLMNP(params: ParamsLMNP): ResultatsLot {
 
   // ── Revenus ─────────────────────────────────────────────────
   const revenusAnnuelsBruts = params.loyerMensuel * 12
@@ -18,43 +14,24 @@ export function calculerLMNP(
     revenusAnnuelsBruts * (1 - params.vacancePct / 100)
   )
 
-  // ── Charges annuelles ────────────────────────────────────────
-  // En LMNP meublé : fluides généralement à charge locataire
-  // On inclut uniquement les charges propriétaire
-  const fraisGestionAnnuels = Math.round(
+  // ── Charges propres au lot ───────────────────────────────────
+  // En LMNP meublé : fluides généralement à charge locataire, seule la gestion
+  // locative est à la charge du propriétaire au niveau du lot.
+  const gestion = Math.round(
     revenusAnnuelsNets * ((params.fraisGestionPct ?? 0) / 100)
   )
-  const chargesAnnuelles =
-    charges.taxeFonciere +
-    charges.chargesCoproAnnuelles +
-    charges.assurancePno +
-    charges.fraisComptabilite +
-    charges.autresCharges +
-    charges.cfe +
-    fraisGestionAnnuels
-
-  // ── Rentabilité ──────────────────────────────────────────────
-  const rentabiliteBrutePct = Math.round(
-    (revenusAnnuelsBruts / prixProjetTotal) * 1000
-  ) / 10
-
-  const rentabiliteNettePct = Math.round(
-    ((revenusAnnuelsNets - chargesAnnuelles) / prixProjetTotal) * 1000
-  ) / 10
-
-  // ── Cash-flow ────────────────────────────────────────────────
-  const chargesMensuelles = Math.round(chargesAnnuelles / 12)
-  const revenusMensuelsNets = Math.round(revenusAnnuelsNets / 12)
-
-  const cashflowMensuel =
-    revenusMensuelsNets - chargesMensuelles - mensualiteTotale
 
   return {
+    type: 'lmnp_meuble',
     revenusAnnuelsBruts,
     revenusAnnuelsNets,
-    chargesAnnuelles,
-    rentabiliteBrutePct,
-    rentabiliteNettePct,
-    cashflowMensuel,
+    chargesAnnuelles: gestion,
+    resultatAnnuel: revenusAnnuelsNets - gestion,
+    detail: {
+      vacance: revenusAnnuelsBruts - revenusAnnuelsNets,
+      conciergerie: 0,
+      gestion,
+      chargesPropres: 0,
+    },
   }
 }

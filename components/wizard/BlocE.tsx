@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { euros } from '@/lib/utils/format'
 
 interface Props {
   state: WizardState
@@ -51,6 +52,8 @@ function ChargeInput({
 }
 
 export default function BlocE({ state, setField }: Props) {
+  // Immeuble détaillé : ces charges sont globales (ou par lot dans le simulateur), quelle que soit l'exploitation
+  const avecLots = state.type_bien === 'immeuble' && !!state.immeuble
   const totalCharges =
     (Number(state.taxe_fonciere) || 0) +
     (Number(state.charges_copro_annuelles) || 0) +
@@ -117,7 +120,7 @@ export default function BlocE({ state, setField }: Props) {
             label="CFE"
             value={state.cfe}
             onChange={(v) => setField('cfe', Number(v) || 0)}
-            hint="Cotisation Foncière des Entreprises, environ 300 €/an, exonérée la première année"
+            hint={"Cotisation Foncière des Entreprises, environ 300\u00a0€/an, exonérée la première année"}
             estimate={{
               checked: state.cfe_estime,
               onChange: (v) => setField('cfe_estime', v),
@@ -140,10 +143,12 @@ export default function BlocE({ state, setField }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>
-            Charges locataire
+            {avecLots ? 'Électricité, internet, chauffage' : 'Charges locataire'}
           </CardTitle>
           <CardDescription>
-            Concerne uniquement la colocation à la chambre et la courte durée (charges incluses au locataire)
+            {avecLots
+              ? 'Montant global pour tout l’immeuble, compté dans les charges communes. Le simulateur permet aussi de les saisir lot par lot.'
+              : 'Concerne uniquement la colocation à la chambre et la courte durée (charges incluses au locataire)'}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -173,9 +178,9 @@ export default function BlocE({ state, setField }: Props) {
         <div className="flex justify-between items-center px-1 text-sm">
           <span className="text-muted-foreground">Total charges annuelles</span>
           <span className="font-semibold tabular-nums">
-            {totalCharges.toLocaleString('fr-FR')} €/an
+            {euros(totalCharges)}/an
             <span className="text-muted-foreground font-normal ml-1.5">
-              ({Math.round(totalCharges / 12).toLocaleString('fr-FR')} €/mois)
+              ({euros(totalCharges / 12)}/mois)
             </span>
           </span>
         </div>

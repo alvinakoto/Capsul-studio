@@ -80,3 +80,44 @@ export async function deletePhoto(photoId: string, storagePath: string): Promise
   const { error } = await supabase.from('project_images').delete().eq('id', photoId)
   if (error) throw error
 }
+/**
+ * Copie les photos d'un projet vers un autre (duplication) : fichiers recopiés
+ * côté stockage sous `<cibleId>/`, puis lignes project_images recréées avec le
+ * même type, la même légende et le même ordre. Chaque photo est indépendante :
+ * une copie ratée n'empêche pas les autres. Renvoie le nombre de photos non copiées.
+ */
+export async function copierPhotosProjet(sourceId: string, cibleId: string): Promise<number> {
+  const supabase = getClient()
+  const photos = await getProjectPhotos(sourceId)
+  const resultats = await Promise.allSettled(photos.map(async (photo) => {
+    const nomFichier = photo.storagePath.split('/').pop() ?? `${photo.type}-${photo.ordre}.jpg`
+    const cheminCible = `${cibleId}/${nomFichier}`
+    const { error: copyError } = await supabase.storage
+      .from('project-images')
+      .copy(photo.storagePath, cheminCible)
+    if (copyError) throw copyError
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('project-images')
+      .getPublicUrl(cheminCible)
+
+    const { error: dbError } = await supabase
+      .from('project_images')
+      .insert({
+        project_id: cibleId,
+        storage_path: cheminCible,
+        public_url: publicUrl,
+        ordre: photo.ordre,
+        type: photo.type,
+        legende: photo.legende,
+      })
+    if (dbError) {
+      // Pas de fichier sans ligne : il ne serait jamais affiché ni supprimé avec le projet
+      await supabase.storage.from('project-images').remove([cheminCible])
+      throw dbError
+    }
+  }))
+  const echecs = resultats.filter((r) => r.status === 'rejected')
+  echecs.forEach((r) => console.error('Photo non copiée à la duplication :', (r as PromiseRejectedResult).reason))
+  return echecs.length
+}

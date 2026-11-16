@@ -1,5 +1,15 @@
 import type { VilleInfos } from '@/lib/data/villes'
 import type { PosteTravaux } from '@/lib/data/travaux'
+import type { ImmeubleSaisie } from '@/lib/data/immeuble'
+import type { ResultatsImmeuble } from '@/lib/calculs/types'
+import type { FluxMensuelsImmeuble } from '@/lib/calculs/immeuble'
+
+/** Immeuble détaillé lot par lot (null pour un bien simple). */
+export interface ImmeublePdf {
+  saisie: ImmeubleSaisie
+  resultats: ResultatsImmeuble | null     // null tant qu'un lot reste à chiffrer
+  flux: FluxMensuelsImmeuble | null
+}
 
 export interface PhotoInfo {
   url: string
@@ -31,6 +41,7 @@ export interface RapportData {
   tableauAmortissement: LigneAmortissement[]
   projectionConservateur: any[]
   projectionRealiste: any[]
+  immeuble: ImmeublePdf | null
 }
 
 export interface FicheData {
@@ -122,4 +133,7 @@ export interface FicheData {
 
   // Scénario de comparaison optionnel (ScenarioPanel) — encart sur la page Scénario
   comparaison: { type: string; cashflowMensuel: number; rentabiliteBrutePct: number } | null
+
+  // Immeuble détaillé lot par lot : page « Les lots » et page Scénario consolidée
+  immeuble: ImmeublePdf | null
 }

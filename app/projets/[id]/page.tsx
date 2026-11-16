@@ -6,6 +6,8 @@ import { createBrowserClient } from '@supabase/ssr'
 import { getProjectById } from '@/lib/supabase/projects'
 import ProjetHeader from '@/components/projects/ProjetHeader'
 import ScenarioPanel from '@/components/projects/ScenarioPanel'
+import ImmeublePanel from '@/components/projects/ImmeublePanel'
+import { lireImmeuble } from '@/lib/data/immeuble'
 
 export default function ProjetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -54,10 +56,15 @@ export default function ProjetDetailPage() {
 
   if (!project) return null
 
+  // Immeuble détaillé lot par lot : simulateur dédié
+  const immeuble = lireImmeuble(project.immeuble)
+
   return (
     <div className="max-w-[1180px] mx-auto px-4 md:px-10 py-8 space-y-10">
       <ProjetHeader project={project} />
-      <ScenarioPanel project={project} />
+      {immeuble
+        ? <ImmeublePanel project={project} immeubleInitial={immeuble} />
+        : <ScenarioPanel project={project} />}
     </div>
   )
 }

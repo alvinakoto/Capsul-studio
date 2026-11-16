@@ -11,6 +11,8 @@ import { calculerScenario } from '@/lib/calculs/index'
 import { calculerMensualite } from '@/lib/calculs/communs'
 import { hasVilleInfos } from '@/lib/data/villes'
 import { chargerVille } from '@/lib/supabase/villes'
+import { immeublePdf } from '@/lib/pdf/common/immeuble'
+import { syntheseProjet } from '@/lib/calculs/depuisProjet'
 import { getPostesTravaux } from '@/lib/data/travaux'
 import type { FicheData } from '@/lib/pdf/types'
 
@@ -81,7 +83,25 @@ export async function GET(
       'lmnp_meuble' | 'colocation' | 'courte_duree'
     const vacancePct = project.vacance_pct ?? (scenarioTypeForDefaults === 'colocation' ? 8 : 5)
 
-    if (hasData) {
+    // Immeuble détaillé lot par lot : calcul de l'immeuble (lots, charges communes, crédit)
+    const immeuble = immeublePdf(project)
+
+    if (immeuble) {
+      if (immeuble.resultats) {
+        scenarioResult         = immeuble.resultats.scenario
+        projectionConservateur = immeuble.resultats.projectionConservateur
+        projectionRealiste     = immeuble.resultats.projectionRealiste
+        prixProjetTotal        = immeuble.resultats.prixProjetTotal
+        capitalEmprunte        = immeuble.resultats.capitalEmprunte
+        mensualiteTotale       = immeuble.resultats.mensualiteTotale
+      } else {
+        // Lots encore à chiffrer : prix et financement de l'immeuble seulement
+        const synthese = syntheseProjet(project)
+        prixProjetTotal  = synthese.prixProjetTotal
+        capitalEmprunte  = synthese.capitalEmprunte
+        mensualiteTotale = synthese.mensualiteTotale
+      }
+    } else if (hasData) {
       try {
         const projetData = {
           prixAchat: project.prix_achat,
@@ -226,6 +246,7 @@ export async function GET(
       villeProjetsAVenir: ville?.projetsAVenir ?? [],
       travauxPostes,
       comparaison,
+      immeuble,
     }
 
     // ─── Génération du PDF ───────────────────────────────────────────────────

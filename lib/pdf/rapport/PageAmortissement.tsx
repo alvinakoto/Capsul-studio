@@ -1,7 +1,7 @@
 import React from 'react'
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { colors, sizes, common } from '../common/styles'
-import { euros, pct } from '../helpers'
+import { euros, pct, pageNum } from '../helpers'
 import type { RapportData } from '../types'
 
 const COL = [30, 108, 108, 108, 108]  // largeurs colonnes en pt
@@ -74,7 +74,7 @@ const s = StyleSheet.create({
   noData: { fontSize: 9, color: colors.muted, fontStyle: 'italic', textAlign: 'center', maxWidth: 320 },
 })
 
-export default function PageAmortissement({ data }: { data: RapportData }) {
+export default function PageAmortissement({ data, pageNumber }: { data: RapportData; pageNumber: number }) {
   const { project, capitalEmprunte, mensualiteTotale, coutTotalInterets, tableauAmortissement } = data
   const footerLabel = [project.adresse, project.city].filter(Boolean).join(' · ')
   const totalCapital = tableauAmortissement.reduce((s, l) => s + l.capitalRembourse, 0)
@@ -88,7 +88,7 @@ export default function PageAmortissement({ data }: { data: RapportData }) {
         <Text style={common.headerLogo}>CAPSUL</Text>
         <View style={common.headerRight}>
           <Text style={common.eyebrow}>Amortissement du crédit</Text>
-          <Text style={common.pageNum}>02</Text>
+          <Text style={common.pageNum}>{pageNum(pageNumber)}</Text>
         </View>
       </View>
 

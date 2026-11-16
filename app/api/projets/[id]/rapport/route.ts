@@ -9,6 +9,8 @@ import RapportAnalytique from '@/lib/pdf/rapport/RapportAnalytique'
 import { calculerScenario } from '@/lib/calculs/index'
 import { calculerAmortissement } from '@/lib/calculs/communs'
 import type { RapportData, LigneAmortissement } from '@/lib/pdf/types'
+import { immeublePdf } from '@/lib/pdf/common/immeuble'
+import { syntheseProjet } from '@/lib/calculs/depuisProjet'
 
 export async function GET(
   _request: Request,
@@ -96,8 +98,13 @@ export async function GET(
             internet: chargesData.internet, chauffage: chargesData.chauffage,
           } }
 
+    // Immeuble détaillé lot par lot : calcul de l'immeuble ; lots encore à chiffrer :
+    // prix et financement seulement (pas de scénario)
+    const immeuble = immeublePdf(project)
     let r: any = null
-    if (loyer > 0) {
+    if (immeuble) {
+      r = immeuble.resultats ?? { ...syntheseProjet(project), scenario: null }
+    } else if (loyer > 0) {
       try { r = calculerScenario(projetData, financementData, chargesData, scenarioInput as any) }
       catch { /* continue without scenario */ }
     }
@@ -135,6 +142,7 @@ export async function GET(
       capitalEmprunte, mensualiteCredit, assuranceMensuelle, mensualiteTotale,
       coutTotalInterets, scenarioResult, tableauAmortissement,
       projectionConservateur, projectionRealiste,
+      immeuble,
     }
 
     registerFonts()

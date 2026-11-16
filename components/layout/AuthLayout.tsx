@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="hidden lg:flex gap-8 flex-wrap relative z-10 tabular-nums">
           <Stat value="200+" label="projets réalisés" />
           <Stat value="30 M€" label="investis" />
-          <Stat value="7 %" label="de rendement moyen" />
+          <Stat value={"7\u00a0%"} label="de rendement moyen" />
         </div>
 
         {/* Cercles décoratifs */}

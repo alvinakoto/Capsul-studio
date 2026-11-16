@@ -1,16 +1,12 @@
 // ============================================================
-// CAPSUL STUDIO — Scénario Colocation
+// CAPSUL STUDIO — Exploitation en colocation (un lot)
 // ============================================================
-// Flux exprimés avant impôt (cf. note dans types.ts).
+// Flux exprimés avant impôt (cf. note dans types.ts). Charges de l'immeuble et
+// crédit : cf. calculerImmeuble (immeuble.ts).
 
-import { DonneesCharges, ParamsColocation, ResultatsScenario } from './types'
+import { ChargesPropresLot, ParamsColocation, ResultatsLot } from './types'
 
-export function calculerColocation(
-  charges: DonneesCharges,
-  params: ParamsColocation,
-  prixProjetTotal: number,
-  mensualiteTotale: number
-): ResultatsScenario {
+export function exploitationColocation(params: ParamsColocation, chargesPropres: ChargesPropresLot): ResultatsLot {
 
   // ── Revenus ──────────────────────────────────────────────────
   const loyerMensuelTotal = params.nbChambres * params.loyerParChambre
@@ -19,45 +15,25 @@ export function calculerColocation(
     revenusAnnuelsBruts * (1 - params.vacancePct / 100)
   )
 
-  // ── Charges annuelles ─────────────────────────────────────────
+  // ── Charges propres au lot ───────────────────────────────────
   // En colocation : fluides souvent à charge bailleur
-  const fraisGestionAnnuels = Math.round(
+  const gestion = Math.round(
     revenusAnnuelsNets * ((params.fraisGestionPct ?? 0) / 100)
   )
-  const chargesAnnuelles =
-    charges.taxeFonciere +
-    charges.chargesCoproAnnuelles +
-    charges.assurancePno +
-    charges.electriciteEau +
-    charges.internet +
-    charges.chauffage +
-    charges.fraisComptabilite +
-    charges.autresCharges +
-    charges.cfe +
-    fraisGestionAnnuels
-
-  // ── Rentabilité ───────────────────────────────────────────────
-  const rentabiliteBrutePct = Math.round(
-    (revenusAnnuelsBruts / prixProjetTotal) * 1000
-  ) / 10
-
-  const rentabiliteNettePct = Math.round(
-    ((revenusAnnuelsNets - chargesAnnuelles) / prixProjetTotal) * 1000
-  ) / 10
-
-  // ── Cash-flow ─────────────────────────────────────────────────
-  const chargesMensuelles = Math.round(chargesAnnuelles / 12)
-  const revenusMensuelsNets = Math.round(revenusAnnuelsNets / 12)
-
-  const cashflowMensuel =
-    revenusMensuelsNets - chargesMensuelles - mensualiteTotale
+  const fluides = chargesPropres.electriciteEau + chargesPropres.internet + chargesPropres.chauffage
+  const chargesAnnuelles = gestion + fluides
 
   return {
+    type: 'colocation',
     revenusAnnuelsBruts,
     revenusAnnuelsNets,
     chargesAnnuelles,
-    rentabiliteBrutePct,
-    rentabiliteNettePct,
-    cashflowMensuel,
+    resultatAnnuel: revenusAnnuelsNets - chargesAnnuelles,
+    detail: {
+      vacance: revenusAnnuelsBruts - revenusAnnuelsNets,
+      conciergerie: 0,
+      gestion,
+      chargesPropres: fluides,
+    },
   }
 }
